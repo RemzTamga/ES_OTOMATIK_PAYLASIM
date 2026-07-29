@@ -1,0 +1,12 @@
+{
+  "name": "es-ops",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ES OPS - Otomatik Paylasim Sistemi",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}

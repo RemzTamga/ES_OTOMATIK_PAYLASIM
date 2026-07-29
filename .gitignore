@@ -1,0 +1,29 @@
+# Node
+node_modules/
+package-lock.json
+
+# Rust / Cargo
+target/
+src-tauri/target/
+
+# Build output
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Tauri generated icons placeholder (actual icons must be added separately)
+src-tauri/icons/*.png
+src-tauri/icons/*.ico
+src-tauri/icons/icon.png
+src-tauri/icons/icon.ico
+
+# Keep .gitkeep
+!src-tauri/icons/.gitkeep
