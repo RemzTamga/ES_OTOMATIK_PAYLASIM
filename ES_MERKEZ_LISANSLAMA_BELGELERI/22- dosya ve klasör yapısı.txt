@@ -1,0 +1,339 @@
+============================================================
+ES LİSANS MERKEZİ
+DOSYA VE KLASÖR YAPISI ŞARTNAMESİ
+============================================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+ES Lisans Merkezi’nin dosya, klasör, yedek, lisans ve güvenlik dosyalarının nerede saklanacağını tanımlamak.
+
+============================================================
+1. TEMEL FELSEFE
+============================================================
+
+Dosya yapısı düzenli, taşınabilir ve yedeklenebilir olacaktır.
+
+Her şey tek klasör mantığıyla yönetilebilmelidir.
+
+============================================================
+2. ANA PROGRAM KLASÖRÜ
+============================================================
+
+Ana klasör:
+
+ES_Lisans_Merkezi
+
+olacaktır.
+
+============================================================
+3. ÖNERİLEN ANA KLASÖR YAPISI
+============================================================
+
+ES_Lisans_Merkezi
+│
+├── app
+├── data
+├── licenses
+├── customers
+├── backups
+├── private_key
+├── logs
+├── exports
+├── temp
+└── config
+
+============================================================
+4. APP KLASÖRÜ
+============================================================
+
+Program dosyalarını içerir.
+
+Örnek:
+
+ES_Lisans_Merkezi.exe
+
+yardımcı dosyalar
+
+arayüz dosyaları
+
+============================================================
+5. DATA KLASÖRÜ
+============================================================
+
+Veritabanı burada tutulur.
+
+Dosya:
+
+es_lisans_merkezi.db
+
+============================================================
+6. LICENSES KLASÖRÜ
+============================================================
+
+Üretilen lisans dosyaları burada saklanır.
+
+============================================================
+7. LICENSES ALT YAPISI
+============================================================
+
+licenses
+│
+├── ES_ON_MUHASEBE
+├── ES_HALI_YIKAMA
+└── ES_SOSYAL_MEDYA
+
+============================================================
+8. ÜRÜN BAZLI AYRIM
+============================================================
+
+Her ürünün lisansları kendi klasöründe saklanabilir.
+
+============================================================
+9. CUSTOMERS KLASÖRÜ
+============================================================
+
+Müşteri bazlı arşiv dosyaları burada tutulur.
+
+============================================================
+10. MÜŞTERİ KLASÖRÜ
+============================================================
+
+Her müşteri için ayrı klasör oluşturulabilir.
+
+Örnek:
+
+customers
+└── MUS-000001_ABC_Zuccaciye
+
+============================================================
+11. MÜŞTERİ KLASÖRÜ İÇERİĞİ
+============================================================
+
+licenses
+
+notes
+
+documents
+
+exports
+
+============================================================
+12. MÜŞTERİ LİSANS ARŞİVİ
+============================================================
+
+Her müşteriye üretilen license.lic dosyaları müşteri klasöründe de saklanabilir.
+
+Örnek:
+
+customers
+└── MUS-000001_ABC_Zuccaciye
+    └── licenses
+        ├── LIC-20260619-000001.lic
+        └── LIC-20260801-000014.lic
+
+============================================================
+13. BACKUPS KLASÖRÜ
+============================================================
+
+Program yedekleri burada saklanır.
+
+============================================================
+14. BACKUP DOSYA ADI
+============================================================
+
+Örnek:
+
+ESLM_BACKUP_2026_06_19_153000.zip
+
+============================================================
+15. PRIVATE KEY KLASÖRÜ
+============================================================
+
+Private Key ile ilgili şifreli dosyalar burada tutulur.
+
+============================================================
+16. PRIVATE KEY DÜZ METİN YASAĞI
+============================================================
+
+Private Key hiçbir zaman düz metin olarak saklanmayacaktır.
+
+============================================================
+17. PRIVATE KEY YEDEK DOSYASI
+============================================================
+
+Örnek:
+
+private_key_backup.enc
+
+============================================================
+18. LOGS KLASÖRÜ
+============================================================
+
+Program logları burada tutulur.
+
+Örnek:
+
+app.log
+
+error.log
+
+security.log
+
+============================================================
+19. EXPORTS KLASÖRÜ
+============================================================
+
+CSV, JSON ve benzeri dışa aktarımlar burada tutulur.
+
+============================================================
+20. TEMP KLASÖRÜ
+============================================================
+
+Geçici dosyalar burada tutulur.
+
+Program kapanırken temizlenebilir.
+
+============================================================
+21. CONFIG KLASÖRÜ
+============================================================
+
+Ayar dosyaları burada tutulur.
+
+============================================================
+22. CONFIG DOSYALARI
+============================================================
+
+settings.json
+
+trusted_device.json
+
+ui_settings.json
+
+============================================================
+23. DOSYA ADI GÜVENLİĞİ
+============================================================
+
+Dosya adlarında özel karakterler temizlenmelidir.
+
+Örnek:
+
+ABC Züccaciye
+
+klasör adı:
+
+ABC_Zuccaciye
+
+olabilir.
+
+============================================================
+24. LICENSE.LIC DOSYA ADI
+============================================================
+
+Kaydedilen lisans dosyası müşteri için anlaşılır olmalıdır.
+
+Örnek:
+
+LIC-20260619-000001_ES_ON_MUHASEBE_ABC_Zuccaciye.lic
+
+============================================================
+25. OTOMATİK KLASÖR OLUŞTURMA
+============================================================
+
+Program ilk açılışta gerekli klasörleri otomatik oluşturmalıdır.
+
+============================================================
+26. EKSİK KLASÖR
+============================================================
+
+Klasör eksikse program hata vermeden yeniden oluşturmalıdır.
+
+============================================================
+27. TAŞINABİLİRLİK
+============================================================
+
+Program başka bilgisayara taşınabilir olmalıdır.
+
+Veritabanı, yedekler ve lisans arşivi klasör yapısı korunmalıdır.
+
+============================================================
+28. YEDEKLEME İLİŞKİSİ
+============================================================
+
+Tam sistem yedeği şu klasörleri kapsayabilir:
+
+data
+
+licenses
+
+customers
+
+config
+
+logs
+
+Private Key ayrı yedeklenmelidir.
+
+============================================================
+29. PRIVATE KEY AYRI YEDEK
+============================================================
+
+Private Key genel yedeğe otomatik dahil edilmemelidir.
+
+Ayrı ve şifreli yedek alınmalıdır.
+
+============================================================
+30. DOSYA SİLME KURALI
+============================================================
+
+Lisans dosyaları otomatik silinmemelidir.
+
+============================================================
+31. GEÇMİŞ KORUMA
+============================================================
+
+Eski lisans dosyaları saklanmalıdır.
+
+============================================================
+32. TEMP TEMİZLEME
+============================================================
+
+Geçici dosyalar temizlenebilir.
+
+============================================================
+33. EXPORT TEMİZLEME
+============================================================
+
+Dışa aktarılan dosyalar kullanıcı isteği dışında silinmemelidir.
+
+============================================================
+34. KABUL KRİTERLERİ
+============================================================
+
+TEST 1
+Program ilk açılışta klasörleri oluşturmalıdır.
+
+TEST 2
+Veritabanı data klasöründe tutulmalıdır.
+
+TEST 3
+Lisans dosyaları licenses klasöründe saklanmalıdır.
+
+TEST 4
+Müşteri arşiv klasörü oluşturulabilmelidir.
+
+TEST 5
+Yedekler backups klasöründe tutulmalıdır.
+
+TEST 6
+Private Key düz metin saklanmamalıdır.
+
+TEST 7
+Eksik klasörler yeniden oluşturulmalıdır.
+
+TEST 8
+Dosya yapısı taşınabilir olmalıdır.

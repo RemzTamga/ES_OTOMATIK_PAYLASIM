@@ -1,0 +1,455 @@
+16_GECICI_LISANS_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+GEÇİCİ LİSANS MODÜLÜ ŞARTNAMESİ
+===============================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül müşterinin çalışmasının durmaması için belirli süreli geçici lisanslar üretmek amacıyla tasarlanmıştır.
+
+Geçici lisanslar:
+
+Kalıcı lisans yerine geçmez.
+
+Acil durum çözümü sağlar.
+
+============================================================
+
+1. TEMEL FELSEFE
+   ============================================================
+
+Müşteri bazen:
+
+* Disk arızası yaşar
+* Bilgisayar değiştirir
+* Format atar
+* Lisans dosyasını kaybeder
+* Teknik destek bekler
+
+Bu gibi durumlarda müşterinin işi durmamalıdır.
+
+============================================================
+2. GEÇİCİ LİSANS TANIMI
+=======================
+
+Geçici lisans:
+
+Belirli süre sonunda otomatik sona eren lisanstır.
+
+============================================================
+3. LİSANS TİPİ
+==============
+
+Sistem içerisinde:
+
+TEMPORARY
+
+olarak saklanacaktır.
+
+============================================================
+4. KULLANIM AMAÇLARI
+====================
+
+Disk Arızası
+
+Bilgisayar Değişimi
+
+Format Sonrası Bekleme
+
+Destek Süreci
+
+Özel Durumlar
+
+============================================================
+5. GEÇİCİ LİSANS ÜRETİMİ
+========================
+
+Lisans Kartı
+
+veya
+
+Lisans Üret Ekranı
+
+üzerinden oluşturulabilir.
+
+============================================================
+6. STANDART SÜRELER
+===================
+
+1 Gün
+
+3 Gün
+
+7 Gün
+
+15 Gün
+
+30 Gün
+
+============================================================
+7. ÖZEL SÜRE
+============
+
+Yetkili kullanıcı isterse özel süre girebilir.
+
+============================================================
+8. BAŞLANGIÇ TARİHİ
+===================
+
+Varsayılan:
+
+Bugün
+
+============================================================
+9. BİTİŞ TARİHİ
+===============
+
+Süreye göre otomatik hesaplanmalıdır.
+
+============================================================
+10. GEÇİCİ LİSANS AKIŞI
+=======================
+
+Müşteri
+
+↓
+
+Machine ID
+
+↓
+
+Geçici Lisans
+
+↓
+
+license.lic
+
+↓
+
+Kullanım
+
+============================================================
+11. MACHINE ID ZORUNLULUĞU
+==========================
+
+Geçici lisanslar da makineye bağlıdır.
+
+============================================================
+12. MAKİNESİZ GEÇİCİ LİSANS
+===========================
+
+Üretilmemelidir.
+
+============================================================
+13. LİSANS DOSYASI
+==================
+
+Normal lisans ile aynı yapıda olacaktır.
+
+============================================================
+14. FARK
+========
+
+license_type
+
+alanı:
+
+TEMPORARY
+
+olacaktır.
+
+============================================================
+15. SÜRE SONU
+=============
+
+Süre sonunda lisans sona erer.
+
+============================================================
+16. PROGRAM DAVRANIŞI
+=====================
+
+Geçici lisans süresi dolunca:
+
+Program kilit ekranına döner.
+
+============================================================
+17. VERİ KORUMA
+===============
+
+Veriler silinmez.
+
+============================================================
+18. KİLİTLENEN MODÜLLER
+=======================
+
+Normal demo bitiş mantığı uygulanır.
+
+============================================================
+19. KALICI LİSANSA GEÇİŞ
+========================
+
+Geçici lisans devam ederken:
+
+Kalıcı lisans yüklenebilir.
+
+============================================================
+20. KALICI LİSANS YÜKLENİNCE
+============================
+
+Geçici lisans devreden çıkar.
+
+============================================================
+21. TEKRAR GEÇİCİ LİSANS
+========================
+
+Sistem izin vermelidir.
+
+Karar kullanıcıya bırakılır.
+
+============================================================
+22. OTOMATİK ENGELLEME YOK
+==========================
+
+İlk sürümde:
+
+"Bu müşteriye çok geçici lisans verildi"
+
+şeklinde otomatik engel olmayacaktır.
+
+============================================================
+23. UYARI SİSTEMİ
+=================
+
+Ancak bilgi amaçlı uyarı gösterilebilir.
+
+============================================================
+24. ÖRNEK UYARI
+===============
+
+Bu müşteriye son 90 gün içinde
+4 adet geçici lisans verilmiştir.
+
+============================================================
+25. DESTEK LİSANSI
+==================
+
+SUPPORT tipi lisans oluşturulabilir.
+
+============================================================
+26. SUPPORT LİSANSI AMACI
+=========================
+
+Teknik destek sırasında kullanılır.
+
+============================================================
+27. SUPPORT LİSANSI SÜRESİ
+==========================
+
+Kullanıcı tarafından belirlenebilir.
+
+============================================================
+28. GEÇİCİ LİSANS GEÇMİŞİ
+=========================
+
+Her geçici lisans kayıt altına alınmalıdır.
+
+============================================================
+29. GEÇMİŞ KAYDI ÖRNEĞİ
+=======================
+
+7 günlük geçici lisans üretildi.
+
+============================================================
+30. GEÇMİŞ ALANLARI
+===================
+
+Tarih
+
+Saat
+
+Müşteri
+
+Ürün
+
+Machine ID
+
+Süre
+
+Açıklama
+
+============================================================
+31. GEÇİCİ LİSANS NEDENİ
+========================
+
+Seçilebilmelidir.
+
+============================================================
+32. NEDENLER
+============
+
+Disk Arızası
+
+Yeni Bilgisayar
+
+Format
+
+Bekleme Süreci
+
+Destek Süreci
+
+Diğer
+
+============================================================
+33. AÇIKLAMA ALANI
+==================
+
+Serbest metin girilebilir.
+
+============================================================
+34. AÇIKLAMA ÖRNEĞİ
+===================
+
+Yeni SSD bekleniyor.
+
+============================================================
+35. MÜŞTERİ KARTI ENTEGRASYONU
+==============================
+
+Müşteri kartından:
+
+Geçici Lisans Ver
+
+butonu bulunmalıdır.
+
+============================================================
+36. LİSANS KARTI ENTEGRASYONU
+=============================
+
+Lisans kartından:
+
+Geçici Lisans Oluştur
+
+butonu bulunmalıdır.
+
+============================================================
+37. FİLTRELER
+=============
+
+1 Günlük
+
+3 Günlük
+
+7 Günlük
+
+15 Günlük
+
+30 Günlük
+
+Süresi Dolmuş
+
+============================================================
+38. SÜRESİ DOLMUŞ LİSANSLAR
+===========================
+
+Filtrelenebilmelidir.
+
+============================================================
+39. EXPIRED DURUMU
+==================
+
+Süresi dolmuş geçici lisanslar:
+
+EXPIRED
+
+durumuna geçebilir.
+
+============================================================
+40. RAPOR AMAÇLI KULLANIM
+=========================
+
+İleride:
+
+En çok geçici lisans verilen müşteriler
+
+raporlanabilir.
+
+============================================================
+41. KÖTÜYE KULLANIM TAKİBİ
+==========================
+
+İlk sürümde yalnızca bilgi amaçlıdır.
+
+============================================================
+42. OTOMATİK KARAR YOK
+======================
+
+Geçici lisans verme kararı geliştiriciye aittir.
+
+============================================================
+43. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+1 günlük geçici lisans üretilebilmelidir.
+
+---
+
+TEST 2
+
+3 günlük geçici lisans üretilebilmelidir.
+
+---
+
+TEST 3
+
+7 günlük geçici lisans üretilebilmelidir.
+
+---
+
+TEST 4
+
+30 günlük geçici lisans üretilebilmelidir.
+
+---
+
+TEST 5
+
+Machine ID zorunlu olmalıdır.
+
+---
+
+TEST 6
+
+Süre sonunda lisans sona ermelidir.
+
+---
+
+TEST 7
+
+Veriler silinmemelidir.
+
+---
+
+TEST 8
+
+Kalıcı lisans yüklenebilmelidir.
+
+---
+
+TEST 9
+
+Geçmiş kayıtları oluşturulmalıdır.
+
+---
+
+TEST 10
+
+Geçici lisans nedenleri kayıt altına alınmalıdır.

@@ -1,0 +1,480 @@
+10_LISANS_GECMISI_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+LİSANS GEÇMİŞİ MODÜLÜ ŞARTNAMESİ
+================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül sistemde yapılan tüm lisans işlemlerinin kayıt altına alınmasını sağlar.
+
+Amaç:
+
+Kim?
+
+Ne zaman?
+
+Hangi müşteri için?
+
+Hangi lisansı?
+
+Neden?
+
+oluşturdu, değiştirdi veya taşıdı sorularına cevap verebilmektir.
+
+Bu modül yıllar sonra bile geçmişi inceleyebilmek için tasarlanmıştır.
+
+============================================================
+
+1. TEMEL FELSEFE
+   ============================================================
+
+Hiçbir lisans işlemi kayıtsız kalmamalıdır.
+
+Sistemde yapılan önemli işlemler otomatik olarak geçmişe yazılmalıdır.
+
+============================================================
+2. MODÜL AMACI
+==============
+
+Lisans Geçmişi modülü:
+
+Denetim ekranıdır.
+
+============================================================
+3. EKRAN AÇILIŞI
+================
+
+Geçmiş menüsüne basıldığında açılır.
+
+============================================================
+4. EKRAN YAPISI
+===============
+
+Üst Araç Çubuğu
+
+↓
+
+Filtre Alanı
+
+↓
+
+Geçmiş Tablosu
+
+============================================================
+5. ÜST ARAÇ ÇUBUĞU
+==================
+
+Kayıt Ara
+
+Yenile
+
+Dışa Aktar
+
+============================================================
+6. ARAMA
+========
+
+Aşağıdaki alanlarda arama yapılabilmelidir.
+
+License ID
+
+Müşteri Adı
+
+Firma Adı
+
+Machine ID
+
+Telefon
+
+Ürün
+
+============================================================
+7. GEÇMİŞ TABLOSU
+=================
+
+Tüm kayıtlar tabloda listelenmelidir.
+
+============================================================
+8. TABLO SÜTUNLARI
+==================
+
+Tarih
+
+Saat
+
+İşlem Türü
+
+Müşteri
+
+Firma
+
+Ürün
+
+License ID
+
+Açıklama
+
+============================================================
+9. TARİH
+========
+
+İşlemin gerçekleştiği gün.
+
+============================================================
+10. SAAT
+========
+
+İşlemin gerçekleştiği saat.
+
+============================================================
+11. İŞLEM TÜRÜ
+==============
+
+Olay tipi.
+
+============================================================
+12. AÇIKLAMA
+============
+
+İşlemin detay bilgisidir.
+
+============================================================
+13. OTOMATİK KAYIT KURALI
+=========================
+
+Aşağıdaki işlemler otomatik kayıt oluşturmalıdır.
+
+============================================================
+14. LİSANS ÜRETİLDİ
+===================
+
+Yeni lisans üretildiğinde kayıt oluşturulur.
+
+Örnek:
+
+ES Ön Muhasebe lisansı üretildi.
+
+============================================================
+15. LİSANS TEKRAR OLUŞTURULDU
+=============================
+
+Mevcut lisans yeniden oluşturuldu.
+
+============================================================
+16. LİSANS TEKRAR GÖNDERİLDİ
+============================
+
+Müşteriye lisans tekrar verildi.
+
+============================================================
+17. LİSANS TAŞINDI
+==================
+
+Yeni bilgisayara taşıma işlemi yapıldı.
+
+============================================================
+18. GEÇİCİ LİSANS VERİLDİ
+=========================
+
+TEMPORARY lisans oluşturuldu.
+
+============================================================
+19. DESTEK LİSANSI VERİLDİ
+==========================
+
+SUPPORT lisansı oluşturuldu.
+
+============================================================
+20. LİSANS İPTAL EDİLDİ
+=======================
+
+Durum CANCELLED yapıldı.
+
+============================================================
+21. LİSANS DURUMU DEĞİŞTİ
+=========================
+
+ACTIVE
+
+SUSPENDED
+
+BLACKLISTED
+
+TRANSFERRED
+
+EXPIRED
+
+CANCELLED
+
+değişiklikleri kayıt altına alınmalıdır.
+
+============================================================
+22. MÜŞTERİ EKLENDİ
+===================
+
+Yeni müşteri oluşturuldu.
+
+============================================================
+23. MÜŞTERİ DÜZENLENDİ
+======================
+
+Müşteri bilgileri güncellendi.
+
+============================================================
+24. MÜŞTERİ PASİF YAPILDI
+=========================
+
+Pasif duruma alındı.
+
+============================================================
+25. ÜRÜN EKLENDİ
+================
+
+Yeni ürün oluşturuldu.
+
+============================================================
+26. ÜRÜN PASİF YAPILDI
+======================
+
+Ürün pasif duruma geçirildi.
+
+============================================================
+27. PRIVATE KEY YEDEĞİ ALINDI
+=============================
+
+Kayıt oluşturulmalıdır.
+
+============================================================
+28. PRIVATE KEY GERİ YÜKLENDİ
+=============================
+
+Kayıt oluşturulmalıdır.
+
+============================================================
+29. MANUEL YEDEK ALINDI
+=======================
+
+Kayıt oluşturulmalıdır.
+
+============================================================
+30. OTOMATİK YEDEK ALINDI
+=========================
+
+Kayıt oluşturulmalıdır.
+
+============================================================
+31. GÜVENLİK OLAYLARI
+=====================
+
+İleride desteklenebilir.
+
+============================================================
+32. GÜVENLİK ÖRNEKLERİ
+======================
+
+Yanlış lisans denemesi
+
+Geçersiz imza
+
+Machine ID uyuşmazlığı
+
+============================================================
+33. GELECEKTEKİ ONLINE OLAYLAR
+==============================
+
+İleride:
+
+Uygunsuz kullanım bildirimi
+
+Kara liste işlemi
+
+Sunucu senkronizasyonu
+
+olayları da kaydedilebilir.
+
+============================================================
+34. TARİHÇE KORUMA KURALI
+=========================
+
+Geçmiş kayıtları silinmez.
+
+============================================================
+35. DÜZENLEME YASAĞI
+====================
+
+Geçmiş kayıtları sonradan düzenlenemez.
+
+============================================================
+36. DEĞİŞTİRME YASAĞI
+=====================
+
+Oluşturulan geçmiş kaydı değiştirilemez.
+
+============================================================
+37. SİLME YASAĞI
+================
+
+Geçmiş kayıtları silinemez.
+
+============================================================
+38. AMAÇ
+========
+
+Denetlenebilirlik sağlamaktır.
+
+============================================================
+39. TARİHE GÖRE FİLTRE
+======================
+
+Bugün
+
+Bu Hafta
+
+Bu Ay
+
+Bu Yıl
+
+Tüm Zamanlar
+
+============================================================
+40. İŞLEM TÜRÜNE GÖRE FİLTRE
+============================
+
+Lisans İşlemleri
+
+Müşteri İşlemleri
+
+Ürün İşlemleri
+
+Yedekleme İşlemleri
+
+Güvenlik İşlemleri
+
+============================================================
+41. MÜŞTERİYE GÖRE FİLTRE
+=========================
+
+Belirli müşterinin geçmişi görüntülenebilir.
+
+============================================================
+42. LICENSE ID FİLTRESİ
+=======================
+
+Belirli lisansın tüm geçmişi görüntülenebilir.
+
+============================================================
+43. LİSANS KARTI ENTEGRASYONU
+=============================
+
+Lisans kartından:
+
+Geçmişi Gör
+
+butonu bulunmalıdır.
+
+============================================================
+44. MÜŞTERİ KARTI ENTEGRASYONU
+==============================
+
+Müşteri kartından:
+
+Geçmişi Gör
+
+butonu bulunmalıdır.
+
+============================================================
+45. EXPORT
+==========
+
+CSV
+
+JSON
+
+olarak dışa aktarılabilir.
+
+============================================================
+46. YAZDIRMA
+============
+
+İlk sürümde zorunlu değildir.
+
+============================================================
+47. MUHASEBE YASAĞI
+===================
+
+Bu modül muhasebe amaçlı değildir.
+
+============================================================
+48. PERFORMANS KURALI
+=====================
+
+Binlerce kayıt olsa bile filtreleme hızlı çalışmalıdır.
+
+============================================================
+49. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Lisans üretimi kayıt oluşturmalıdır.
+
+---
+
+TEST 2
+
+Lisans taşıma kayıt oluşturmalıdır.
+
+---
+
+TEST 3
+
+Geçici lisans kayıt oluşturmalıdır.
+
+---
+
+TEST 4
+
+Müşteri işlemleri kayıt oluşturmalıdır.
+
+---
+
+TEST 5
+
+Yedekleme işlemleri kayıt oluşturmalıdır.
+
+---
+
+TEST 6
+
+Geçmiş kayıtları silinememelidir.
+
+---
+
+TEST 7
+
+Geçmiş kayıtları düzenlenememelidir.
+
+---
+
+TEST 8
+
+Filtreleme çalışmalıdır.
+
+---
+
+TEST 9
+
+License ID üzerinden geçmiş görüntülenebilmelidir.
+
+---
+
+TEST 10
+
+Müşteri geçmişi görüntülenebilmelidir.

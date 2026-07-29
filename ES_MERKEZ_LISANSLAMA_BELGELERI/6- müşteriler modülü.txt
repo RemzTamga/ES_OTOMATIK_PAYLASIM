@@ -1,0 +1,508 @@
+06_MUSTERILER_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+MÜŞTERİLER MODÜLÜ ŞARTNAMESİ
+============================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül tüm müşteri kayıtlarının tutulduğu merkez modüldür.
+
+Bir müşteri:
+
+* Birden fazla program satın alabilir
+* Birden fazla lisans sahibi olabilir
+* Birden fazla bilgisayarda lisans kullanabilir
+
+Bu nedenle sistemin temel modüllerinden biridir.
+
+============================================================
+
+1. MODÜL AMACI
+   ============================================================
+
+Müşteriler modülü:
+
+Müşteri kaydı oluşturur
+
+Müşteri bilgilerini saklar
+
+Müşterinin lisanslarını gösterir
+
+Müşterinin ödeme durumunu gösterir
+
+Müşterinin geçmiş işlemlerini gösterir
+
+============================================================
+2. MÜŞTERİ LİSTESİ
+==================
+
+Müşteriler ekranı açıldığında:
+
+müşteri listesi görüntülenmelidir.
+
+============================================================
+3. ÜST ARAÇ ÇUBUĞU
+==================
+
+Üst bölümde:
+
+Müşteri Ara
+
+Yeni Müşteri
+
+Yenile
+
+butonları bulunmalıdır.
+
+============================================================
+4. ARAMA
+========
+
+Aşağıdaki alanlarda arama yapılabilmelidir:
+
+Ad Soyad
+
+Firma Adı
+
+Telefon
+
+E-posta
+
+============================================================
+5. MÜŞTERİ TABLOSU
+==================
+
+Tabloda aşağıdaki sütunlar bulunmalıdır.
+
+Müşteri No
+
+Ad Soyad
+
+Firma Adı
+
+Telefon
+
+Aktif Lisans Sayısı
+
+Toplam Lisans Sayısı
+
+Kalan Bakiye
+
+Son İşlem Tarihi
+
+Durum
+
+============================================================
+6. MÜŞTERİ NUMARASI
+===================
+
+Her müşteri benzersiz müşteri numarasına sahip olmalıdır.
+
+Örnek:
+
+MUS-000001
+
+MUS-000002
+
+============================================================
+7. YENİ MÜŞTERİ
+===============
+
+Yeni müşteri oluşturulabilmelidir.
+
+============================================================
+8. ZORUNLU ALANLAR
+==================
+
+Ad Soyad
+
+Telefon
+
+============================================================
+9. OPSİYONEL ALANLAR
+====================
+
+Firma Adı
+
+E-posta
+
+Adres
+
+Vergi No
+
+Vergi Dairesi
+
+TC Kimlik No
+
+Notlar
+
+============================================================
+10. MÜŞTERİ DURUMU
+==================
+
+Durum seçenekleri:
+
+Aktif
+
+Pasif
+
+============================================================
+11. SİLME KURALI
+================
+
+Müşteri doğrudan silinmeyecektir.
+
+Pasif yapılacaktır.
+
+============================================================
+12. MÜŞTERİ KARTI
+=================
+
+Müşteri satırına çift tıklanınca:
+
+Müşteri Kartı
+
+açılacaktır.
+
+============================================================
+13. MÜŞTERİ KARTI BÖLÜMLERİ
+===========================
+
+Genel Bilgiler
+
+Lisanslar
+
+Ödeme Bilgileri
+
+Geçmiş İşlemler
+
+Notlar
+
+============================================================
+14. GENEL BİLGİLER
+==================
+
+Müşteri No
+
+Ad Soyad
+
+Firma Adı
+
+Telefon
+
+E-posta
+
+Adres
+
+Durum
+
+============================================================
+15. LİSANSLAR SEKME
+===================
+
+Bu müşteriye ait tüm lisanslar gösterilecektir.
+
+============================================================
+16. LİSANS TABLOSU
+==================
+
+Lisans ID
+
+Ürün
+
+Machine ID
+
+Lisans Tipi
+
+Durum
+
+Üretim Tarihi
+
+============================================================
+17. ÇOKLU LİSANS
+================
+
+Aynı müşteri:
+
+Birden fazla lisans sahibi olabilir.
+
+Örnek:
+
+ES Ön Muhasebe
+
+ES Halı Yıkama
+
+ES Sosyal Medya
+
+============================================================
+18. AYNI PROGRAM İÇİN ÇOKLU LİSANS
+==================================
+
+Aynı müşteri:
+
+aynı program için
+
+birden fazla lisans alabilir.
+
+Örnek:
+
+Mağaza Bilgisayarı
+
+Muhasebe Bilgisayarı
+
+============================================================
+19. ÖDEME TAKİBİ
+================
+
+Bu modül muhasebe sistemi değildir.
+
+Kasa tutulmayacaktır.
+
+============================================================
+20. ÖDEME AMACI
+===============
+
+Amaç sadece:
+
+Kim ne kadar ödedi?
+
+Ne kadar kaldı?
+
+sorusuna cevap vermektir.
+
+============================================================
+21. ÖDEME BİLGİLERİ
+===================
+
+Satış Bedeli
+
+Ödenen Tutar
+
+Kalan Tutar
+
+Son Ödeme Tarihi
+
+============================================================
+22. ÖDEME DURUMU
+================
+
+Ödendi
+
+Kısmi Ödendi
+
+Bekliyor
+
+============================================================
+23. SATIŞ BEDELİ
+================
+
+Örnek:
+
+3.500 TL
+
+============================================================
+24. ÖDENEN TUTAR
+================
+
+Örnek:
+
+2.000 TL
+
+============================================================
+25. KALAN TUTAR
+===============
+
+Örnek:
+
+1.500 TL
+
+============================================================
+26. BORÇ NEDENİYLE LİSANS KAPATMA
+=================================
+
+Varsayılan sistemde:
+
+borç nedeniyle
+
+lisans kapatılmayacaktır.
+
+============================================================
+27. BORÇ GÖSTERİMİ
+==================
+
+Kalan borç sadece bilgi amaçlı gösterilecektir.
+
+============================================================
+28. GEÇMİŞ İŞLEMLER
+===================
+
+Müşteri ile ilgili tüm işlemler listelenecektir.
+
+============================================================
+29. GEÇMİŞ KAYITLARI
+====================
+
+Örnek:
+
+Lisans üretildi
+
+Lisans tekrar gönderildi
+
+Lisans taşındı
+
+Geçici lisans verildi
+
+Ödeme girildi
+
+Not eklendi
+
+============================================================
+30. TARİHÇE SİLİNMEYECEKTİR
+===========================
+
+Geçmiş kayıtları korunacaktır.
+
+============================================================
+31. NOTLAR ALANI
+================
+
+Serbest metin alanı bulunacaktır.
+
+============================================================
+32. NOT ÖRNEKLERİ
+=================
+
+Uzun süredir müşteri
+
+İndirim uygulandı
+
+Telefonla görüşüldü
+
+Disk arızası nedeniyle lisans taşındı
+
+============================================================
+33. LİSANS OLUŞTURMA KISAYOLU
+=============================
+
+Müşteri kartından:
+
+Yeni Lisans Oluştur
+
+butonu bulunmalıdır.
+
+============================================================
+34. LİSANS LİSTESİNE GİT
+========================
+
+Müşteri kartından:
+
+Lisansları Gör
+
+butonu bulunmalıdır.
+
+============================================================
+35. TEKRAR GÖNDER
+=================
+
+Müşteri kartından:
+
+Lisansı Tekrar Gönder
+
+işlemi yapılabilmelidir.
+
+============================================================
+36. MÜŞTERİ BİRLEŞTİRME
+=======================
+
+İlk sürümde zorunlu değildir.
+
+============================================================
+37. DOSYA EKLERİ
+================
+
+İlk sürümde zorunlu değildir.
+
+============================================================
+38. SIRALAMA
+============
+
+Müşteriler:
+
+Ada göre
+
+Firmaya göre
+
+Son işleme göre
+
+sıralanabilmelidir.
+
+============================================================
+39. FİLTRELER
+=============
+
+Aktif
+
+Pasif
+
+Borcu Olanlar
+
+Lisansı Olanlar
+
+filtrelenebilmelidir.
+
+============================================================
+40. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Yeni müşteri oluşturulabilmelidir.
+
+---
+
+TEST 2
+
+Müşteri aranabilmelidir.
+
+---
+
+TEST 3
+
+Müşteri kartı açılabilmelidir.
+
+---
+
+TEST 4
+
+Müşterinin tüm lisansları görülebilmelidir.
+
+---
+
+TEST 5
+
+Ödeme bilgileri görüntülenebilmelidir.
+
+---
+
+TEST 6
+
+Bir müşteri birden fazla lisans sahibi olabilmelidir.
+
+---
+
+TEST 7
+
+Borç bilgisi görüntülenmeli ancak lisans otomatik kapanmamalıdır.
+
+---
+
+TEST 8
+
+Geçmiş işlemler saklanmalıdır.

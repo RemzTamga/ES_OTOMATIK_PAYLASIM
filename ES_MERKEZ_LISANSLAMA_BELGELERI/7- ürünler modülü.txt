@@ -1,0 +1,415 @@
+07_URUNLER_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+ÜRÜNLER MODÜLÜ ŞARTNAMESİ
+=========================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül ES Lisans Merkezi içerisinde lisans üretilebilecek tüm yazılımların tanımlandığı modüldür.
+
+Bu modül sayesinde:
+
+* Yeni ürün eklenebilir
+* Ürün düzenlenebilir
+* Ürün pasife alınabilir
+* Lisans üretiminde kullanılacak Product Code'lar yönetilebilir
+
+============================================================
+
+1. MODÜL AMACI
+   ============================================================
+
+Ürünler Modülü:
+
+ES yazılımlarının merkez kayıt alanıdır.
+
+Lisans üretimi sırasında kullanılacak tüm ürünler burada tanımlanacaktır.
+
+============================================================
+2. TEMEL FELSEFE
+================
+
+Her yazılım benzersizdir.
+
+Her yazılımın:
+
+Product Code
+
+değeri benzersiz olmak zorundadır.
+
+============================================================
+3. VARSAYILAN ÜRÜNLER
+=====================
+
+Sistem ilk kurulumda aşağıdaki ürünlerle gelir.
+
+ES Ön Muhasebe
+
+ES Halı Yıkama
+
+ES Sosyal Medya Otomasyonu
+
+============================================================
+4. VARSAYILAN PRODUCT CODE'LAR
+==============================
+
+ES Ön Muhasebe
+
+ES_ON_MUHASEBE
+
+---
+
+ES Halı Yıkama
+
+ES_HALI_YIKAMA
+
+---
+
+ES Sosyal Medya Otomasyonu
+
+ES_SOSYAL_MEDYA
+
+============================================================
+5. ÜRÜN EKLEME
+==============
+
+Yeni ürün eklenebilir.
+
+============================================================
+6. YENİ ÜRÜN ALANLARI
+=====================
+
+Ürün Adı
+
+Product Code
+
+Açıklama
+
+Durum
+
+============================================================
+7. ÜRÜN ADI
+===========
+
+Kullanıcının göreceği isimdir.
+
+Örnek:
+
+ES Ön Muhasebe
+
+============================================================
+8. PRODUCT CODE
+===============
+
+Sistem içindeki benzersiz kimliktir.
+
+Örnek:
+
+ES_ON_MUHASEBE
+
+============================================================
+9. PRODUCT CODE KURALI
+======================
+
+Aynı Product Code ikinci kez oluşturulamaz.
+
+============================================================
+10. PRODUCT CODE DEĞİŞTİRME
+===========================
+
+Ürüne ait lisans üretilmişse:
+
+Product Code değiştirilemez.
+
+============================================================
+11. DURUM
+=========
+
+Aktif
+
+Pasif
+
+============================================================
+12. PASİF ÜRÜN
+==============
+
+Pasif ürün:
+
+Yeni lisans üretiminde görünmez.
+
+============================================================
+13. PASİF ÜRÜN GEÇMİŞİ
+======================
+
+Eski lisanslar korunur.
+
+Hiçbir lisans silinmez.
+
+============================================================
+14. ÜRÜN SİLME KURALI
+=====================
+
+Ürün doğrudan silinmez.
+
+Pasife alınır.
+
+============================================================
+15. ÜRÜN LİSTESİ
+================
+
+Ürünler ekranında tablo bulunacaktır.
+
+============================================================
+16. ÜRÜN TABLOSU
+================
+
+Ürün Adı
+
+Product Code
+
+Toplam Lisans
+
+Aktif Lisans
+
+Durum
+
+Oluşturma Tarihi
+
+============================================================
+17. TOPLAM LİSANS
+=================
+
+Bu ürün için üretilmiş tüm lisans sayısıdır.
+
+============================================================
+18. AKTİF LİSANS
+================
+
+Aktif durumdaki lisans sayısıdır.
+
+============================================================
+19. ÜRÜN KARTI
+==============
+
+Ürün satırına çift tıklanınca:
+
+Ürün Kartı
+
+açılacaktır.
+
+============================================================
+20. ÜRÜN KARTI BÖLÜMLERİ
+========================
+
+Genel Bilgiler
+
+Lisans İstatistikleri
+
+Ürün Notları
+
+============================================================
+21. GENEL BİLGİLER
+==================
+
+Ürün Adı
+
+Product Code
+
+Durum
+
+Açıklama
+
+============================================================
+22. ÜRÜN NOTLARI
+================
+
+Ürüne özel notlar tutulabilir.
+
+Örnek:
+
+Beta sürüm
+
+Satışı durduruldu
+
+Yeni sürüm hazırlanıyor
+
+============================================================
+23. ÜRÜN İSTATİSTİKLERİ
+=======================
+
+Toplam Lisans
+
+Aktif Lisans
+
+İptal Lisans
+
+Taşınan Lisans
+
+Geçici Lisans
+
+============================================================
+24. YENİ ES PROGRAMLARI
+=======================
+
+İleride sisteme yeni ürünler eklenebilir.
+
+Örnek:
+
+ES CRM
+
+ES Servis Takip
+
+ES Teknik Servis
+
+ES Randevu Sistemi
+
+============================================================
+25. ÜRÜN BAĞIMSIZLIĞI
+=====================
+
+Her ürün kendi lisans sistemine sahiptir.
+
+============================================================
+26. LİSANS AYRIŞTIRMA
+=====================
+
+ES Ön Muhasebe lisansı:
+
+ES Halı Yıkama'da çalışamaz.
+
+---
+
+ES Halı Yıkama lisansı:
+
+ES Sosyal Medya'da çalışamaz.
+
+============================================================
+27. PRODUCT CODE KONTROLÜ
+=========================
+
+Lisans doğrulama sırasında:
+
+Product Code
+
+zorunlu olarak kontrol edilmelidir.
+
+============================================================
+28. GELECEKTEKİ SÜRÜM TAKİBİ
+============================
+
+İlk sürümde zorunlu değildir.
+
+Ancak ürün kartında ileride:
+
+Sürüm Takibi
+
+eklenebilecek alan bırakılabilir.
+
+============================================================
+29. DESTEK SÜRESİ
+=================
+
+İlk sürümde ürün bazında zorunlu değildir.
+
+Lisans bazında yönetilecektir.
+
+============================================================
+30. LİSANS ÜRET EKRANI ENTEGRASYONU
+===================================
+
+Lisans üretme ekranındaki:
+
+Ürün Seç
+
+alanı bu modülden beslenmelidir.
+
+============================================================
+31. PASİF ÜRÜN KORUMASI
+=======================
+
+Pasif ürün için:
+
+Yeni lisans üretilemez.
+
+============================================================
+32. ÜRÜN ARAMA
+==============
+
+Aşağıdaki alanlarda arama yapılabilir:
+
+Ürün Adı
+
+Product Code
+
+============================================================
+33. FİLTRELER
+=============
+
+Aktif
+
+Pasif
+
+============================================================
+34. RAPOR AMAÇLI KULLANIM
+=========================
+
+Bu modül muhasebe amaçlı değildir.
+
+Sadece ürün yönetimi sağlar.
+
+============================================================
+35. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Yeni ürün eklenebilmelidir.
+
+---
+
+TEST 2
+
+Benzersiz Product Code oluşturulmalıdır.
+
+---
+
+TEST 3
+
+Aynı Product Code ikinci kez oluşturulamamalıdır.
+
+---
+
+TEST 4
+
+Ürün pasife alınabilmelidir.
+
+---
+
+TEST 5
+
+Pasif ürün için lisans üretilememelidir.
+
+---
+
+TEST 6
+
+Ürün kartı açılabilmelidir.
+
+---
+
+TEST 7
+
+Ürün istatistikleri görüntülenebilmelidir.
+
+---
+
+TEST 8
+
+Bir ürün lisansı başka üründe çalışmamalıdır.

@@ -1,0 +1,453 @@
+05_ES_LISANS_MERKEZI_ANA_EKRAN.txt
+
+============================================================
+ES LİSANS MERKEZİ
+ANA EKRAN VE ARAYÜZ ŞARTNAMESİ
+==============================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu doküman ES Lisans Merkezi programının ana pencere yapısını, menü sistemini, ekran yerleşimini ve kullanıcı deneyimini tanımlar.
+
+Bu ekran diğer tüm modüllerin temelidir.
+
+============================================================
+
+1. TASARIM FELSEFESİ
+   ============================================================
+
+Bu program:
+
+Gösterişli olmayacaktır.
+
+Amaç:
+
+Müşteri Bul
+↓
+Lisans Üret
+↓
+Gönder
+↓
+Çık
+
+işlemlerini hızlı yaptırmaktır.
+
+Bu nedenle:
+
+* Karmaşık dashboard olmayacak
+* Gereksiz grafik olmayacak
+* Gereksiz animasyon olmayacak
+* Öğrenmesi zor ekranlar olmayacak
+
+============================================================
+2. PENCERE YAPISI
+=================
+
+Program tek ana pencereden oluşacaktır.
+
+Yapı:
+
+Sol Menü
++
+Sağ İçerik Alanı
+
+mantığında çalışacaktır.
+
+============================================================
+3. DİKEY TASARIM KURALI
+=======================
+
+Program yatay sekme mantığında olmayacaktır.
+
+Dikey yönetim paneli kullanılacaktır.
+
+Sol menü aşağı doğru sıralanacaktır.
+
+============================================================
+4. ANA YERLEŞİM
+===============
+
+┌─────────────────────────────────────────────────────┐
+│ ES Lisans Merkezi                                   │
+├──────────────┬──────────────────────────────────────┤
+│              │                                      │
+│ Sol Menü     │ Sağ İçerik Alanı                     │
+│              │                                      │
+│              │                                      │
+│              │                                      │
+│              │                                      │
+│              │                                      │
+│              │                                      │
+│              │                                      │
+├──────────────┴──────────────────────────────────────┤
+│ Durum Çubuğu                                        │
+└─────────────────────────────────────────────────────┘
+
+============================================================
+5. SOL MENÜ KURALI
+==================
+
+Sol menü sabit olacaktır.
+
+Yer değiştirmeyecektir.
+
+Kullanıcı özelleştiremeyecektir.
+
+============================================================
+6. SOL MENÜ SIRASI
+==================
+
+Ana Sayfa
+
+Müşteriler
+
+Lisans Üret
+
+Lisanslar
+
+Ürünler
+
+Geçmiş
+
+Güvenlik
+
+Yedekleme
+
+Ayarlar
+
+Çıkış
+
+Bu sıra değiştirilmeyecektir.
+
+============================================================
+7. MENÜ İKONLARI
+================
+
+Her menüde ikon bulunacaktır.
+
+Örnek:
+
+Ana Sayfa → Ev
+
+Müşteriler → Kişi
+
+Lisans Üret → Anahtar
+
+Lisanslar → Belge
+
+Ürünler → Kutu
+
+Geçmiş → Saat
+
+Güvenlik → Kalkan
+
+Yedekleme → Disk
+
+Ayarlar → Dişli
+
+Çıkış → Kapı
+
+============================================================
+8. MENÜ BOYUTU
+==============
+
+Sol menü sabit genişlikte olacaktır.
+
+Daraltılabilir yapı kullanılmayacaktır.
+
+============================================================
+9. SAĞ İÇERİK ALANI
+===================
+
+Tüm işlemler burada açılacaktır.
+
+Veri girişleri burada yapılacaktır.
+
+Tablolar burada gösterilecektir.
+
+Aramalar burada yapılacaktır.
+
+============================================================
+10. MODÜL DEĞİŞİMİ
+==================
+
+Kullanıcı menüye bastığında:
+
+Yeni pencere açılmayacaktır.
+
+Sağ içerik alanı değişecektir.
+
+============================================================
+11. ÇOKLU PENCERE YASAĞI
+========================
+
+Sürekli yeni pencere açılmayacaktır.
+
+Mümkün olduğunca tek pencere mantığı kullanılacaktır.
+
+============================================================
+12. ANA SAYFA
+=============
+
+Program açıldığında:
+
+Ana Sayfa
+
+açılır.
+
+============================================================
+13. ANA SAYFA KARTLARI
+======================
+
+Kart sayısı minimum tutulacaktır.
+
+Gösterilecek bilgiler:
+
+Toplam Müşteri
+
+Aktif Lisans
+
+Bugün Üretilen Lisans
+
+Son Yedekleme
+
+Private Key Durumu
+
+============================================================
+14. ANA SAYFA AMAÇ
+==================
+
+Kullanıcıya hızlı durum göstermek.
+
+Başka amaç taşımamaktadır.
+
+============================================================
+15. DURUM ÇUBUĞU
+================
+
+Alt bölümde durum çubuğu bulunacaktır.
+
+============================================================
+16. DURUM ÇUBUĞUNDA GÖSTERİLECEKLER
+===================================
+
+Aktif Kullanıcı
+
+Program Sürümü
+
+Veritabanı Durumu
+
+Son Yedekleme
+
+Saat
+
+============================================================
+17. RENK FELSEFESİ
+==================
+
+Sade renkler kullanılacaktır.
+
+Kurumsal görünüm tercih edilecektir.
+
+Abartılı renkler kullanılmayacaktır.
+
+============================================================
+18. KIRMIZI UYARILAR
+====================
+
+Kritik uyarılar kırmızı olabilir.
+
+Örnek:
+
+Yedek alınmadı
+
+Private Key problemi
+
+============================================================
+19. YEŞİL DURUMLAR
+==================
+
+Sağlıklı sistem durumları yeşil olabilir.
+
+Örnek:
+
+Private Key Aktif
+
+Yedekleme Tamam
+
+============================================================
+20. PENCERE BOYUTU
+==================
+
+Normal mod:
+
+yaklaşık
+
+1100 x 700
+
+civarında olabilir.
+
+============================================================
+21. TAM EKRAN
+=============
+
+Tam ekran desteklenecektir.
+
+============================================================
+22. NORMAL MOD
+==============
+
+Tam ekrandan çıkınca:
+
+önceki boyuta dönmelidir.
+
+============================================================
+23. KAPANIŞ KURALI
+==================
+
+Program kapanırken:
+
+Otomatik yedekleme
+
+kontrolü yapılabilir.
+
+============================================================
+24. KULLANICI DENEYİMİ
+======================
+
+Bir kullanıcı:
+
+Müşteri Bul
+
+↓
+
+Lisans Üret
+
+↓
+
+Kaydet
+
+↓
+
+Gönder
+
+işlemini birkaç dakika içinde yapabilmelidir.
+
+============================================================
+25. ÖĞRENME SÜRESİ
+==================
+
+Teknik bilgisi olmayan kişi bile:
+
+30 dakika içinde
+
+programı kullanabilmelidir.
+
+============================================================
+26. GÖSTERİŞ YASAĞI
+===================
+
+Bu program:
+
+Tasarım gösterisi değildir.
+
+Lisans üretim aracıdır.
+
+Bu nedenle:
+
+İşlevsellik
+
+önceliklidir.
+
+============================================================
+27. PERFORMANS KURALI
+=====================
+
+Modüller hızlı açılmalıdır.
+
+Geçişler gecikmemelidir.
+
+============================================================
+28. ANA HEDEF
+=============
+
+Programın amacı:
+
+Lisans yönetimini kolaylaştırmaktır.
+
+Muhasebe
+
+CRM
+
+ERP
+
+olmamalıdır.
+
+============================================================
+29. SON KURAL
+=============
+
+Tüm modüller:
+
+Sol Menü
+
+↓
+
+Sağ İçerik
+
+mantığına uygun geliştirilecektir.
+
+Yeni modüller bu düzeni bozmayacaktır.
+
+============================================================
+30. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Program açılır.
+
+Ana Sayfa görünür.
+
+---
+
+TEST 2
+
+Menüye basınca yeni pencere açılmaz.
+
+Sağ içerik değişir.
+
+---
+
+TEST 3
+
+Sol menü sabit kalır.
+
+---
+
+TEST 4
+
+Tam ekran çalışır.
+
+---
+
+TEST 5
+
+Normal moda dönülebilir.
+
+---
+
+TEST 6
+
+Kullanıcı birkaç tıklamayla lisans üretebilir.
+
+---
+
+TEST 7
+
+Arayüz sade ve hızlı çalışır.

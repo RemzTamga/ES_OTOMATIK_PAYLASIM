@@ -1,0 +1,472 @@
+14_ODEME_TAKIBI_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+ÖDEME TAKİBİ MODÜLÜ ŞARTNAMESİ
+==============================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül müşterilerin lisans satış bedellerini, yapılan ödemeleri ve kalan bakiyelerini takip etmek amacıyla tasarlanmıştır.
+
+Bu modül:
+
+Muhasebe değildir.
+
+Cari hesap sistemi değildir.
+
+Kasa sistemi değildir.
+
+Amaç yalnızca:
+
+Müşteri programı kaça aldı?
+
+Ne kadar ödedi?
+
+Ne kadar kaldı?
+
+sorularına cevap verebilmektir.
+
+============================================================
+
+1. TEMEL FELSEFE
+   ============================================================
+
+Bu modül finans yönetimi yapmayacaktır.
+
+Kasa hareketi oluşturmayacaktır.
+
+Gelir gider takibi yapmayacaktır.
+
+Sadece müşteri bazlı ödeme görünümü sağlayacaktır.
+
+============================================================
+2. ÖDEME TAKİBİ YERİ
+====================
+
+Ödeme bilgileri:
+
+Müşteri Kartı
+
+içerisinde bulunacaktır.
+
+============================================================
+3. ANA AMAÇ
+===========
+
+Bir müşteri kartı açıldığında:
+
+Bu müşteri bize ne kadar borçlu?
+
+sorusu görülebilmelidir.
+
+============================================================
+4. MÜŞTERİ KARTI BÖLÜMLERİ
+==========================
+
+Genel Bilgiler
+
+Lisanslar
+
+Ödeme Bilgileri
+
+Geçmiş İşlemler
+
+Notlar
+
+============================================================
+5. ÖDEME BİLGİLERİ BÖLÜMÜ
+=========================
+
+Bu bölüm müşteriye ait finansal özet alanıdır.
+
+============================================================
+6. GÖSTERİLECEK ALANLAR
+=======================
+
+Toplam Satış Tutarı
+
+Toplam Tahsilat
+
+Kalan Bakiye
+
+Son Ödeme Tarihi
+
+Ödeme Durumu
+
+============================================================
+7. TOPLAM SATIŞ TUTARI
+======================
+
+Müşteriye satılan tüm lisansların toplam bedelidir.
+
+============================================================
+8. TOPLAM TAHSİLAT
+==================
+
+Müşteriden alınan toplam ödemedir.
+
+============================================================
+9. KALAN BAKİYE
+===============
+
+Toplam Satış
+
+*
+
+Toplam Tahsilat
+
+============================================================
+10. ÖDEME DURUMU
+================
+
+Ödendi
+
+Kısmi Ödendi
+
+Bekliyor
+
+============================================================
+11. ÖDENDİ
+==========
+
+Kalan bakiye sıfırdır.
+
+============================================================
+12. KISMİ ÖDENDİ
+================
+
+Bir kısmı ödenmiştir.
+
+Kalan bakiye vardır.
+
+============================================================
+13. BEKLİYOR
+============
+
+Hiç ödeme girilmemiştir.
+
+============================================================
+14. LİSANS SATIŞ BEDELİ
+=======================
+
+Her lisans kaydında:
+
+Satış Bedeli
+
+alanı bulunacaktır.
+
+============================================================
+15. SATIŞ BEDELİ ZORUNLULUĞU
+============================
+
+Zorunlu değildir.
+
+İstenirse boş bırakılabilir.
+
+============================================================
+16. SATIŞ BEDELİ ÖRNEĞİ
+=======================
+
+3.500 TL
+
+5.000 TL
+
+12.000 TL
+
+============================================================
+17. ÖDEME EKLE
+==============
+
+Müşteri kartında:
+
+Ödeme Ekle
+
+butonu bulunacaktır.
+
+============================================================
+18. ÖDEME GİRİŞİ
+================
+
+Aşağıdaki alanlar girilebilir.
+
+Tarih
+
+Tutar
+
+Açıklama
+
+============================================================
+19. TARİH
+=========
+
+Ödemenin yapıldığı tarihtir.
+
+============================================================
+20. TUTAR
+=========
+
+Alınan ödeme miktarıdır.
+
+============================================================
+21. AÇIKLAMA
+============
+
+Örnek:
+
+Nakit ödeme
+
+EFT geldi
+
+İlk taksit
+
+Kapora
+
+============================================================
+22. KISMİ ÖDEME
+===============
+
+Desteklenecektir.
+
+============================================================
+23. ÖRNEK SENARYO
+=================
+
+Satış:
+
+5.000 TL
+
+Ödeme:
+
+2.000 TL
+
+Kalan:
+
+3.000 TL
+
+Durum:
+
+Kısmi Ödendi
+
+============================================================
+24. ÇOKLU ÖDEME
+===============
+
+Bir müşteri birden fazla ödeme yapabilir.
+
+============================================================
+25. ÖDEME GEÇMİŞİ
+=================
+
+Tüm ödemeler listelenmelidir.
+
+============================================================
+26. ÖDEME TABLOSU
+=================
+
+Tarih
+
+Tutar
+
+Açıklama
+
+============================================================
+27. SON ÖDEME TARİHİ
+====================
+
+Son yapılan ödeme tarihi gösterilmelidir.
+
+============================================================
+28. ÖDEME DÜZENLEME
+===================
+
+Yetkili kullanıcı ödeme kaydını düzenleyebilir.
+
+============================================================
+29. ÖDEME SİLME
+===============
+
+İlk sürümde desteklenebilir.
+
+============================================================
+30. SİLME KAYDI
+===============
+
+Geçmişe kayıt düşülmelidir.
+
+============================================================
+31. BORÇ NEDENİYLE KAPATMA
+==========================
+
+Varsayılan sistemde:
+
+Borç nedeniyle lisans kapatılmaz.
+
+============================================================
+32. BORÇLU MÜŞTERİ
+==================
+
+Borçlu müşteri lisans kullanmaya devam edebilir.
+
+============================================================
+33. OTOMATİK KİLİTLEME YASAĞI
+=============================
+
+Offline sistemde:
+
+Borç nedeniyle otomatik lisans iptali yapılmayacaktır.
+
+============================================================
+34. İLERİDEKİ ONLINE SİSTEM
+===========================
+
+İleride online sistem kurulursa:
+
+Borçlu müşteri takibi yapılabilir.
+
+Ancak ilk sürümde uygulanmayacaktır.
+
+============================================================
+35. UYARI ALANI
+===============
+
+Müşteri kartında:
+
+Kalan Bakiye
+
+renkli gösterilebilir.
+
+============================================================
+36. RENKLER
+===========
+
+Borç Yok → Yeşil
+
+Borç Var → Turuncu
+
+Uzun Süreli Borç → Kırmızı
+
+============================================================
+37. NOTLAR
+==========
+
+Müşteriye özel ödeme notları eklenebilir.
+
+============================================================
+38. NOT ÖRNEKLERİ
+=================
+
+Ay sonu ödeyecek
+
+Taksitli anlaşıldı
+
+Eski müşteri
+
+Ödeme sözü verdi
+
+============================================================
+39. GEÇMİŞ KAYITLARI
+====================
+
+Ödeme işlemleri geçmiş modülüne yazılmalıdır.
+
+============================================================
+40. ÖRNEK GEÇMİŞ
+================
+
+2.000 TL ödeme eklendi.
+
+1.500 TL ödeme düzeltildi.
+
+Ödeme kaydı silindi.
+
+============================================================
+41. RAPOR AMAÇLI KULLANIM
+=========================
+
+İlk sürümde rapor zorunlu değildir.
+
+============================================================
+42. FİLTRELER
+=============
+
+Borcu Olanlar
+
+Borcu Olmayanlar
+
+Kısmi Ödeyenler
+
+============================================================
+43. TOPLAM BORÇ
+===============
+
+Ana ekranda gösterilmesi zorunlu değildir.
+
+============================================================
+44. MÜŞTERİ ODAKLI TASARIM
+==========================
+
+Bu modül şirket muhasebesi için değil,
+
+müşteri takibi için tasarlanmıştır.
+
+============================================================
+45. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Satış bedeli girilebilmelidir.
+
+---
+
+TEST 2
+
+Ödeme eklenebilmelidir.
+
+---
+
+TEST 3
+
+Kısmi ödeme desteklenmelidir.
+
+---
+
+TEST 4
+
+Kalan bakiye hesaplanmalıdır.
+
+---
+
+TEST 5
+
+Ödeme geçmişi görüntülenebilmelidir.
+
+---
+
+TEST 6
+
+Borçlu müşteri lisansı kapanmamalıdır.
+
+---
+
+TEST 7
+
+Ödeme işlemleri geçmişe yazılmalıdır.
+
+---
+
+TEST 8
+
+Müşteri kartından tüm ödeme bilgileri görüntülenebilmelidir.
+
+---
+
+TEST 9
+
+Bu modül kasa veya muhasebe sistemine dönüşmemelidir.

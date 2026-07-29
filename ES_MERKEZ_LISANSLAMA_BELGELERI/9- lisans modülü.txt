@@ -1,0 +1,528 @@
+09_LISANSLAR_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+LİSANSLAR MODÜLÜ ŞARTNAMESİ
+===========================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül sistemde üretilmiş tüm lisansların merkezi yönetim ekranıdır.
+
+Bu ekran üzerinden:
+
+* Lisans görüntüleme
+* Lisans arama
+* Lisans filtreleme
+* Lisans tekrar oluşturma
+* Lisans tekrar gönderme
+* Lisans taşıma
+* Lisans durumu değiştirme
+
+işlemleri yapılacaktır.
+
+============================================================
+
+1. MODÜL AMACI
+   ============================================================
+
+Bu modül:
+
+Üretilmiş tüm lisansların merkezidir.
+
+============================================================
+2. EKRAN AÇILIŞI
+================
+
+Lisanslar menüsüne basıldığında açılır.
+
+============================================================
+3. ÜST ARAÇ ÇUBUĞU
+==================
+
+Lisans Ara
+
+Yenile
+
+Dışa Aktar
+
+============================================================
+4. ARAMA
+========
+
+Aşağıdaki alanlarda arama yapılabilmelidir.
+
+License ID
+
+Müşteri Adı
+
+Firma Adı
+
+Machine ID
+
+Telefon
+
+Ürün Adı
+
+============================================================
+5. ANA TABLO
+============
+
+Tüm lisanslar tabloda listelenir.
+
+============================================================
+6. TABLO SÜTUNLARI
+==================
+
+License ID
+
+Müşteri
+
+Firma
+
+Ürün
+
+Machine ID
+
+Lisans Tipi
+
+Durum
+
+Üretim Tarihi
+
+============================================================
+7. LİSANS TİPİ GÖSTERİMİ
+========================
+
+FULL
+
+TEMPORARY
+
+SUPPORT
+
+TRIAL
+
+============================================================
+8. DURUM GÖSTERİMİ
+==================
+
+ACTIVE
+
+SUSPENDED
+
+BLACKLISTED
+
+TRANSFERRED
+
+EXPIRED
+
+CANCELLED
+
+============================================================
+9. SATIR RENKLENDİRME
+=====================
+
+ACTIVE → Yeşil
+
+TEMPORARY → Turuncu
+
+EXPIRED → Kırmızı
+
+TRANSFERRED → Gri
+
+============================================================
+10. LİSANS KARTI
+================
+
+Lisans satırına çift tıklanınca:
+
+Lisans Kartı
+
+açılır.
+
+============================================================
+11. LİSANS KARTI BÖLÜMLERİ
+==========================
+
+Genel Bilgiler
+
+Müşteri Bilgileri
+
+Lisans Bilgileri
+
+Geçmiş İşlemler
+
+============================================================
+12. GENEL BİLGİLER
+==================
+
+License ID
+
+Ürün
+
+Product Code
+
+Machine ID
+
+Lisans Tipi
+
+Durum
+
+============================================================
+13. MÜŞTERİ BİLGİLERİ
+=====================
+
+Ad Soyad
+
+Firma Adı
+
+Telefon
+
+============================================================
+14. LİSANS BİLGİLERİ
+====================
+
+Başlangıç Tarihi
+
+Bitiş Tarihi
+
+Destek Bitiş Tarihi
+
+Üretim Tarihi
+
+============================================================
+15. GEÇMİŞ İŞLEMLER
+===================
+
+Bu lisansla ilgili tüm işlemler gösterilir.
+
+============================================================
+16. GEÇMİŞ ÖRNEKLERİ
+====================
+
+Lisans üretildi
+
+Lisans tekrar gönderildi
+
+Lisans tekrar oluşturuldu
+
+Lisans taşındı
+
+Geçici lisans verildi
+
+İptal edildi
+
+============================================================
+17. LİSANS TEKRAR GÖNDER
+========================
+
+Buton bulunacaktır.
+
+============================================================
+18. TEKRAR GÖNDER MANTIĞI
+=========================
+
+Var olan lisans dosyası tekrar alınabilir.
+
+Yeni lisans üretilmez.
+
+============================================================
+19. LİSANS TEKRAR OLUŞTUR
+=========================
+
+Buton bulunacaktır.
+
+============================================================
+20. TEKRAR OLUŞTUR MANTIĞI
+==========================
+
+Aynı lisans yeniden oluşturulur.
+
+============================================================
+21. LICENSE ID KURALI
+=====================
+
+Tekrar oluşturma sırasında:
+
+Aynı License ID
+
+korunmalıdır.
+
+============================================================
+22. LİSANS DIŞA AKTAR
+=====================
+
+license.lic dosyası yeniden kaydedilebilir.
+
+============================================================
+23. LİSANS KODU KOPYALA
+=======================
+
+Varsa lisans kodu panoya alınabilir.
+
+============================================================
+24. LİSANS DURUM DEĞİŞTİRME
+===========================
+
+Yetkili kullanıcı lisans durumunu değiştirebilir.
+
+============================================================
+25. ACTIVE
+==========
+
+Normal kullanım.
+
+============================================================
+26. SUSPENDED
+=============
+
+İleride online sistem için ayrılmıştır.
+
+Şu an kayıt amaçlıdır.
+
+============================================================
+27. BLACKLISTED
+===============
+
+İleride online sistem için ayrılmıştır.
+
+Şu an kayıt amaçlıdır.
+
+============================================================
+28. TRANSFERRED
+===============
+
+Lisans başka makineye taşınmıştır.
+
+============================================================
+29. EXPIRED
+===========
+
+Süresi dolmuş lisans.
+
+============================================================
+30. CANCELLED
+=============
+
+İptal edilmiş lisans.
+
+============================================================
+31. LİSANS TAŞIMA
+=================
+
+Lisans Kartında:
+
+Lisans Taşı
+
+butonu bulunmalıdır.
+
+============================================================
+32. TAŞIMA SENARYOSU
+====================
+
+Eski lisans:
+
+TRANSFERRED
+
+olur.
+
+Yeni Machine ID için:
+
+Yeni lisans oluşturulur.
+
+============================================================
+33. ESKİ LİSANS KORUMA
+======================
+
+Eski lisans silinmez.
+
+Geçmişte saklanır.
+
+============================================================
+34. GEÇİCİ LİSANS ÜRET
+======================
+
+Lisans Kartından erişilebilir.
+
+============================================================
+35. GEÇİCİ LİSANS AMAÇLARI
+==========================
+
+Disk arızası
+
+Taşıma süreci
+
+Acil destek
+
+============================================================
+36. LİSANS SİLME YASAĞI
+=======================
+
+Lisans doğrudan silinmez.
+
+============================================================
+37. KAYIT KORUMA
+================
+
+Tüm lisans kayıtları korunur.
+
+============================================================
+38. FİLTRELER
+=============
+
+Aktif Lisanslar
+
+Geçici Lisanslar
+
+Taşınan Lisanslar
+
+İptal Edilenler
+
+Süresi Dolanlar
+
+============================================================
+39. TARİHE GÖRE FİLTRE
+======================
+
+Bugün
+
+Bu Hafta
+
+Bu Ay
+
+Bu Yıl
+
+============================================================
+40. ÜRÜNE GÖRE FİLTRE
+=====================
+
+ES Ön Muhasebe
+
+ES Halı Yıkama
+
+ES Sosyal Medya
+
+============================================================
+41. MÜŞTERİYE GÖRE FİLTRE
+=========================
+
+Belirli müşteri lisansları görüntülenebilir.
+
+============================================================
+42. MACHINE ID GÖRÜNTÜLEME
+==========================
+
+Machine ID her lisans kartında görünmelidir.
+
+============================================================
+43. LICENSE.LIC GÖRÜNTÜLEME
+===========================
+
+Lisans içeriği görüntülenebilir.
+
+Ancak imza düzenlenemez.
+
+============================================================
+44. KAYIT TARİHÇESİ
+===================
+
+Tüm değişiklikler kayıt altına alınmalıdır.
+
+============================================================
+45. TARİHÇE SİLİNEMEZ
+=====================
+
+Geçmiş işlemler silinemez.
+
+============================================================
+46. EXPORT
+==========
+
+CSV
+
+JSON
+
+çıktısı alınabilir.
+
+============================================================
+47. MUHASEBE YASAĞI
+===================
+
+Bu modül muhasebe ekranı değildir.
+
+Kasa tutulmaz.
+
+Cari hesap tutulmaz.
+
+============================================================
+48. AMAÇ
+========
+
+Lisans yönetimini kolaylaştırmaktır.
+
+============================================================
+49. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Tüm lisanslar listelenebilmelidir.
+
+---
+
+TEST 2
+
+License ID ile arama yapılabilmelidir.
+
+---
+
+TEST 3
+
+Müşteri ile arama yapılabilmelidir.
+
+---
+
+TEST 4
+
+Lisans kartı açılabilmelidir.
+
+---
+
+TEST 5
+
+Lisans tekrar oluşturulabilmelidir.
+
+---
+
+TEST 6
+
+Lisans tekrar gönderilebilmelidir.
+
+---
+
+TEST 7
+
+Lisans taşınabilmelidir.
+
+---
+
+TEST 8
+
+Eski lisans silinmemelidir.
+
+---
+
+TEST 9
+
+Geçmiş kayıtları korunmalıdır.
+
+---
+
+TEST 10
+
+Filtreleme çalışmalıdır.

@@ -1,0 +1,412 @@
+15_LISANS_TASIMA_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+LİSANS TAŞIMA MODÜLÜ ŞARTNAMESİ
+===============================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül mevcut bir lisansın eski bilgisayardan yeni bilgisayara taşınmasını yönetir.
+
+Bu modül:
+
+* Disk arızası
+* Anakart değişimi
+* Bilgisayar değişimi
+* Ofis bilgisayarı yenileme
+* Müşteri bilgisayar yükseltmesi
+
+gibi durumlarda kullanılacaktır.
+
+============================================================
+
+1. TEMEL FELSEFE
+   ============================================================
+
+Lisanslar:
+
+1 Lisans = 1 Bilgisayar
+
+kuralıyla çalışır.
+
+Ancak müşteri bilgisayarını değiştirebilir.
+
+Bu durumda:
+
+Yeni lisans üretmek gerekir.
+
+============================================================
+2. LİSANS TAŞIMA AMACI
+======================
+
+Amaç:
+
+Müşterinin lisans hakkını korumaktır.
+
+============================================================
+3. LİSANS TAŞIMA EKRANI
+=======================
+
+Lisans Kartı içerisinden erişilecektir.
+
+============================================================
+4. TAŞI BUTONU
+==============
+
+Lisans Kartında:
+
+Lisansı Taşı
+
+butonu bulunmalıdır.
+
+============================================================
+5. TAŞIMA İŞLEMİ
+================
+
+Eski Lisans
+
+↓
+
+Yeni Machine ID
+
+↓
+
+Yeni Lisans
+
+↓
+
+Kayıt
+
+============================================================
+6. YENİ MACHINE ID
+==================
+
+Müşteriden alınacaktır.
+
+============================================================
+7. MACHINE ID GİRİŞİ
+====================
+
+Elle girilebilir.
+
+Yapıştırılabilir.
+
+============================================================
+8. ZORUNLU ALAN
+===============
+
+Yeni Machine ID zorunludur.
+
+============================================================
+9. ESKİ MACHINE ID
+==================
+
+Sistemde saklanmalıdır.
+
+============================================================
+10. ESKİ LİSANS
+===============
+
+Silinmeyecektir.
+
+============================================================
+11. ESKİ LİSANS DURUMU
+======================
+
+TRANSFERRED
+
+olarak işaretlenecektir.
+
+============================================================
+12. YENİ LİSANS
+===============
+
+Yeni License ID ile oluşturulacaktır.
+
+============================================================
+13. NEDEN YENİ LICENSE ID?
+==========================
+
+Çünkü yeni lisans oluşmaktadır.
+
+============================================================
+14. GEÇMİŞ KORUMA
+=================
+
+Eski lisans geçmişte kalacaktır.
+
+============================================================
+15. TAŞIMA NEDENİ
+=================
+
+Taşıma sırasında neden seçilebilmelidir.
+
+============================================================
+16. TAŞIMA NEDENLERİ
+====================
+
+Bilgisayar Değişti
+
+Disk Arızası
+
+Anakart Değişti
+
+CPU Değişti
+
+Format Sonrası Sorun
+
+Diğer
+
+============================================================
+17. AÇIKLAMA ALANI
+==================
+
+Serbest metin girilebilir.
+
+============================================================
+18. AÇIKLAMA ÖRNEKLERİ
+======================
+
+SSD bozulduğu için taşıma yapıldı.
+
+Yeni bilgisayar alındı.
+
+Anakart değişimi sonrası lisans taşındı.
+
+============================================================
+19. GEÇMİŞ KAYDI
+================
+
+Taşıma işlemi geçmişe yazılmalıdır.
+
+============================================================
+20. GEÇMİŞ ÖRNEĞİ
+=================
+
+Lisans yeni bilgisayara taşındı.
+
+============================================================
+21. ESKİ LİSANS DOSYASI
+=======================
+
+Saklanmalıdır.
+
+============================================================
+22. SİLME YASAĞI
+================
+
+Eski lisans silinmeyecektir.
+
+============================================================
+23. YENİ LICENSE.LIC
+====================
+
+Yeni lisans dosyası oluşturulacaktır.
+
+============================================================
+24. MÜŞTERİ BAĞLANTISI
+======================
+
+Yeni lisans aynı müşteriye bağlı olacaktır.
+
+============================================================
+25. ÜRÜN BAĞLANTISI
+===================
+
+Yeni lisans aynı ürüne bağlı olacaktır.
+
+============================================================
+26. DESTEK TARİHİ
+=================
+
+Varsa korunacaktır.
+
+============================================================
+27. SATIŞ BİLGİLERİ
+===================
+
+Varsa korunacaktır.
+
+============================================================
+28. ÖDEME BİLGİLERİ
+===================
+
+Varsa korunacaktır.
+
+============================================================
+29. GEÇİCİ LİSANS SEÇENEĞİ
+==========================
+
+Taşıma sırasında geçici lisans verilebilir.
+
+============================================================
+30. GEÇİCİ LİSANS AMACI
+=======================
+
+Müşterinin çalışmasının durmamasıdır.
+
+============================================================
+31. ÖRNEK SENARYO
+=================
+
+Disk bozuldu.
+
+↓
+
+Yeni disk takıldı.
+
+↓
+
+Yeni Machine ID oluştu.
+
+↓
+
+7 günlük geçici lisans verildi.
+
+↓
+
+Kalıcı lisans üretildi.
+
+============================================================
+32. KÖTÜYE KULLANIM ŞÜPHESİ
+===========================
+
+Şüpheli durumlar not olarak işaretlenebilir.
+
+============================================================
+33. ŞÜPHELİ DURUM ÖRNEKLERİ
+===========================
+
+Sık bilgisayar değiştirme
+
+Sürekli taşıma talebi
+
+Kısa sürede çok sayıda lisans taşıma
+
+============================================================
+34. OTOMATİK RED YOK
+====================
+
+Sistem otomatik karar vermez.
+
+Karar geliştiriciye aittir.
+
+============================================================
+35. ONLINE SİSTEM HAZIRLIĞI
+===========================
+
+İleride online sistem kurulursa:
+
+TRANSFERRED
+
+durumu sunucuya bildirilebilir.
+
+============================================================
+36. ESKİ LİSANS DURUMU
+======================
+
+Offline sistemde:
+
+Geçmiş amaçlı tutulacaktır.
+
+============================================================
+37. YENİ LİSANS DURUMU
+======================
+
+ACTIVE
+
+olarak oluşturulacaktır.
+
+============================================================
+38. RAPOR AMAÇLI KULLANIM
+=========================
+
+Taşıma sayıları ileride raporlanabilir.
+
+============================================================
+39. MÜŞTERİ KARTI ENTEGRASYONU
+==============================
+
+Müşteri kartından:
+
+Lisans Taşı
+
+işlemine erişilebilir.
+
+============================================================
+40. LİSANS KARTI ENTEGRASYONU
+=============================
+
+Lisans kartından:
+
+Lisansı Taşı
+
+butonu bulunmalıdır.
+
+============================================================
+41. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Lisans taşınabilmelidir.
+
+---
+
+TEST 2
+
+Yeni Machine ID girilebilmelidir.
+
+---
+
+TEST 3
+
+Eski lisans silinmemelidir.
+
+---
+
+TEST 4
+
+Eski lisans TRANSFERRED olmalıdır.
+
+---
+
+TEST 5
+
+Yeni lisans oluşturulmalıdır.
+
+---
+
+TEST 6
+
+Yeni License ID verilmelidir.
+
+---
+
+TEST 7
+
+Geçmiş kaydı oluşturulmalıdır.
+
+---
+
+TEST 8
+
+Müşteri bağlantısı korunmalıdır.
+
+---
+
+TEST 9
+
+Ürün bağlantısı korunmalıdır.
+
+---
+
+TEST 10
+
+Taşıma nedeni kayıt altına alınmalıdır.

@@ -1,0 +1,444 @@
+12_YEDEKLEME_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+YEDEKLEME MODÜLÜ ŞARTNAMESİ
+===========================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül ES Lisans Merkezi içerisindeki tüm kritik verilerin korunmasını sağlar.
+
+Korunacak veriler:
+
+* Müşteri kayıtları
+* Lisans kayıtları
+* Lisans geçmişi
+* Ürün kayıtları
+* Ayarlar
+* Güvenilir cihaz kayıtları
+* Private Key
+* Güvenlik kayıtları
+
+Bu modül sistemin veri güvenliği açısından en önemli modüllerinden biridir.
+
+============================================================
+
+1. TEMEL FELSEFE
+   ============================================================
+
+Veri kaybı kabul edilemez.
+
+Bu nedenle sistem:
+
+Otomatik Yedek
+
+*
+
+Manuel Yedek
+
+mantığında çalışacaktır.
+
+============================================================
+2. YEDEKLEME TÜRLERİ
+====================
+
+Sistem aşağıdaki yedek türlerini destekleyecektir.
+
+* Otomatik Yedek
+* Manuel Yedek
+* Private Key Yedeği
+* Tam Sistem Yedeği
+
+============================================================
+3. YEDEKLEME EKRANI
+===================
+
+Yedekleme menüsüne basıldığında açılır.
+
+============================================================
+4. EKRAN BÖLÜMLERİ
+==================
+
+Yedek Durumu
+
+Otomatik Yedekleme
+
+Manuel Yedekleme
+
+Private Key Yedekleme
+
+Geri Yükleme
+
+============================================================
+5. YEDEK DURUMU
+===============
+
+Üst bölümde sistem durumu gösterilir.
+
+============================================================
+6. GÖSTERİLECEK BİLGİLER
+========================
+
+Son Yedekleme Tarihi
+
+Son Yedekleme Saati
+
+Toplam Yedek Sayısı
+
+Private Key Yedek Durumu
+
+============================================================
+7. SON YEDEKLEME
+================
+
+Kullanıcı son yedeğin ne zaman alındığını görebilmelidir.
+
+============================================================
+8. OTOMATİK YEDEKLEME
+=====================
+
+Sistem otomatik yedek alacaktır.
+
+============================================================
+9. OTOMATİK YEDEK TETİKLEYİCİLERİ
+=================================
+
+Aşağıdaki durumlarda otomatik yedek alınmalıdır.
+
+Lisans Üretildi
+
+Lisans Taşındı
+
+Private Key Geri Yüklendi
+
+Program Kapanıyor
+
+============================================================
+10. PROGRAM KAPANIŞ YEDEĞİ
+==========================
+
+Program kapanırken:
+
+otomatik yedek alınabilir.
+
+============================================================
+11. MANUEL YEDEKLEME
+====================
+
+Kullanıcı istediği zaman:
+
+Yedek Al
+
+butonuna basabilir.
+
+============================================================
+12. YEDEK AL BUTONU
+===================
+
+Ana manuel yedekleme butonudur.
+
+============================================================
+13. TAM YEDEK İÇERİĞİ
+=====================
+
+Aşağıdaki veriler yedeklenmelidir.
+
+Müşteriler
+
+Lisanslar
+
+Lisans Geçmişi
+
+Ürünler
+
+Ayarlar
+
+Güvenilir Cihazlar
+
+Güvenlik Kayıtları
+
+============================================================
+14. PRIVATE KEY
+===============
+
+Private Key varsayılan sistem yedeğine dahil edilmemelidir.
+
+============================================================
+15. PRIVATE KEY NEDEN AYRI?
+===========================
+
+Güvenlik nedeniyle.
+
+============================================================
+16. PRIVATE KEY YEDEĞİ
+======================
+
+Ayrı işlem olarak alınmalıdır.
+
+============================================================
+17. PRIVATE KEY YEDEKLE BUTONU
+==============================
+
+Buton bulunmalıdır.
+
+============================================================
+18. PRIVATE KEY YEDEĞİ İÇERİĞİ
+==============================
+
+Sadece şifrelenmiş Private Key.
+
+============================================================
+19. PRIVATE KEY YEDEK DOSYASI
+=============================
+
+Örnek:
+
+private_key_backup.enc
+
+============================================================
+20. ŞİFRELİ YEDEK
+=================
+
+Private Key düz metin olarak saklanamaz.
+
+============================================================
+21. YEDEK DOSYA ADI
+===================
+
+Örnek:
+
+ESLM_BACKUP_2026_06_19_153000.zip
+
+============================================================
+22. TARİHLİ DOSYA YAPISI
+========================
+
+Tarih ve saat içermelidir.
+
+============================================================
+23. YEDEK KLASÖRÜ
+=================
+
+Varsayılan klasör kullanılabilir.
+
+Kullanıcı değiştirebilir.
+
+============================================================
+24. OTOMATİK YEDEK KLASÖRÜ
+==========================
+
+Program tarafından belirlenebilir.
+
+============================================================
+25. YEDEK GEÇMİŞİ
+=================
+
+Alınan yedekler listelenmelidir.
+
+============================================================
+26. YEDEK TABLOSU
+=================
+
+Tarih
+
+Saat
+
+Yedek Türü
+
+Boyut
+
+Durum
+
+============================================================
+27. DURUM
+=========
+
+Başarılı
+
+Başarısız
+
+============================================================
+28. BAŞARISIZ YEDEKLEME
+=======================
+
+Kayıt altına alınmalıdır.
+
+============================================================
+29. GERİ YÜKLEME
+================
+
+Geri Yükle
+
+butonu bulunmalıdır.
+
+============================================================
+30. GERİ YÜKLEME UYARISI
+========================
+
+İşlem öncesinde kullanıcı uyarılmalıdır.
+
+============================================================
+31. UYARI METNİ
+===============
+
+Mevcut veriler geri yükleme işleminden etkilenebilir.
+
+Devam etmek istiyor musunuz?
+
+============================================================
+32. GERİ YÜKLEME KAYDI
+======================
+
+İşlem geçmişe yazılmalıdır.
+
+============================================================
+33. YEDEK DOĞRULAMA
+===================
+
+Yedek dosyası doğrulanmalıdır.
+
+============================================================
+34. BOZUK YEDEK
+===============
+
+Geri yüklenmemelidir.
+
+============================================================
+35. PRIVATE KEY GERİ YÜKLEME
+============================
+
+Ayrı işlem olmalıdır.
+
+============================================================
+36. PRIVATE KEY GERİ YÜKLE BUTONU
+=================================
+
+Buton bulunmalıdır.
+
+============================================================
+37. PRIVATE KEY DOĞRULAMA
+=========================
+
+Dosya doğrulanmalıdır.
+
+============================================================
+38. HATALI PRIVATE KEY
+======================
+
+Yükleme reddedilmelidir.
+
+============================================================
+39. OTOMATİK TEMİZLEME
+======================
+
+İlk sürümde zorunlu değildir.
+
+============================================================
+40. YEDEK SİLME
+===============
+
+Kullanıcı eski yedekleri silebilir.
+
+============================================================
+41. YEDEK SİLME KAYDI
+=====================
+
+Geçmişe yazılmalıdır.
+
+============================================================
+42. DIŞA AKTARIM
+================
+
+Yedekler harici diske taşınabilir.
+
+============================================================
+43. BULUT YEDEKLEME
+===================
+
+İlk sürümde yoktur.
+
+============================================================
+44. GELECEKTEKİ BULUT DESTEĞİ
+=============================
+
+İleride eklenebilir.
+
+============================================================
+45. GÜVENLİK KURALI
+===================
+
+Private Key düz metin olarak hiçbir yedekte bulunmamalıdır.
+
+============================================================
+46. AMAÇ
+========
+
+Yıllarca oluşan müşteri ve lisans arşivini korumaktır.
+
+============================================================
+47. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Manuel yedek alınabilmelidir.
+
+---
+
+TEST 2
+
+Lisans üretiminden sonra otomatik yedek alınmalıdır.
+
+---
+
+TEST 3
+
+Program kapanırken otomatik yedek alınabilmelidir.
+
+---
+
+TEST 4
+
+Yedek geçmişi görüntülenebilmelidir.
+
+---
+
+TEST 5
+
+Geri yükleme yapılabilmelidir.
+
+---
+
+TEST 6
+
+Bozuk yedek reddedilmelidir.
+
+---
+
+TEST 7
+
+Private Key ayrı yedeklenebilmelidir.
+
+---
+
+TEST 8
+
+Private Key düz metin olarak saklanmamalıdır.
+
+---
+
+TEST 9
+
+Yedek silme kayıt altına alınmalıdır.
+
+---
+
+TEST 10
+
+Tüm kritik veriler korunmalıdır.

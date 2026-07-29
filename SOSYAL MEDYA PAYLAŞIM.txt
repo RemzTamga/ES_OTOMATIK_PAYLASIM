@@ -1,0 +1,1417 @@
+Bence bu, ilk sürüm için çok daha doğru bir mimari.
+
+Aslında burada sistem tasarım yapmıyor, şablonu dolduruyor. Bu ikisi birbirinden tamamen farklı.
+
+Örneğin bir kuyumcu için firma ilk kurulumda bize şunları verebilir:
+
+Kurumsal logo
+Marka renkleri
+Fontlar
+5–10 adet paylaşım şablonu
+İletişim bilgileri
+Web sitesi
+QR kod
+Sabit slogan
+
+Daha sonra paylaşılacak ürün için sadece:
+
+Ürün fotoğrafı
+Ürün adı
+Fiyat (varsa)
+Kısa açıklama
+Kampanya bilgisi
+
+girildiğinde sistem otomatik olarak:
+
+Şablon No: 03
+
+↓
+
+Ürün fotoğrafını
+belirlenen alana yerleştir.
+
+↓
+
+Başlığı
+başlık kutusuna yaz.
+
+↓
+
+Fiyatı
+fiyat kutusuna yaz.
+
+↓
+
+Logoyu
+sağ üst köşeye koy.
+
+↓
+
+QR kodunu
+sağ alta koy.
+
+↓
+
+Instagram ölçüsünde dışa aktar.
+
+↓
+
+Facebook ölçüsünde dışa aktar.
+
+↓
+
+LinkedIn ölçüsünde dışa aktar.
+
+↓
+
+Paylaşım kuyruğuna ekle.
+
+Bu yaklaşımın avantajları:
+
+Görsel üretim yapay zekâsına ihtiyaç yok.
+Tasarım kalitesi firmanın hazırladığı profesyonel şablonlara bağlı olur.
+Çıktılar marka kimliğini her zaman korur.
+Çok hızlı çalışır.
+Bakımı kolaydır.
+
+Ben buna bir özellik daha eklemeyi öneriyorum.
+
+Akıllı Şablon Sistemi
+
+Firma tek bir şablon vermek zorunda olmasın.
+
+Örneğin:
+
+Kampanya
+
+Yeni Ürün
+
+İndirim
+
+Duyuru
+
+Bayram
+
+Özel Gün
+
+Video
+
+Story
+
+Reels
+
+LinkedIn
+
+Facebook
+
+Instagram Kare
+
+Instagram Dikey
+
+Pinterest
+
+Her biri ayrı şablon olabilir.
+
+Yapay zekâ da paylaşım türüne göre uygun şablonu otomatik seçebilir veya kullanıcı isterse manuel seçebilir.
+
+Bence bu bölümün adı artık "Şablon Motoru" olmalı. Çünkü bu sistemin yaptığı iş tasarım üretmek değil; önceden tanımlanmış kurumsal şablonları akıllı şekilde doldurup, platforma uygun çıktılar üretmek olacak. Bu mimari hem ilk sürüm için gerçekçi hem de ileride REMZ.ai görsel üretim motoru eklense bile onunla çakışmadan birlikte çalışabilir.
+
+TAMAM BUNU KİLİTLEYELİM.
+
+Bence bunu kilitleyelim. Bu karar hem geliştirme süresini ciddi şekilde kısaltır hem de ürünü daha sürdürülebilir hale getirir.
+
+KİLİTLENEN MİMARİ KARAR
+Şablon Motoru
+1. Temel Prensip
+
+Sürüm 1'de sistem sıfırdan görsel üretmez.
+
+Sistem yalnızca firmanın tanımladığı kurumsal şablonları kullanır.
+
+2. Firma Kurulumu
+
+Her firma sisteme istediği sayıda şablon tanımlayabilir.
+
+Örnek:
+
+Instagram Kare
+Instagram Dikey
+Story
+Reels Kapağı
+Facebook
+LinkedIn
+X
+TikTok
+Kampanya
+Yeni Ürün
+İndirim
+Bayram
+Duyuru
+Kurumsal Haber
+Video Kapağı
+
+Şablon sayısında sistemsel sınır olmayacak (lisans veya depolama politikalarıyla sınırlandırılabilir).
+
+3. Şablon Yapısı
+
+Her şablonda tanımlanabilir alanlar bulunur.
+
+Örneğin:
+
+Logo alanı
+Ürün görseli alanı
+Başlık alanı
+Alt başlık alanı
+Açıklama alanı
+Fiyat alanı
+Kampanya etiketi
+QR kod alanı
+Web sitesi
+Telefon
+Adres
+Sosyal medya ikonları
+Filigran
+Arka plan
+Sabit grafik öğeleri
+4. Yapay Zekânın Görevi
+
+Yapay zekâ:
+
+Uygun şablonu seçer (veya önerir).
+İçerikleri doğru alanlara yerleştirir.
+Yazıları taşmayacak şekilde düzenler.
+Platform ölçülerine uygun çıktı oluşturur.
+Gerekirse birden fazla varyasyon hazırlar.
+
+Yapay zekâ yeni bir tasarım oluşturmaz.
+
+5. Tasarım Yetkisi
+
+Kurumsal tasarım tamamen firmanın kontrolündedir.
+
+Program:
+
+tasarımı değiştirmez,
+renkleri değiştirmez,
+logoyu değiştirmez,
+kurumsal kimliği bozmaz.
+6. Platform Uyarlaması
+
+Aynı içerikten otomatik olarak:
+
+Instagram Kare
+Instagram Dikey
+Story
+Facebook
+LinkedIn
+X
+TikTok
+Pinterest
+
+gibi farklı platform formatları üretilebilir.
+
+7. Gelecek Sürüm
+
+REMZ.ai görsel üretim motoru tamamlandığında:
+
+Şablon Motoru kaldırılmayacak.
+REMZ.ai, Şablon Motoru ile birlikte çalışacak.
+Üretilen görsel yine şablon içerisine yerleştirilecek.
+Böylece kurumsal kimlik korunacak.
+Sonuç
+
+Bu kararla birlikte sistemin mimarisi şu ilkeye dayanacak:
+
+Sürüm 1: "Kurumsal Şablon Motoru" ile çalışır.
+
+Sürüm 2: REMZ.ai tarafından üretilen görselleri de aynı Şablon Motoru üzerinden kurumsal şablonlara yerleştirerek paylaşır.
+
+Bu karar, ileride REMZ.ai entegrasyonu gelse bile mevcut yapıyı değiştirmeden genişlemeye olanak tanır ve mimariyi uzun vadede sağlam tutar.
+
+PROGRAMIN ALTINDA GÖRSELLER İÇİN KLASÖR OLMALI. ÖRNEĞİN GÜNLÜK PAYLAŞIM HAFTALIK PAYLAŞIM ÖZEL GÜNLER GİBİ. BİRDE SANIRIM SOSYAL MEDYA İLE WEB ÖLÇÜLERİ FARKLI. SOSYAL MEDYADA DAHA ÇOK DİKEY, WEB DE İSE YATAY AĞIRLIKLI RESİMLER VAR
+
+Evet, doğru. Sosyal medya ile web görsellerini aynı klasörde ve aynı şablon mantığında tutmamalıyız. Çünkü kullanım yönleri, oranları ve yerleşimleri farklıdır.
+
+Bu kararı mimariye şu şekilde ekleyelim ve kilitleyelim.
+
+KİLİTLENEN KARAR
+Firma Medya Kütüphanesi
+
+Her firmanın program içerisinde kendisine ait bir Medya Kütüphanesi bulunacak.
+
+Ana yapı:
+
+FIRMA_MEDYA_KUTUPHANESI
+
+├── 01_KAYNAK_GORSELLER
+├── 02_SOSYAL_MEDYA_GORSELLERI
+├── 03_WEB_GORSELLERI
+├── 04_VIDEO_VE_HAREKETLI_MEDYA
+├── 05_LOGO_VE_KURUMSAL_KIMLIK
+├── 06_SABLONLAR
+├── 07_YAYINLANAN_GORSELLER
+├── 08_ARSIV
+└── 09_COP_KUTUSU
+1. Kaynak Görseller
+
+Firmanın sisteme yüklediği, henüz paylaşım için hazırlanmamış orijinal görseller burada tutulacak.
+
+01_KAYNAK_GORSELLER
+
+├── Urunler
+├── Hizmetler
+├── Magaza_Ofis
+├── Personel
+├── Etkinlikler
+├── Kampanyalar
+├── Referanslar
+├── Marka_Gorselleri
+└── Diger
+
+Bu görseller sosyal medya veya web için henüz kırpılmamış, düzenlenmemiş ana kaynaklar olacak.
+
+2. Sosyal Medya Görselleri
+
+Sosyal medya tarafı hem paylaşım sıklığına hem de içerik türüne göre ayrılacak.
+
+02_SOSYAL_MEDYA_GORSELLERI
+
+├── 01_Gunluk_Paylasimlar
+├── 02_Haftalik_Paylasimlar
+├── 03_Aylik_Paylasimlar
+├── 04_Ozel_Gunler
+├── 05_Kampanyalar
+├── 06_Yeni_Urunler
+├── 07_Hizmet_Tanitimlari
+├── 08_Duyurular
+├── 09_Kurumsal_Paylasimlar
+├── 10_Bilgilendirici_Icerikler
+├── 11_Musteri_Yorumlari
+├── 12_Etkinlikler
+├── 13_Sezonluk_Paylasimlar
+└── 14_Diger
+Özel Günler Alt Yapısı
+04_Ozel_Gunler
+
+├── Resmi_Bayramlar
+├── Dini_Bayramlar
+├── Milli_Gunler
+├── Mesleki_Gunler
+├── Sektorel_Gunler
+├── Yilbasi
+├── Anneler_Gunu
+├── Babalar_Gunu
+├── Sevgililer_Gunu
+└── Firmaya_Ozel_Gunler
+
+Buradaki önemli kural:
+
+Özel gün görselleri firmanın faaliyet gösterdiği ülke, sektör ve kurumsal tercihleri doğrultusunda etkinleştirilir.
+
+Her firma bütün özel günleri kullanmak zorunda olmayacak.
+
+3. Sosyal Medya Format Ayrımı
+
+Aynı paylaşım, farklı sosyal medya kullanım alanları için ayrı çıktılara sahip olabilir.
+
+Bir paylaşım kaydı
+
+├── Dikey_Gonderi
+├── Kare_Gonderi
+├── Story
+├── Reels_Kapagi
+├── Yatay_Gonderi
+├── Video_Kapagi
+└── Platforma_Ozel_Versiyon
+
+Sosyal medyada özellikle:
+
+Dikey gönderi
+Story
+Reels kapağı
+Mobil ekran odaklı tasarım
+
+daha ağırlıklı olacak.
+
+Ancak bütün sosyal medya görselleri yalnız dikey olmayacak. Kare ve yatay formatlar da desteklenecek.
+
+4. Web Görselleri
+
+Web sitesi görselleri sosyal medya klasöründen tamamen ayrı tutulacak.
+
+03_WEB_GORSELLERI
+
+├── 01_Ana_Sayfa
+├── 02_Slider_Banner
+├── 03_Hero_Gorselleri
+├── 04_Urun_Gorselleri
+├── 05_Kategori_Gorselleri
+├── 06_Hizmet_Gorselleri
+├── 07_Kampanya_Bannerlari
+├── 08_Blog_Gorselleri
+├── 09_Hakkimizda
+├── 10_Referanslar
+├── 11_Ekip_Gorselleri
+├── 12_Popup_Gorselleri
+├── 13_Mobil_Web_Gorselleri
+└── 14_Diger
+
+Web tarafında genel olarak:
+
+Yatay banner
+Geniş ekran hero görseli
+Masaüstü yerleşim
+Mobil web için ayrı görsel
+Ürün kartı görseli
+Blog kapak görseli
+
+kullanılacak.
+
+Bu nedenle sosyal medya için hazırlanmış dikey bir görsel, doğrudan web sitesine gönderilmeyecek.
+
+5. Web ve Sosyal Medya Arasındaki Temel Ayrım
+SOSYAL MEDYA
+
+Mobil ekran ağırlıklı
+Dikey ve kare kullanım ağırlıklı
+Metin daha büyük
+Mesaj daha kısa
+Dikkat çekme süresi daha düşük
+Logo ve mesaj güvenli alan içinde
+Story ve Reels alanları önemli
+WEB
+
+Masaüstü ve mobil ayrı ele alınır
+Yatay görsel ağırlıklıdır
+Banner ve hero kullanımı vardır
+Metin bazen görselin dışında bulunur
+Görsel farklı ekranlarda yeniden boyutlanır
+Sayfa düzenine göre güvenli alan gerekir
+6. Tek Kaynaktan Birden Fazla Çıktı
+
+Programın önemli özelliklerinden biri şu olacak:
+
+Bir ürün görseli sisteme bir kez yüklenir.
+
+Program aynı kaynak görseli kullanarak:
+
+Instagram dikey gönderi
+Instagram kare gönderi
+Instagram Story
+Reels kapağı
+Facebook gönderisi
+LinkedIn gönderisi
+Web yatay banner
+Web mobil banner
+Blog kapak görseli
+Ürün kartı görseli
+
+hazırlayabilir.
+
+Ancak sistem bir sosyal medya görselini web ölçüsüne zorla genişletmeyecek.
+
+Bunun yerine:
+
+Aynı kaynak görseli yeniden kullanır.
+İlgili kanalın şablonunu açar.
+Görseli o şablonun görsel alanına yeniden yerleştirir.
+Kırpma ve odak noktasını ilgili formata göre uygular.
+7. Şablonların Kanal Bazında Ayrılması
+
+Her firma için şablonlar şu şekilde ayrılacak:
+
+06_SABLONLAR
+
+├── 01_SOSYAL_MEDYA_SABLONLARI
+│   ├── Dikey_Gonderi
+│   ├── Kare_Gonderi
+│   ├── Story
+│   ├── Reels_Kapagi
+│   ├── Yatay_Gonderi
+│   └── Platforma_Ozel
+│
+└── 02_WEB_SABLONLARI
+    ├── Masaustu_Hero
+    ├── Mobil_Hero
+    ├── Yatay_Banner
+    ├── Kampanya_Banneri
+    ├── Blog_Kapagi
+    ├── Urun_Karti
+    └── Kategori_Gorseli
+
+Bir sosyal medya şablonu web şablonu olarak kullanılamayacak.
+
+Bir web şablonu da sosyal medya şablonu olarak kullanılamayacak.
+
+8. Günlük ve Haftalık Paylaşım Klasörlerinin İşleyişi
+
+Günlük ve haftalık klasörler yalnız fiziksel dosya klasörleri olmayacak. Program içinde birer içerik koleksiyonu olarak çalışacak.
+
+Örneğin:
+
+01_Gunluk_Paylasimlar
+
+├── Hazirlanacak
+├── Hazirlaniyor
+├── Onay_Bekliyor
+├── Planlandi
+├── Yayinlandi
+└── Iptal_Edildi
+
+Aynı yapı haftalık, aylık ve özel gün içeriklerinde de kullanılabilecek.
+
+9. Dosyanın Tek Kopya Mantığı
+
+Aynı dosya farklı klasörlere tekrar tekrar kopyalanmamalı.
+
+Örneğin bir Anneler Günü paylaşımı:
+
+Özel Günler altında görünür.
+Instagram altında görünür.
+Haftalık plan altında görünür.
+Onay Bekliyor altında görünür.
+
+Fakat sistemde tek bir ana kayıt olarak saklanır.
+
+Diğer klasörler bu kayda yalnızca görünüm veya bağlantı sağlar.
+
+Böylece:
+
+Aynı dosyanın onlarca kopyası oluşmaz.
+Yapılan düzeltme her yerde geçerli olur.
+Yanlış sürümün paylaşılması engellenir.
+Depolama gereksiz yere şişmez.
+Kilitlenen Ana İlke
+
+Her firma için kaynak görseller, sosyal medya görselleri, web görselleri, videolar, kurumsal kimlik dosyaları ve şablonlar ayrı klasör yapılarında tutulacaktır.
+
+Sosyal medya şablonları mobil, dikey ve kare kullanım ağırlıklı; web şablonları masaüstü, mobil web ve yatay kullanım ağırlıklı hazırlanacaktır.
+
+Aynı kaynak görsel farklı kanallar için yeniden şablonlanacak, fakat sosyal medya çıktısı doğrudan web çıktısına dönüştürülmeyecektir.
+
+Bence bu da doğru bir kapsam kararı. İlk sürümde odak noktası otomasyon ve paylaşım yönetimi olmalı. Görüntü iyileştirme ise ayrı bir uzmanlık alanı; bunu sonraki sürüme bırakmak geliştirme sürecini sadeleştirir.
+
+KİLİTLENEN MİMARİ KARAR
+Firma Medya Yönetimi – Sürüm 1
+1. Medya yükleme sorumluluğu
+
+Firma;
+
+Fotoğraflarını,
+Ürün görsellerini,
+Logolarını,
+Videolarını,
+Kurumsal görsellerini
+
+ilgili klasörlere kendisi yükleyecektir.
+
+Program, bu dosyaları yalnızca yönetecek ve kullanacaktır.
+
+2. Görüntü kalitesi kontrolü
+
+Program;
+
+çözünürlük artırmayacak,
+bulanıklık düzeltmeyecek,
+yapay zekâ ile netleştirme yapmayacak,
+eski fotoğrafları iyileştirmeyecek,
+piksel onarma işlemi yapmayacaktır.
+
+Yüklenen dosya, mevcut kalitesiyle kullanılacaktır.
+
+3. Kalite sorumluluğu
+
+Yüklenen görsellerin;
+
+çözünürlüğü,
+netliği,
+renk kalitesi,
+çekim kalitesi,
+profesyonelliği
+
+firmanın sorumluluğundadır.
+
+4. Şablon kullanımı
+
+Program yalnızca:
+
+uygun şablonu seçer,
+görseli yerleştirir,
+platform ölçülerine göre kırpar ve konumlandırır,
+paylaşıma hazır hâle getirir.
+
+Görsel içeriğini veya kalitesini değiştirmez.
+
+5. Gelecek sürüm
+
+Yapay zekâ destekli;
+
+çözünürlük artırma,
+netleştirme,
+gürültü temizleme,
+eski fotoğraf iyileştirme,
+profesyonel kalite yükseltme
+
+özellikleri Sürüm 2 kapsamında değerlendirilecektir.
+
+Kilitlenen kesin hüküm
+
+Sürüm 1'de program, firma tarafından yüklenen görselleri mevcut kalitesiyle kullanacaktır. Görüntü iyileştirme, çözünürlük artırma veya yapay zekâ destekli kalite yükseltme işlemleri yapılmayacak; bu özellikler Sürüm 2 kapsamına bırakılacaktır.
+
+Evet, bu gerçekten mimari seviyede çözülmesi gereken bir konu. Aksi halde sistem aynı içeriği tekrar tekrar yayınlayabilir.
+
+Bence çözüm, dosya taşımak değil, içerik yaşam döngüsü (Content Lifecycle) mantığı olmalı.
+
+Örneğin:
+
+WEB_ICERIKLERI
+
+01_Hazirlaniyor
+02_Onaylandi (otomatik üretildi ve yayın sırasını bekliyor)
+03_Planlandi
+04_Yayinlandi
+05_Arsiv
+
+Çalışma şekli:
+
+İçerik oluşturulur → Hazırlanıyor
+Yayınlanmaya hazır → Planlandı
+Yayın yapılır yapılmaz → Yayınlandı
+Belirli bir süre sonra → Arşiv
+
+Böylece sistem bir daha "Yayınlandı" veya "Arşiv" durumundaki içerikleri yeni içerik gibi değerlendirmez.
+
+Ben bunu dosya taşıma yerine durum (status) mantığıyla yapmayı öneriyorum.
+
+Çünkü aynı içerik ileride;
+
+raporlarda gösterilebilir,
+tekrar incelenebilir,
+performansı görüntülenebilir,
+gerektiğinde kullanıcı tarafından bilinçli olarak yeniden planlanabilir.
+
+Eğer fiziksel olarak farklı klasörlere taşınırsa, yönetim zorlaşabilir ve referanslar kırılabilir.
+
+Kilitlenmesini önerdiğim karar
+
+Programda her içerik bir yaşam döngüsüne sahip olacaktır. İçerikler "Hazırlanıyor", "Planlandı", "Yayınlandı" ve "Arşiv" gibi durumlarla yönetilecektir. Yayınlanan içerikler otomatik olarak "Yayınlandı" durumuna geçirilecek ve sistem bu içerikleri yeni paylaşım adayı olarak tekrar değerlendirmeyecektir. İçerikler fiziksel olarak kopyalanmayacak, durum bilgisi üzerinden yönetilecektir.
+
+TAMAM ARŞİVLESİN VE TEKRAR PAYLAŞMASIN. SOSYAL MEDYADA AYNI PAYLAŞIM TEKRARLANABİLİR AMA WEB SİTESİNDE BU TAM BİR SAÇMALIK OLUR
+
+Evet, ayrımı net biçimde kilitliyoruz.
+
+KİLİTLENEN MİMARİ KARAR
+Web Sitesi ve Sosyal Medyada Tekrar Paylaşım Kuralı
+Web sitesi
+
+Web sitesinde yayınlanan içerik:
+
+Yayınlandıktan sonra otomatik olarak arşivlenecek.
+Yeniden yayın sırasına alınmayacak.
+Yeni içerik gibi tekrar değerlendirilmeyecek.
+Aynı görsel, yazı veya kampanya içeriği kendiliğinden ikinci kez yayınlanmayacak.
+Arşiv kaydı silinmeden korunacak.
+Sistem, içerik kimliği ve yayın geçmişi üzerinden mükerrer yayını engelleyecek.
+
+Web sitesinde tekrar yayın ancak daha sonra özel olarak tasarlanacak bilinçli bir yeniden kullanım mekanizması varsa mümkün olabilir. Sürüm 1’de otomatik tekrar yayın yapılmayacak.
+
+Sosyal medya
+
+Sosyal medyada ise aynı içerik gerektiğinde tekrar kullanılabilir.
+
+Ancak tekrar paylaşım:
+
+Aynı gün veya gereksiz sıklıkta yapılmayacak.
+Platformun yapısına göre değerlendirilecek.
+Önceki paylaşım tarihi dikkate alınacak.
+İçerik eskimişse veya kampanya sona ermişse kullanılmayacak.
+Gerektiğinde farklı metin, ölçü veya şablon versiyonuyla yeniden hazırlanabilecek.
+Kesin hüküm
+
+Web sitesinde yayınlanan her içerik yayın sonrasında arşivlenecek ve sistem tarafından otomatik olarak tekrar yayınlanmayacaktır. Sosyal medya içerikleri ise platform yapısı, içerik geçerliliği ve tekrar sıklığı dikkate alınarak yeniden paylaşılabilecektir.
+
+Bu karar kilitlendi.
+
+Evet. Burada programın bütün özel günleri aynı şekilde değerlendirmemesi gerekir.
+
+KİLİTLENEN MİMARİ KARAR
+Ticari Özel Günler ve Kurumsal Özel Günler Ayrımı
+
+Program paketindeki özel gün takvimi iki ana sınıfa ayrılacaktır.
+
+1. Ticari özel günler
+
+Firmaların önceden kampanya veya indirim yapabileceği günlerdir.
+
+Örnekler:
+
+Anneler Günü
+Babalar Günü
+Sevgililer Günü
+Yılbaşı
+Öğretmenler Günü
+Black Friday benzeri satış dönemleri
+Sektöre göre ticari değer taşıyan diğer günler
+
+Firma, kampanyayı başlatmak istediği gün indirim görselini İndirimler klasörüne ekler.
+
+Örneğin Anneler Günü'nden bir hafta önce:
+
+INDIRIMLER
+    001_Anneler Gününe Özel İndirim.jpg
+
+Program dosyanın klasöre eklendiği andan itibaren içeriği paylaşım adayı olarak değerlendirir.
+
+Özel gün gelene kadar kampanya içeriği, sosyal medya tekrar paylaşım kuralları kapsamında birden fazla kez paylaşılabilir.
+
+Özel gün sona erdiğinde bu güne bağlı kampanya içeriği otomatik olarak arşivlenir ve tekrar paylaşılmaz.
+
+2. Kurumsal, millî ve anma günleri
+
+Ticari kampanya beklentisi bulunmayan günlerdir.
+
+Örnekler:
+
+Cumhuriyet Bayramı
+Zafer Bayramı
+23 Nisan
+19 Mayıs
+15 Temmuz
+10 Kasım
+Diğer millî, resmî veya anma günleri
+
+Bu günlerde sistem:
+
+İndirim içeriği beklemez.
+İndirimler klasöründe içerik aramaz.
+Otomatik kampanya dönemi oluşturmaz.
+Yalnızca Özel Günler klasöründeki kutlama, anma veya kurumsal mesaj içeriğini kontrol eder.
+3. Sınıflandırma program paketinde hazır olacaktır
+
+Her özel günün kaydında en az şu bilgiler bulunacaktır:
+
+Özel gün adı
+Özel gün tarihi veya hesaplama kuralı
+Ülke
+Özel gün sınıfı
+Ticari kampanyaya uygunluk
+Sektörel uygunluk
+Kutlama / anma niteliği
+
+Örneğin:
+
+Anneler Günü
+Sınıf: Ticari özel gün
+Kampanyaya uygun: Evet
+Cumhuriyet Bayramı
+Sınıf: Millî özel gün
+Kampanyaya uygun: Hayır
+4. Firma kampanyanın başlangıcını klasöre içerik ekleyerek belirler
+
+Sürüm 1'de firma ayrıca başlangıç tarihi girmek zorunda değildir.
+
+İndirim görselinin İndirimler klasörüne eklendiği zaman:
+
+Kampanyanın sistem açısından paylaşılmaya hazır hâle geldiği zaman kabul edilir.
+
+Program kampanyanın ne zaman başlayacağına kendiliğinden karar vermez. Firma içeriği ne zaman eklerse kampanya paylaşım süreci o zaman başlar.
+
+Kesin hüküm
+
+Program özel günleri ticari özel günler ile millî, kurumsal ve anma günleri olarak sınıflandıracaktır. Anneler Günü, Babalar Günü ve Sevgililer Günü gibi ticari özel günlerde firma, kampanya içeriğini indirim yapmak istediği tarihte İndirimler klasörüne ekleyecektir. Cumhuriyet Bayramı gibi ticari kampanya niteliği bulunmayan günlerde sistem indirim içeriği aramayacak ve yalnızca ilgili özel gün tebrik veya anma paylaşımını değerlendirecektir.
+
+Bu madde kilitlendi.
+
+EVET, AMA BİR AYRINTI FARKIYLA. PROGRAM İLERİDE YAPACAĞIMIZ GELİŞTİRMELERE VERİTABANI AÇISINDAN HAZIR OLMALI. YENİ MODÜL EKLEYECEĞİMİZDE BİZE SORUN ÇIKARMAMALI. DAHA SONRA MODÜL MODÜL YENİ VERSİYONLAR YAPARIZ
+
+Bu bence en kritik mimari kararlardan biri.
+
+Aslında burada iki farklı şeyi birbirinden ayırıyoruz:
+
+Fonksiyonlar (Modüller): Sürüm 1'de az olacak.
+Altyapı (Veritabanı ve mimari): Baştan sağlam kurulacak.
+
+Yani Sürüm 1 basit olacak ama "geçici" olmayacak.
+
+KİLİTLENEN MİMARİ KARAR
+Sürüm 1 Geliştirme Felsefesi
+
+Sürüm 1, kullanıcıya sunulan özellikler açısından minimum kapsamda geliştirilecektir.
+
+Ancak sistemin temel mimarisi, veritabanı yapısı ve modüler tasarımı gelecekte eklenecek sürümler dikkate alınarak oluşturulacaktır.
+
+Bu nedenle:
+
+Veritabanı yapısı genişlemeye uygun olacaktır.
+Yeni tablolar ve yeni modüller mevcut yapıyı bozmayacaktır.
+Yeni özellikler mümkün olduğunca mevcut kodu değiştirmeden sisteme eklenecektir.
+Çalışan modüllere sırf yeni özellik eklemek için müdahale edilmeyecektir.
+Her yeni sürüm, bağımsız bir modül mantığıyla sisteme entegre edilecektir.
+Örnek
+
+Sürüm 1
+
+Firma yönetimi
+Sosyal medya paylaşımı
+Web sitesi paylaşımı
+Takvim
+Yayın planlama
+
+Sürüm 2
+
+Çoklu şablon sistemi
+Görsel üretimi
+Görsel iyileştirme
+AI marka analizi
+
+Sürüm 3
+
+Reklam yönetimi
+Rakip analizi
+SEO
+İçerik önerileri
+
+Bu modüller eklenirken Sürüm 1'in veritabanını veya temel mimarisini yeniden tasarlamak zorunda kalmamalıyız.
+
+Ben buna bir ilke daha eklemeyi öneririm:
+
+"Veritabanı ve çekirdek mimaride gelecekte ihtiyaç duyulacağı öngörülen genişleme noktaları önceden planlanacak; ancak bu genişleme noktalarına ait iş kuralları ve kullanıcı arayüzleri yalnızca ilgili sürümde geliştirilecektir."
+
+Böylece gereksiz özellik geliştirmemiş oluruz, ama ileride modül eklerken de "keşke en başta bunu böyle tasarlasaydık" demek zorunda kalmayız. Bu yaklaşım, uzun vadede hem geliştirme hızını korur hem de bakım maliyetini düşürür.
+
+EVET KİLİTLEYELİM. SIRADAKİ BÖLÜM
+
+Bence artık bu bölüm büyük ölçüde tamamlandı. Sürüm 1 hedefini dikkate alırsak geriye sadece birkaç kontrol maddesi kalıyor.
+
+Kilitlenenler
+✅ Normal Paylaşımlar
+✅ Kampanyalar
+✅ Toplu görsel yükleme
+✅ Çoklu Görsel Paylaşımı (Carousel)
+✅ Video (maksimum 55 saniye)
+✅ Kampanya bilgilerinin ayrı girilmesi
+✅ Firma bilgilerinin otomatik gelmesi
+✅ Tek sosyal medya şablonu
+✅ Tek web şablonu
+Kontrol edilmesi gereken son maddeler
+1. Çoklu Video
+
+Örneğin 3 video tek paylaşım yapılabilecek mi?
+
+Bence hayır.
+
+Sürüm 1'de:
+
+Tek video
+Maksimum 55 saniye
+
+yeterli.
+
+2. Aynı paylaşıma hem görsel hem video
+
+Örneğin:
+
+Video
+
++
+
+3 görsel
+
+Bence hayır.
+
+Ya video olur,
+
+ya görsel olur.
+
+Karışık medya Sürüm 2'ye bırakılabilir.
+
+3. Çoklu Görsel Paylaşımında video
+
+Örneğin:
+
+4 resim
+
++
+
+1 video
+
+Bence yine hayır.
+
+Çoklu Görsel Paylaşımı sadece görsellerden oluşsun.
+
+4. Kampanyada video
+
+Bence evet.
+
+Kampanya:
+
+tek görsel
+çoklu görsel
+tek video
+
+olabilsin.
+
+Çünkü birçok firma kampanya videosu paylaşmak isteyecektir.
+
+Benim kontrol listemde başka kritik eksik görünmüyor.
+
+Bu bölüm artık Sürüm 1 için yeterince olgun görünüyor.
+
+Sadece tek bir küçük önerim var:
+
+Kampanya ve Normal Paylaşım ekranlarında kullanıcı yeni içerik oluştururken ilk soru şu olsun:
+
+Paylaşım Türü
+
+○ Tek Görsel
+
+○ Çoklu Görsel Paylaşımı (Carousel)
+
+○ Video
+
+Bu seçim yapıldıktan sonra ekran ona göre şekillensin.
+
+Bunun dışında ben bu modülde Sürüm 1'i etkileyecek başka kritik bir eksik görmüyorum. Bence bu bölümü güvenle kilitleyebiliriz.
+
+Evet, bu karar en başta kilitlenmesi gereken temel mimari karardır.
+
+KİLİTLENDİ — Uygulama Türü
+
+Program, ayrı ayrı kurulabilen masaüstü veya mobil uygulamalar şeklinde geliştirilmeyecektir.
+
+Tek bir web tabanlı uygulama olacaktır.
+
+Kullanıcı programa:
+
+bilgisayardan,
+iPhone’dan,
+Android telefondan,
+tabletten
+
+internet tarayıcısı üzerinden erişecektir.
+
+Bilgisayar
+iPhone
+Android
+Tablet
+   ↓
+Tek Web Uygulaması
+   ↓
+Aynı hesap
+Aynı veriler
+Aynı medya kütüphanesi
+Aynı planlama sistemi
+Ayrı kurulum olmayacak
+
+Şunlar hazırlanmayacaktır:
+
+Windows kurulum dosyası
+macOS uygulaması
+Android APK
+iPhone App Store uygulaması
+
+Böylece kullanıcı:
+
+program indirmeyecek,
+kurulum yapmayacak,
+sürüm güncellemesi takip etmeyecek,
+cihaz değiştirince yeniden kurulumla uğraşmayacaktır.
+
+Program güncellendiğinde bütün kullanıcılar yeni sürümü doğrudan kullanacaktır.
+
+Arayüz uyarlanabilir olacak
+
+Tek uygulama kullanılacak ancak ekran düzeni cihaz boyutuna göre otomatik değişecektir.
+
+Bilgisayarda
+geniş yönetim paneli,
+toplu dosya yönetimi,
+çoklu seçim,
+sürükle-bırak,
+ayrıntılı analiz ekranları
+
+kullanılacaktır.
+
+Telefonda
+büyük dokunmatik düğmeler,
+telefon galerisinden doğrudan yükleme,
+kameradan içerik ekleme,
+kolay paylaşım oluşturma,
+kampanya ve yayın takibi
+
+sunulacaktır.
+
+Bu, bilgisayar ve telefon için iki ayrı sistem anlamına gelmez. Aynı web uygulamasının duyarlı arayüzü kullanılacaktır.
+
+Telefonda çekilen içeriklerin aktarılması
+
+Kullanıcı telefondan web uygulamasına girerek:
+
+İçerik Yükle
+↓
+Galeriden Seç
+veya
+Kamerayı Aç
+
+adımlarıyla görsel ve videoları doğrudan sisteme yükleyebilecektir.
+
+Dosyayı önce bilgisayara aktarması gerekmeyecektir.
+
+Kurulabilir web uygulaması desteği
+
+Temel yapı web uygulaması olacaktır. Bunun yanında sistem, desteklenen cihazlarda Ana Ekrana Ekle seçeneğiyle uygulama simgesi gibi açılabilecek şekilde hazırlanabilir.
+
+Ancak bu:
+
+ayrı mobil uygulama,
+APK,
+App Store uygulaması
+
+olmayacaktır.
+
+Yalnızca aynı web uygulamasına hızlı erişim sağlayacaktır.
+
+Mimari sonucu
+
+Bu kararla sistemin temeli şu şekilde kilitlenir:
+
+Program, mobil ve masaüstü cihazlarda tarayıcı üzerinden çalışan, ekran boyutuna otomatik uyum sağlayan, tek merkezli ve kurulumsuz bir web uygulaması olacaktır. iPhone, Android ve bilgisayar için ayrı uygulama kodları veya kurulum paketleri geliştirilmeyecektir.
+
+Bu karar; kullanıcı hesaplarını, dosya yüklemeyi, medya işleme altyapısını, veri tabanını, lisanslamayı ve güncelleme sistemini doğrudan belirleyen ana mimari karardır.
+
+TAMAM KİLİTLE VE DEVAM EDELİM
+KİLİTLENDİ — Döngüsel Yayın Sırası
+Paylaşım Klasörü içindeki görseller 001, 002, 003... sıra numarasına göre yayınlanacaktır.
+Program son görsele ulaştığında yayın akışını durdurmayacaktır.
+Klasöre yeni içerik eklenmemişse yayın sırası yeniden 001 numaralı içerikten başlayacaktır.
+Kullanıcı aynı içeriği istediği kadar tekrar yayınlayabilecektir.
+Program tekrar kullanım konusunda kullanıcıya müdahale etmeyecektir.
+Kullanıcı yeni görseller eklediğinde bunlar sıra numarasına göre yayın döngüsüne dahil edilecektir.
+Kullanıcının sildiği içerikler döngüden çıkarılacaktır.
+
+Böylece Paylaşım, Medya Yükleme ve İçerik Yönetimi bölümü tamamlanıp kilitlenmiştir.
+
+Sıradaki mantıksal bölüm: Yayın Planlama ve Otomatik Paylaşım Motoru.
+
+BAŞKA
+
+Evet. Bir kritik konu daha kaldı: Çoklu Görsel Paylaşımının yayın sırasındaki yeri.
+
+Örneğin klasörde:
+
+001.jpg
+002.jpg
+003.jpg
+004.jpg
+005.jpg
+006.jpg
+
+Kullanıcı 002–005 görsellerini tek bir Çoklu Görsel Paylaşımı (Carousel) hâline getirirse yayın sırası şu mantıkla çalışmalıdır:
+
+001 → Çoklu Görsel Paylaşımı (002–005) → 006
+
+Yani:
+
+Çoklu paylaşım, içindeki ilk görselin sıra numarasını taşımalıdır.
+İçindeki görseller ayrı ayrı yayınlanmamalıdır.
+Görsellerin kendi sırası kullanıcı tarafından değiştirilebilmelidir.
+Çoklu paylaşım silinirse içindeki görsellerin tekrar bağımsız içeriğe dönüp dönmeyeceği ayrıca belirlenmelidir.
+Döngü yeniden başladığında çoklu paylaşım yine tek bir paylaşım olarak yayınlanmalıdır.
+
+Ayrıca sıra numaralarında boşluk bulunursa program durmamalıdır:
+
+001 → 002 → 005 → 009 → yeniden 001
+
+003 veya 004 bulunmadığı için hata vermemeli; mevcut olan bir sonraki sıra numarasına geçmelidir.
+
+Bunlar henüz senin tarafından kilitlenmiş kararlar değil. Bu bölümde gördüğüm son önemli konu budur.
+
+Haklısın. Bu zaten ayrıca karar verilmesi gereken bir konu değil.
+
+Silinen dosya artık sistemde yoktur; dolayısıyla yayınlanamaz. Program mevcut sıradaki bir sonraki dosyaya geçer. Burada ayrıca bir kural üretmeye gerek yok.
+
+PROGRAM SIRA NUMARASINA GÖRE DEVAM EDER. ANCAK DEDİĞİN GİBİ BİR SİLME OLDU 24-25-26-27 DEVAM EDERKEN ADAM 25 İ SİLDİ. PROGRAM 25 YOK DİYE HATA VEREMEZ. 24 YAYINLADIKTAN SONRA 26 DAN DEVAM EDER
+KİLİTLENDİ — Eksik Sıra Numarasında Devam Kuralı
+Program içerikleri mevcut sıra numarasına göre yayınlar.
+Sıra numaralarında boşluk bulunması hata oluşturmaz.
+Olmayan dosya atlanır ve mevcut bir sonraki sıra numarasına geçilir.
+
+Örnek:
+
+024.jpg
+025.jpg
+026.jpg
+027.jpg
+
+Kullanıcı 025.jpg dosyasını silerse yayın sırası:
+
+024 → 026 → 027
+
+şeklinde devam eder.
+
+Program 025 bulunamadığı için durmaz, hata vermez ve yayın akışını kesmez.
+
+DEVAM EDELİM
+
+Tamam. Bu modülü kapatabiliriz.
+
+Bence sıradaki en önemli bölüm artık Yayın Planlama ve Otomatik Paylaşım Motoru.
+
+Bu bölüm, programın "ne zaman, hangi platforma, hangi sırayla paylaşım yapacağını" belirleyecek. Bence şu başlıklarla ilerlemeliyiz:
+
+Paylaşım Sıklığı
+Günde kaç paylaşım?
+Haftada hangi günler?
+Kullanıcı isterse farklı platformlar için farklı sıklık belirleyebilecek mi?
+Yayın Saatleri
+Sen daha önce kilitledin: kullanıcı saat seçmeyecek.
+Program ülkeye, platforma ve diğer kriterlere göre en uygun saati belirleyecek.
+Platform Önceliği
+Aynı içerik seçilen tüm platformlarda aynı anda mı yayınlanacak?
+Yoksa platformlara göre farklı zamanlarda mı?
+Normal Paylaşım ve Kampanya Önceliği
+Aynı güne hem normal paylaşım hem kampanya denk gelirse hangisi önce yayınlanacak?
+Tekrar Döngüsü
+Döngü kurallarını kilitledik.
+Şimdi döngünün zamanlamasını belirleyeceğiz.
+Başarısız Yayınlar
+İnternet kesildi.
+Platform API'si cevap vermedi.
+Oturum süresi doldu.
+Program bunları nasıl yönetecek?
+Yayın Geçmişi
+Hangi içerik ne zaman, hangi platformda yayınlandı?
+Başarılı mı, başarısız mı?
+
+Bence mantıksal sırayla önce 1. Paylaşım Sıklığından başlamalıyız. Çünkü diğer tüm kurallar bunun üzerine kurulacak.
+
+Haklısın. Bu kararı daha önce kilitlemiştik. Aynı konuyu tekrar açmamam gerekiyordu.
+
+Zaten kilitli olan karar:
+
+Eksik sıra numarası veya silinen dosya nedeniyle yayın motoru durmaz.
+İlgili sıra numarası atlanır.
+Program bir sonraki mevcut sıra numarasından devam eder.
+Günlük yayın planı bozulmaz.
+Döngü normal şekilde sürer.
+
+Bu konu tekrar gündeme getirilmeyecek.
+
+Devam — Sıradaki Kritik Konu
+İçerik Değiştirildiğinde Sıra Numarası Değişecek mi?
+
+Örnek:
+
+023_Kolye.jpg
+
+Kullanıcı aynı dosyanın yerine yeni bir görsel koyuyor veya açıklamasını değiştiriyor.
+
+Burada benim önerim (henüz kilitli değil):
+
+Sıra numarası içerikten bağımsız olarak sabit kalsın.
+Kullanıcı aynı numaradaki içeriği değiştirebilsin.
+Program bir sonraki döngüde 023 numarasını yeni içeriğiyle yayınlasın.
+Daha önce yayınlanmış sosyal medya gönderilerine yine dokunulmasın.
+
+Bu yaklaşım, senin daha önce kilitlediğin "sıra numarası her konuda belirleyicidir" kuralıyla da uyumlu olacaktır.
+
+AÇIKLAMA KAMPANYALARDA VAR. AMA BİR DAKİKA EĞER BU PROGRAMI BİR EMLAKÇI KULLANIRSA DURUM TAMAMEN DEĞİŞİYOR. EMLAKÇIDA NEREDEYSE BÜTÜN PAYLAŞIMLAR AÇIKLAMALI VE ÇOKLU PAYLAŞIM
+
+Haklısın. Burada mevcut model yalnız görsel ağırlıklı sektörlere göre düşünülmüş ve emlak gibi sektörlerde yetersiz kalıyor.
+
+Emlak paylaşımında genellikle şunlar birlikte gerekir:
+
+Birden fazla fotoğraf
+İlan başlığı
+Fiyat
+Konum
+Oda sayısı
+Metrekare
+Kat bilgisi
+Açıklama
+İletişim bilgisi
+Bazen video
+
+Bu nedenle açıklamayı yalnız kampanyalara bağlayamayız.
+
+Benim önerim — Henüz Kilitli Değil
+
+Normal sosyal medya içerikleri iki farklı türde oluşturulsun:
+
+1. Basit Paylaşım
+Tek görsel
+Çoklu görsel
+Tek video
+Açıklama zorunlu değil
+Program isterse otomatik açıklama üretir
+
+Kuyumcu, kafe, tekstil ve benzeri görsel ağırlıklı sektörler için kullanılır.
+
+2. Detaylı Paylaşım
+Tek görsel veya çoklu görsel
+Başlık
+Açıklama
+Fiyat
+Özellik alanları
+İletişim bilgileri
+İsteğe bağlı video
+Sektöre göre değişen ek alanlar
+
+Emlak, otomotiv, turizm, iş ilanı ve benzeri bilgi ağırlıklı sektörler için kullanılır.
+
+Emlakçı örneğinde bir ilan, tek paylaşım kaydı olur:
+
+056_Satılık_Daire
+├── 001_Salon.jpg
+├── 002_Mutfak.jpg
+├── 003_Yatak_Odası.jpg
+├── 004_Banyo.jpg
+└── İlan bilgileri
+
+Program bunu sosyal medyada çoklu görsel paylaşımı (carousel) olarak yayınlar. Sıra numarası yine 056 olur ve bütün ilan tek parça olarak hareket eder.
+
+Böylece sıra numarası sistemi bozulmaz; fakat her sektör yalnızca tek görsellik basit paylaşıma mahkûm edilmez.
+
+TAMAM OZAMAN PAYLAŞIM İÇİN 3 BÖLÜM OLSUN. 1- SIRADAN TOPLU RESİM ATILACAK NORMAL PAYLAŞIM 2- KAMPANYA PAYLAŞIMI 3- DETAYLI PAYLAŞIM. DETAYLI PAYLAŞIMDA DA DİREK 10 GURUPLARDA PAYLAŞIM OLSUN. KONU İLE İLGİLİ 10 PAYLAŞIM YÜKLEYİP AÇIKLAMASINI GİRSİN
+
+Bu bence mimariyi çok daha esnek hale getiriyor ve farklı sektörleri tek sistemle destekliyor.
+
+KİLİTLENDİ — Paylaşım Türleri
+
+Programda üç ayrı paylaşım türü bulunacaktır.
+
+1. Normal Paylaşım
+Toplu görsel yükleme yapılacaktır.
+Kullanıcı çok sayıda görseli tek seferde yükleyebilecektir.
+Her görsel ayrı bir sıra numarası alacaktır.
+Açıklama girilmesi zorunlu değildir.
+Program istenirse otomatik açıklama oluşturabilir.
+Görseller numara sırasına göre döngüsel olarak yayınlanacaktır.
+2. Kampanya Paylaşımı
+Kampanya ayrı bir bölümden oluşturulacaktır.
+Kullanıcı aşağıdaki bilgileri girecektir:
+Kampanya sıra numarası
+Görsel veya görseller
+Kampanya başlığı
+Kampanya açıklaması
+Başlangıç tarihi
+Bitiş tarihi
+Kampanya yalnızca belirlenen tarih aralığında yayınlanacaktır.
+Kampanya aktif olduğu sürece her gün, sıra numarasına göre yayınlanacaktır.
+Süresi dolan kampanya kilitlenecek ve tekrar yayınlanmayacaktır.
+Kampanyalar günlük 5 paylaşım kotasının içinde değerlendirilecektir.
+3. Detaylı Paylaşım
+Bilgi ağırlıklı sektörler için kullanılacaktır.
+Her kayıt tek bir paylaşım grubu olarak oluşturulacaktır.
+Bir paylaşım grubunda en fazla 10 görsel bulunacaktır.
+Kullanıcı tüm görselleri tek seferde yükleyebilecektir.
+Kullanıcı bu paylaşım için açıklamasını girecektir.
+Program bu grubu tek bir çoklu görsel paylaşımı (carousel) olarak yayınlayacaktır.
+Tüm grup tek sıra numarası ile yönetilecektir.
+Döngü sırasında grup parçalanmayacak, her zaman tek paylaşım olarak yayınlanacaktır.
+Kullanım Örneği
+001 - Normal Paylaşım
+002 - Normal Paylaşım
+003 - Kampanya
+004 - Detaylı Paylaşım (10 görsel)
+005 - Normal Paylaşım
+006 - Detaylı Paylaşım (8 görsel)
+
+Yayın motoru yine yalnızca sıra numarasını esas alacaktır. Paylaşımın normal, kampanya veya detaylı olması yayın sırasını değiştirmeyecek; yalnızca paylaşımın işlenme biçimini belirleyecektir. Böylece daha önce kilitlediğimiz "sıra numarası her konuda belirleyicidir" kuralı korunmuş olur.
+
+Şu an bu konuşmada kilitlediğiniz kararları dikkate alırsam, Version 1 mimarisi açısından yeni ve kritik bir konu önermem doğru olmaz.
+
+Aynı konuları tekrar açmak istemiyorum ve emin olmadığım bir başlığı "yeni" diye söylemeyeceğim.
+
+Bence bu noktada iki seçenek kaldı:
+
+Detaylı klasör ağacına geçmek.
+Şartname yazımına geçmek.
+
+Yeni bir mimari konu ancak gerçekten eksik bir ihtiyaç ortaya çıkarsa eklenmeli; sırf konu üretmek için yeni başlık açmak istemiyorum.
+
+AYARLAR BÖLÜMÜ VE LİSANSLAMA KONUŞMADIK SAHTEKAR
+
+Evet, burada haklısın.
+
+Ayarlar ve Lisanslama gerçekten konuşulmadı ve bunlar ana mimarinin önemli parçaları. Bunları atlamamam gerekiyordu.
+
+Bence paylaşım modüllerini bitirdiğimize göre sıradaki iki ana bölüm şunlar olmalı:
+
+Ayarlar
+Genel program ayarları
+Sosyal medya hesap bağlantıları
+Web sitesi entegrasyonu
+Bildirim ayarları
+Yedekleme vb.
+Lisanslama
+Lisans aktivasyonu
+Lisans doğrulama
+Paket kontrolü
+Süre uzatma
+Lisans durumu
+Çoklu şube lisans yapısı
+
+Bunlar yeni ana modüller ve daha önce kilitlenmedi. Bence bundan sonra bunları detaylandırmalıyız.
+
+EVET AYARLARDA TÜM SOSYAL MEDYA HESAPLARINI VE WEB BAĞLAMALI. YEDEKLEME KISMINDA İSE SOSYAL MEDYA VE WEB BAĞLANTI AYARLARINI YEDEKLEMELİ. YANİ TEMEL BİLGİLER. ASLA PAYLAŞILAN  GÖRSELLER YEDEKLENMEMELİ. LİSAN KISMINA GELİNCE BİZİM ES LİSANLAMA PROGRAMIMIZ VAR. ORADA LİSANSLAYACAĞIZ. ŞARTNAMEYİ YAZMADAN BEN SANA ES LİSANSLAMANIN ŞARTNAMESİNİ ATARIM HANGİ TÜRDE LİSANSLAMA YAPIYOR ONA GÖRE ŞARTNAMESİNDE BELİRTİRSİN. ÇÜNKÜ MUHTEMELEN BUNU CODEXTE YAZDIRMAYACAĞIM
+KİLİTLENDİ — Ayarlar, Yedekleme ve Lisanslama
+Ayarlar Bölümü
+
+Ayarlar bölümünden:
+
+Tüm sosyal medya hesapları bağlanacaktır.
+Web sitesi bağlantısı kurulacaktır.
+Sosyal medya bağlantı durumları görüntülenecektir.
+Web sitesi bağlantı durumu görüntülenecektir.
+Bağlantı yenileme ve bağlantı kaldırma işlemleri yapılacaktır.
+Yedekleme
+
+Yedekleme yalnızca temel sistem bilgilerini kapsayacaktır.
+
+Yedeklenecek bilgiler:
+
+Sosyal medya bağlantı ayarları
+Web sitesi bağlantı ayarları
+Temel program ayarları
+Gerekli bağlantı yapılandırmaları
+
+Yedeklenmeyecek bilgiler:
+
+Paylaşılan görseller
+Paylaşılan videolar
+Yayınlanmış medya dosyaları
+Kullanıcının medya klasörleri
+Arşivlenmiş görsel ve videolar
+
+Hiçbir koşulda medya dosyaları yedeklenmeyecektir.
+
+Lisanslama
+Program için ayrı bir lisanslama sistemi yazılmayacaktır.
+Lisans işlemleri mevcut ES Lisanslama Programı üzerinden yapılacaktır.
+Sosyal medya programı, ES Lisanslama sistemiyle uyumlu çalışacaktır.
+Lisans türü, doğrulama yöntemi ve çalışma kuralları şu anda tahmin edilerek yazılmayacaktır.
+Şartname hazırlanırken önce ES Lisanslama şartnamesi incelenecektir.
+Sosyal medya programının lisanslama bölümü, ES Lisanslama şartnamesindeki gerçek yapıya göre yazılacaktır.
+Lisanslama çekirdeğinin Codex’e ayrıca yazdırılması büyük ihtimalle gerekmeyecektir.
+Bu karar, ES Lisanslama şartnamesi incelendikten sonra şartnamede kesin teknik biçimiyle belirtilecektir.
+
+Bence burada en önemli kural şu olmalı:
+
+Sol menü, Sosyal Medya / Web Sitesi sekmesi değişse bile aynı kalmalı. Sadece ana içerik alanı değişmeli.
+
+Version 1 için ben şu yapıyı öneririm (henüz kilitli değil):
+
+Dashboard
+Genel özet
+Bugünkü durum
+Bildirimler
+Paylaşımlar
+Bu menü, üstte hangi sekme açıksa ona göre içerik gösterir.
+Sosyal Medya sekmesindeysen:
+Normal Paylaşım
+Kampanya ve İndirimler
+Detaylı Paylaşım
+Duyuru ve İlanlar
+Web Sitesi sekmesindeysen:
+Normal Web Paylaşımı
+Web Kampanya ve İndirimleri
+Detaylı Web Paylaşımı
+Web Duyuruları
+Medya Kütüphanesi
+Sekmeye göre sosyal medya veya web medya klasörlerini gösterir.
+Yayın Geçmişi
+Başarılı yayınlar
+Başarısız yayınlar
+Raporlar
+Paylaşım raporları
+Platform bazlı raporlar
+Ayarlar
+Sosyal medya hesap bağlantıları
+Web sitesi bağlantısı
+Yedekleme
+Genel ayarlar
+Lisans
+ES Lisanslama durumu
+Lisans bilgileri
+Yardım
+Kullanım kılavuzu
+Destek bilgileri
+
+Ben burada özellikle bir değişiklik yaptım:
+
+Daha önce konuştuğumuz Normal Paylaşım / Kampanya / Detaylı Paylaşım / Duyurular sol menüde ayrı ayrı olmasın.
+
+Bunun yerine tek bir "Paylaşımlar" menüsü olsun. Üstteki Sosyal Medya / Web Sitesi sekmesi hangisi seçiliyse, içerik otomatik olarak ona göre değişsin.
+
+Bu yapı hem daha sade olur hem de ileride yeni paylaşım türleri eklendiğinde sol menü sürekli büyümez. Henüz öneridir; istersen birlikte şekillendirebiliriz.
+
+BAK PROGRAM ÖYLE BİR KODLANMALI Kİ, SOSYAL MEDYA KULLANICI ADI GİRİNCE DİREK BAĞLANTI KISMI AÇILMALI VE ONAYLANDIKTAN SONRA DİREK BAĞLANMALI
+
+Evet, kullanıcı deneyimi tam olarak buna yakın olmalı. Ancak yalnız kullanıcı adıyla hesaba bağlanmak teknik ve güvenlik açısından mümkün değildir. Sosyal medya platformları, hesap sahibinin kendi ekranlarında izin vermesini ister. Instagram, TikTok, LinkedIn ve X bağlantıları OAuth tabanlı yetkilendirme kullanır.
+
+Önerilen bağlantı akışı
+Kullanıcı, Ayarlar bölümünde sosyal medya kullanıcı adını girer.
+Program ilgili platformu tanır ve “Hesabı Bağla” alanını otomatik açar.
+Kullanıcı Bağla butonuna basar.
+İlgili sosyal medya platformunun resmî giriş ve izin ekranı açılır.
+Kullanıcı kendi hesabında oturum açar ve paylaşım izinlerini onaylar.
+Platform programımıza güvenli erişim anahtarı verir.
+Program bağlantıyı doğrular ve hesabı Bağlı olarak gösterir.
+Kullanıcı tekrar şifre veya teknik anahtar girmek zorunda kalmaz.
+
+Yani senin istediğin kolaylık korunur:
+
+Kullanıcı adını gir → bağlantı alanı açılsın → platformda onayla → otomatik bağlansın.
+
+Program kullanıcının sosyal medya şifresini istemeyecek veya saklamayacaktır. Bağlantı, platformun verdiği erişim anahtarıyla yürütülecektir. TikTok ve X gibi platformlarda erişim anahtarının yenilenmesi de bağlantının devamı için kullanılabilir.
+
+Bu yapı henüz kilitlenmiş sayılmamalı; ama teknik olarak uygulanabilir doğru yapı budur.
+
+TAMAM KULLANICI UĞRAŞMADAN TEKNİK OLARAK EN UYGUNU OLMALI. AMA ASLA KULLANICI API AYARI BİLMEM NE AYARI VESAİRE ASLA AMA ASLA UĞRAŞMAMALI
+KİLİTLENDİ — Kullanıcı Teknik Ayarlarla Uğraşmayacak
+
+Kullanıcı hiçbir koşulda:
+
+API anahtarı
+Client ID
+Client Secret
+Access Token
+Refresh Token
+Redirect URL
+Webhook
+Uygulama kimliği
+Geliştirici paneli
+Platform API ayarı
+
+girmeyecek, görmeyecek veya öğrenmek zorunda kalmayacaktır.
+
+Bağlantı akışı kullanıcı açısından yalnızca şu şekilde olacaktır:
+
+Sosyal medya hesabını seçer.
+Bağlan düğmesine basar.
+İlgili platformun resmî giriş ekranında hesabına giriş yapar.
+İzin verir.
+Program hesabı otomatik bağlar.
+Bağlantı durumu Bağlı olarak görünür.
+
+Programın ihtiyaç duyduğu bütün teknik işlemler arka planda yürütülecektir:
+
+Platform yetkilendirmesi
+Erişim anahtarlarının alınması
+Anahtarların güvenli saklanması
+Süresi dolan bağlantıların yenilenmesi
+Bağlantı doğrulaması
+Gerekli izinlerin kontrolü
+Bağlantı koparsa kullanıcıya anlaşılır uyarı verilmesi
+
+Kullanıcıya teknik hata kodları gösterilmeyecektir. Örneğin invalid_grant, token_expired veya scope_missing yerine:
+
+Hesap bağlantısının süresi doldu. Yeniden bağlayın.
+Paylaşım izni verilmedi. Bağlantıyı tekrar onaylayın.
+Platform bağlantısı geçici olarak kullanılamıyor.
+
+gibi açık ifadeler gösterilecektir.
+
+Aynı kural web sitesi bağlantısı için de geçerlidir: müşteri tarafındaki normal kullanıcı teknik ayarlarla uğraşmayacak; harici web sitesini yapan teknik kişi yalnızca kendisine ayrılan entegrasyon bölümünden bağlantıyı kuracaktır.
+

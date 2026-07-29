@@ -1,0 +1,652 @@
+SÜRÜM 1 – TÜM FAZLAR (KESİN VE SON HALİ)
+FAZ 1 – Dashboard
+Amaç
+Dashboard, kullanıcının programa giriş yaptıktan sonra gördüğü ilk ekrandır. Dashboard yalnızca genel durumu özetler. İşlem ekranı değildir.
+
+1. Sekme Yapısı
+Dashboard; Sosyal Medya ve Web Sitesi olmak üzere üst bölümde bulunan sekmeye göre çalışacaktır. Sekme değiştirildiğinde sol menü değişmeyecek, sadece Dashboard içerikleri değişecektir.
+
+2. Gösterilecek Bilgiler (Sosyal Medya Sekmesi)
+Bugünkü paylaşım durumu
+
+Planlanan paylaşımlar
+
+Tamamlanan paylaşımlar
+
+Bekleyen paylaşımlar
+
+Başarısız paylaşımlar
+
+Bağlı sosyal medya hesaplarının durumu
+
+Bildirim özeti
+
+3. Gösterilecek Bilgiler (Web Sitesi Sekmesi)
+Bugün yayınlanan web içeriği
+
+Toplam web yayını
+
+Başarılı web yayınları
+
+Başarısız web yayınları
+
+Web sitesi bağlantı durumu
+
+Son web yayınları
+
+Taslaklar (varsa)
+
+4. Bildirimler
+Dashboard üzerinde yalnızca özet bildirimler gösterilecektir. Teknik hata kodları gösterilmeyecektir.
+
+5. Sol Menü
+Dashboard
+
+Paylaşımlar
+
+Medya Kütüphanesi
+
+Yayın Geçmişi
+
+Raporlar
+
+Bildirim Merkezi
+
+Ayarlar
+
+Lisans
+
+Yardım
+
+6. Teknik İlkeler
+Dashboard; veri oluşturmaz, paylaşım oluşturmaz, medya oluşturmaz, dosya yönetmez, lisans yönetmez. Yalnızca özet gösterir.
+
+7. Responsive Yapı
+Dashboard; bilgisayar, tablet ve telefon ekranlarında aynı web uygulaması içerisinde çalışacaktır.
+
+FAZ 2 – Paylaşımlar (Sosyal Medya)
+1. Amaç
+Sosyal medya paylaşımlarının oluşturulduğu, yönetildiği ve otomatik yayınlandığı modüldür.
+
+2. Paylaşım Türleri
+Standart Paylaşım
+
+Kampanya Paylaşımı
+
+Detaylı Paylaşım
+
+Duyuru ve İlanlar
+
+3. Standart Paylaşım
+Toplu görsel yükleme
+
+Her görsel ayrı sıra numarası alır (001'den başlar)
+
+Açıklama zorunlu değil
+
+Otomatik döngü vardır
+
+Sıra numarasına göre yayınlanır
+
+Standart Paylaşımlar kendi sıra numarası ve döngü kuralları kapsamında yeniden yayınlanabilir
+
+4. Kampanya Paylaşımı
+Sıra numarası alır (001'den başlar)
+
+Görsel/video, başlık, açıklama, başlangıç ve bitiş tarihi girilir
+
+Kampanya, başlangıç tarihinde aktif olur ve bitiş tarihi dâhil olmak üzere aktif olduğu süre boyunca her gün yayınlanır
+
+Standart Paylaşım döngüsüne dahil değildir
+
+Kampanya yalnızca başlangıç ve bitiş tarihi arasındaki aktif süre boyunca her gün otomatik olarak yeniden yayınlanır
+
+Aktif kampanya sayısı 5 ise o gün yalnızca 5 kampanya paylaşımı yapılır
+
+Aktif kampanya sayısı 3 ise 3 kampanya + 2 Standart Paylaşım yapılır
+
+Aktif kampanya yoksa günlük 5 paylaşımın tamamı Standart Paylaşım döngüsünden yapılır
+
+Aktif kampanya sayısı 5'ten fazla ise sıra numarası en küçük olan 5 kampanya yayınlanır
+
+Sıra numarası büyük olan kampanyalar, küçük olanların süresi dolana kadar yayınlanmaz
+
+Kampanya süresi dolduğunda kampanya kilitlenir ve artık yayınlanmaz
+
+Süresi sona eren kampanyanın boşalttığı günlük paylaşım hakkı Standart Paylaşımlar tarafından doldurulur
+
+Kampanya döngüsü yalnızca kampanyanın aktif tarih aralığı içinde geçerlidir
+
+5. Detaylı Paylaşım
+Bilgi ağırlıklı sektörler için (emlak, otomotiv, turizm, iş ilanı)
+
+En fazla 10 görsel
+
+Tüm grup tek sıra numarası alır (001'den başlar)
+
+Tek bir carousel olarak yayınlanır
+
+Grup silindiğinde içindeki görseller bağımsız olarak geri dönmez
+
+Günlük 5 otomatik paylaşım kotasına dahil değildir
+
+Yayın zamanı kullanıcı tarafından belirlenir:
+
+Planlı Yayın: Kullanıcı tarih ve saat seçer, içerik o tarih ve saatte yayınlanır
+
+Şimdi Paylaş: İçerik anında yayınlanır
+
+Tarih ve saat seçilmeden planlı Detaylı Paylaşım kaydedilemez
+
+Otomatik döngü yoktur
+
+6. Duyuru ve İlanlar
+Kotaya dahil değildir
+
+Yalnızca "Şimdi Paylaş" ile yayınlanır
+
+Sıra numarası almaz
+
+Döngüye girmez
+
+Tüm bağlı sosyal medya hesaplarında anında yayınlanır
+
+İçerik, gerekli yayın izni bulunan bağlı sosyal medya hesaplarında yayınlanır
+
+İçeriğin medya türünü desteklemeyen platformlarda yayın yapılmaz
+
+Bir platformdaki hata diğer platformlardaki yayınları engellemez
+
+Her platformun yayın sonucu ayrı ayrı kaydedilir
+
+Başarısız platformlar için kullanıcıya ayrı hata mesajı gösterilir
+
+7. "Kaydet" ve "Şimdi Paylaş" (Sosyal Medya)
+Kaydet:
+
+Standart ve Kampanya: sıra numarası alır, kotadan düşer, otomatik sıraya girer
+
+Detaylı: sıra numarası alır, kotadan düşmez, kullanıcının belirlediği tarih/saatte yayınlanır
+
+Şimdi Paylaş:
+
+Standart ve Kampanya: sıra numarası alır, kotadan düşmez, anında yayınlanır
+
+Detaylı: sıra numarası alır, kotadan düşmez, anında yayınlanır
+
+8. Manuel Paylaşım ile Otomatik Paylaşım Kotası İlişkisi
+Manuel Paylaşım ile Otomatik Paylaşım sistemi birbirinden tamamen bağımsızdır.
+
+Günlük 5 paylaşım kotası yalnızca Otomatik Paylaşım sistemi için geçerlidir.
+
+"Şimdi Paylaş" işlemleri manuel paylaşımdır ve günlük paylaşım kotasına tabi değildir.
+
+Kullanıcı istediği sayıda manuel paylaşım yapabilir.
+
+Manuel paylaşımlar, otomatik paylaşım sisteminin günlük paylaşım kotasını hiçbir şekilde etkilemez, azaltmaz veya değiştirmez.
+
+Standart Paylaşım "Şimdi Paylaş" ile yayınlanmış olsa bile, kendi sıra numarası ve döngü kuralları kapsamında otomatik paylaşımlara devam eder.
+
+Kampanya Paylaşımı "Şimdi Paylaş" ile yayınlanmış olsa bile, kampanya bitiş tarihine kadar günlük kampanya yayın kuralları kapsamında otomatik olarak yayınlanmaya devam eder.
+
+9. Başarısız Yayın Kuralı
+Bir sosyal medya yayını başarısız olursa sistem otomatik olarak 1 dakika aralıklarla yeniden dener
+
+Aynı yayın için en fazla 5 yayın denemesi yapılır
+
+Başarılı sayılabilmesi için:
+
+Paylaşım platform üzerinde oluşturulmuş olmalıdır
+
+Geçerli yayın bağlantısı alınmış olmalıdır
+
+Geçerli yayın bağlantısı alınamayan paylaşım başarılı kabul edilmez
+
+Beşinci denemenin sonunda paylaşım oluşturulamaz veya geçerli yayın bağlantısı alınamazsa yayın "Başarısız" olarak işaretlenir
+
+Başarısız yayın Yayın Geçmişine kaydedilir
+
+Başarısız yayınlarda kullanıcıya:
+
+Neden yayın yapılamadığı
+
+Hangi işlemin başarısız olduğu
+
+Kullanıcının ne yapması gerektiği
+açık ve anlaşılır şekilde gösterilir
+
+Kullanıcıya teknik hata kodları, HTTP kodları ve teknik loglar gösterilmez
+
+Kullanıcıya Bildirim Merkezi üzerinden başarısız yayın bildirimi gönderilir
+
+Kullanıcı dostu hata mesajı örnekleri:
+
+Sosyal medya hesabının oturum süresi dolmuş.
+
+Sayfa yayın izni bulunmuyor.
+
+Görsel platform kurallarına uygun değil.
+
+İnternet bağlantısı kurulamadı.
+
+Platform geçici olarak hizmet vermiyor.
+
+10. Medya Karma (Sürüm 1)
+Tek video (maksimum 55 saniye)
+
+Tek görsel
+
+Çoklu görsel (carousel)
+
+Çoklu video, görsel+video karışık yok
+
+11. Özel Günler
+Ticari Özel Günler:
+
+Anneler Günü, Babalar Günü, Sevgililer Günü, Yılbaşı vb.
+
+Firma kampanya içeriğini ilgili klasöre ekler, program değerlendirir
+
+Özel gün sona erdiğinde ilgili içerik aktif paylaşım adayları arasından çıkarılır
+
+Medya dosyası arşivlenmez, yalnızca kaydı tutulur
+
+Kurumsal / Millî / Anma Günleri:
+
+Cumhuriyet Bayramı, 10 Kasım vb.
+
+Program indirim içeriği aramaz, yalnızca tebrik/anma içeriğini değerlendirir
+
+FAZ 3 – Paylaşımlar (Web Sitesi)
+1. Amaç
+Web sitesi içeriklerinin oluşturulduğu ve doğrudan yayınlandığı modüldür.
+
+2. Temel Kurallar
+Paylaşım türü ayrımı yoktur
+
+Kota yoktur
+
+Sıra numarası yoktur
+
+Döngü yoktur
+
+Otomatik zamanlama yoktur
+
+Algoritmik yayın saati yoktur
+
+İçerik doğrudan kullanıcı işlemiyle yayınlanır
+
+3. İçerik Oluşturma
+Kullanıcı:
+
+Yayınlanacak içeriği girer
+
+Başlık veya açıklama girer
+
+Kullanılacak görseli seçer veya yükler
+
+Yayınlanacak Web Bölümü'nü zorunlu olarak seçer
+
+4. Web Bölümleri
+Örnekler:
+
+Ana Sayfa
+
+Slider
+
+Hero
+
+Ürünler
+
+Hizmetler
+
+Kampanyalar
+
+Blog
+
+Duyurular
+
+Popup
+
+Diğer tanımlanmış alanlar
+
+Program, bağlı olmayan veya web sitesinde bulunmayan bir bölümü kendiliğinden oluşturmaz.
+
+5. "Taslak Kaydet" ve "Şimdi Yayınla"
+Taslak Kaydet:
+
+İçeriği taslak olarak saklar
+
+Otomatik yayın oluşturmaz
+
+Kota kullanmaz, sıra numarası oluşturmaz
+
+Yayın algoritmasına girmez
+
+Yayın Geçmişinde gösterilmez
+
+Kullanıcı taslağı düzenleyebilir, silebilir veya hedef web bölümünü seçerek doğrudan yayınlayabilir
+
+Şimdi Yayınla:
+
+İçeriği seçilen web bölümünde doğrudan yayınlar
+
+Kota kullanmaz, sıra numarası oluşturmaz
+
+Döngüye girmez, zamanlanmış otomatik paylaşım oluşturmaz
+
+6. Web Teknik Şartname
+Web sitesi bağlantısı ve içerik yayınlama işlemlerinin teknik ayrıntıları, Sürüm 1 Web Sitesi Entegrasyonu Teknik Şartnamesinde tanımlanacaktır. Bu teknik şartname tamamlanmadan web yayınlama modülünün entegrasyon kodlamasına başlanmayacaktır.
+
+FAZ 4 – Medya Kütüphanesi
+1. Amaç
+Firmanın görsel ve kurumsal dosyalarının saklandığı, yönetildiği modüldür.
+
+2. Klasör Yapısı
+text
+FIRMA_MEDYA_KUTUPHANESI
+│
+├── 01_KAYNAK_GORSELLER
+│   ├── Urunler
+│   ├── Hizmetler
+│   ├── Magaza_Ofis
+│   ├── Personel
+│   ├── Etkinlikler
+│   ├── Kampanyalar
+│   ├── Referanslar
+│   ├── Marka_Gorselleri
+│   └── Diger
+│
+├── 02_SOSYAL_MEDYA_GORSELLERI
+│   ├── 01_Gunluk_Paylasimlar
+│   ├── 02_Haftalik_Paylasimlar
+│   ├── 03_Aylik_Paylasimlar
+│   ├── 04_Ozel_Gunler
+│   │   ├── Resmi_Bayramlar
+│   │   ├── Dini_Bayramlar
+│   │   ├── Milli_Gunler
+│   │   ├── Mesleki_Gunler
+│   │   ├── Sektorel_Gunler
+│   │   ├── Yilbasi
+│   │   ├── Anneler_Gunu
+│   │   ├── Babalar_Gunu
+│   │   ├── Sevgililer_Gunu
+│   │   └── Firmaya_Ozel_Gunler
+│   ├── 05_Kampanyalar
+│   ├── 06_Yeni_Urunler
+│   ├── 07_Hizmet_Tanitimlari
+│   ├── 08_Duyurular
+│   ├── 09_Kurumsal_Paylasimlar
+│   ├── 10_Bilgilendirici_Icerikler
+│   ├── 11_Musteri_Yorumlari
+│   ├── 12_Etkinlikler
+│   ├── 13_Sezonluk_Paylasimlar
+│   └── 14_Diger
+│
+├── 03_WEB_GORSELLERI
+│   ├── 01_Ana_Sayfa
+│   ├── 02_Slider_Banner
+│   ├── 03_Hero_Gorselleri
+│   ├── 04_Urun_Gorselleri
+│   ├── 05_Kategori_Gorselleri
+│   ├── 06_Hizmet_Gorselleri
+│   ├── 07_Kampanya_Bannerlari
+│   ├── 08_Blog_Gorselleri
+│   ├── 09_Hakkimizda
+│   ├── 10_Referanslar
+│   ├── 11_Ekip_Gorselleri
+│   ├── 12_Popup_Gorselleri
+│   ├── 13_Mobil_Web_Gorselleri
+│   └── 14_Diger
+│
+├── 04_LOGO_VE_KURUMSAL_KIMLIK
+│
+└── 05_SABLONLAR
+    ├── 01_SOSYAL_MEDYA_SABLONLARI
+    │   ├── Dikey_Gonderi
+    │   ├── Kare_Gonderi
+    │   ├── Story
+    │   ├── Reels_Kapagi
+    │   ├── Yatay_Gonderi
+    │   └── Platforma_Ozel
+    └── 02_WEB_SABLONLARI
+        ├── Masaustu_Hero
+        ├── Mobil_Hero
+        ├── Yatay_Banner
+        ├── Kampanya_Banneri
+        ├── Blog_Kapagi
+        ├── Urun_Karti
+        └── Kategori_Gorseli
+3. Dosya Tek Kopya Mantığı
+Aynı dosya farklı klasörlere kopyalanmaz, tek ana kayıt olarak saklanır
+
+4. Görsel Yükleme
+Kullanıcı kaynak, sosyal medya ve web görsellerini ilgili klasörlere yükleyebilir
+
+Video dosyaları Medya Kütüphanesinde saklanmaz
+
+Yayınlanmış görseller Medya Kütüphanesinde saklanmaz
+
+5. Arşiv
+Fiziksel klasör değildir
+
+Yalnızca şu bilgiler tutulur:
+
+Paylaşım sıra numarası
+
+Görsel adı veya içerik adı
+
+Yayın tarihi
+
+Yayın saati
+
+Medya dosyası saklanmaz
+
+Geri getirme yoktur
+
+Yedeklenmez
+
+6. Şablonlar
+Firma tarafından tanımlanan mevcut kurumsal şablonlar kullanılır
+
+Yapay zekâ yeni tasarım oluşturmaz; mevcut şablonu kullanarak içeriği hazırlar
+
+Sosyal medya şablonu web şablonu olarak kullanılamaz, web şablonu sosyal medya şablonu olarak kullanılamaz
+
+7. Sosyal Medya / Web Ölçü Ayrımı
+Sosyal Medya: dikey/kare ağırlıklı
+
+Web: yatay ağırlıklı
+
+FAZ 5 – Yayın Geçmişi
+1. Amaç
+Tüm paylaşımların kayıtlarının görüntülendiği modüldür.
+
+2. Sekmeler
+Sosyal Medya
+
+Web Sitesi
+
+3. Gösterilecek Bilgiler (Sosyal Medya)
+Yayın tarihi ve saati
+
+Paylaşım türü (Standart, Kampanya, Detaylı, Duyuru ve İlanlar)
+
+Sıra numarası (Duyuru için boş)
+
+İçerik başlığı veya açıklaması
+
+Görsel veya içerik adı (medya dosyası saklanmaz)
+
+Başarılı olarak kaydedilen her sosyal medya paylaşımında geçerli yayın bağlantısı gösterilir
+
+Platform
+
+Yayın durumu
+
+Başarısız ise hata nedeni
+
+4. Gösterilecek Bilgiler (Web Sitesi)
+Yayın tarihi ve saati
+
+Web bölümü
+
+İçerik başlığı veya açıklaması
+
+Yayın durumu
+
+Başarısız ise hata nedeni
+
+(Sıra numarası web kayıtlarında gösterilmez.)
+
+5. Detay Görüntüleme
+Paylaşımın tam içeriği
+
+Medya dosyası saklanmaz. Görsel veya içerik adı ile başarılı yayına ait platform bağlantısı gösterilir
+
+Şablon bilgisi
+
+Platforma özel çıktı
+
+Yayın saati
+
+Varsa hata mesajı
+
+6. Arama
+Başlık veya sıra numarasına göre (web'de sıra numarası aranmaz)
+
+7. Tekrar Paylaşım
+Web: yayınlanan içerik düzenlenebilir, kaldırılabilir, başka bölüme taşınabilir (teknik şartnameye bırakıldı)
+
+Sosyal Medya: Standart Paylaşımlar kendi sıra numarası ve döngü kuralları kapsamında yeniden yayınlanabilir. Kampanya ve Detaylı Paylaşımlar Standart Paylaşım döngüsüne girmez.
+
+FAZ 6 – Raporlar
+1. Amaç
+Sistem durumu ve paylaşım performansının sayısal özetidir.
+
+2. Sekmeler
+Sosyal Medya
+
+Web Sitesi
+
+Genel
+
+3. Sosyal Medya Raporları
+Toplam paylaşım sayısı
+
+Başarılı paylaşım sayısı
+
+Başarısız paylaşım sayısı
+
+Platform bazında paylaşım sayısı
+
+Platform bazında başarı/başarısızlık sayısı
+
+4. Web Sitesi Raporları
+Toplam web yayını sayısı
+
+Başarılı web yayını sayısı
+
+Başarısız web yayını sayısı
+
+5. Genel Raporlar
+Toplam tüm paylaşımlar
+
+Sosyal medya / web dağılımı
+
+Sistem genel başarı oranı (yüzde)
+
+Kampanya performans özeti (sayısal)
+
+Detaylı paylaşım performans özeti (sayısal)
+
+6. Sürüm 1 Kapsamı Dışı
+Grafikler, filtreleme, dışa aktarım, otomatik rapor
+
+FAZ 7 – Bildirim Merkezi
+1. Amaç
+Sistem uyarı ve bilgilendirme mesajlarının toplandığı modüldür.
+
+2. Kategoriler
+Sistem Uyarıları
+
+Sosyal Medya Bağlantı Uyarıları
+
+Web Sitesi Bağlantı Uyarıları
+
+Yayın Hataları
+
+Kampanya Uyarıları
+
+Lisans Uyarıları
+
+Genel Bilgilendirmeler
+
+3. Gösterim
+Tarih/saat ile gösterilir
+
+Okundu/okunmadı durumu işaretlenir
+
+Sayısal gösterge bulunur
+
+Tümü okundu işareti vardır
+
+Türler: Uyarı (sarı), Hata (kırmızı), Bilgi (mavi), Başarılı (yeşil)
+
+4. Teknik Hata Kodları
+Kullanıcıya teknik hata kodları gösterilmez
+
+Kullanıcı dostu açıklamalar gösterilir
+
+FAZ 8 – Ayarlar
+1. Bölümler
+Genel Ayarlar (dil, zaman dilimi)
+
+Sosyal Medya Hesapları (OAuth bağlantı, durum, yenileme)
+
+Web Sitesi Bağlantısı (bizimki / harici)
+
+Yedekleme (sadece ayarlar, medya yok)
+
+Bildirim Ayarları
+
+2. Sosyal Medya Bağlantı Akışı
+Kullanıcı hesabı seçer
+
+Bağlan butonuna basar
+
+Platformun resmî giriş ekranı açılır
+
+Kullanıcı giriş yapar ve izin verir
+
+Program otomatik bağlar
+
+Durum "Bağlı" olarak görünür
+
+Kullanıcı API anahtarı, Client ID, Secret, Token gibi hiçbir teknik bilgi girmez.
+
+3. Web Sitesi Bağlantısı
+Bizim hazırladığımız: otomatik bağlanır
+
+Harici: teknik kişi bağlantıyı kurar, normal kullanıcı uğraşmaz
+
+4. Yedekleme
+Yedeklenir: bağlantı ayarları, program ayarları
+
+Yedeklenmez: görseller, videolar, medya dosyaları, arşiv
+
+FAZ 9 – Lisans
+ES Lisanslama entegrasyonu
+
+Durum, tür, sahip, başlangıç/bitiş, kalan gün gösterilir
+
+Teknik hata kodları gösterilmez
+
+FAZ 10 – Yardım
+Kullanım Kılavuzu
+
+Sıkça Sorulan Sorular
+
+Destek (iletişim bilgileri, Sürüm 1'de talep oluşturma yok)
+
+Tüm fazlar eksiksiz, konuşma dışı ekleme yok, varsayım yok. Tüm kararlar kesindir.

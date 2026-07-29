@@ -1,0 +1,378 @@
+01_GENEL_MIMARI_VE_LISANS_FELSEFESI.txt
+
+============================================================
+ES LİSANS MERKEZİ
+GENEL MİMARİ VE LİSANS FELSEFESİ
+================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu doküman ES Lisans Merkezi sisteminin temel mimarisini, çalışma mantığını, lisans felsefesini ve tüm alt modüllerin üzerine inşa edileceği ana kuralları tanımlar.
+
+Bu dokümanda belirtilen kurallar diğer tüm lisans modülleri için üst kuraldır.
+
+============================================================
+
+1. PROJENİN AMACI
+   ============================================================
+
+ES Lisans Merkezi;
+
+* ES Ön Muhasebe
+* ES Halı Yıkama
+* ES Sosyal Medya Otomasyonu
+* Gelecekte geliştirilecek tüm ES yazılımları
+
+için merkezi lisans üretim ve yönetim sistemidir.
+
+Amaç:
+
+* Müşteri kayıtlarını tek merkezde toplamak
+* Lisans üretimini standartlaştırmak
+* Lisans geçmişini saklamak
+* Lisans güvenliğini sağlamak
+* Programlar arasında ortak lisans altyapısı oluşturmak
+
+============================================================
+2. TEMEL FELSEFE
+================
+
+Sistem karmaşık olmayacaktır.
+
+Amaç:
+
+Müşteri Bul
+↓
+Lisans Üret
+↓
+Lisans Gönder
+↓
+Kayıt Altına Al
+
+işlemini mümkün olan en kısa sürede yapabilmektir.
+
+Bu nedenle:
+
+* Gereksiz ekran olmayacak
+* Gereksiz rapor olmayacak
+* Muhasebe sistemi olmayacak
+* Kasa sistemi olmayacak
+* Finans yönetim programına dönüşmeyecek
+
+Sistem sadece lisans yönetimi yapacaktır.
+
+============================================================
+3. TEK MERKEZ MANTIK
+====================
+
+Tüm ES programları tek lisans merkezine bağlıdır.
+
+Ayrı ayrı lisans programları oluşturulmayacaktır.
+
+Örnek:
+
+ES Ön Muhasebe
+↓
+ES Lisans Merkezi
+
+ES Halı Yıkama
+↓
+ES Lisans Merkezi
+
+ES Sosyal Medya
+↓
+ES Lisans Merkezi
+
+Tüm ürünler aynı merkezden yönetilecektir.
+
+============================================================
+4. OFFLINE ÇALIŞMA PRENSİBİ
+===========================
+
+İlk sürüm tamamen offline çalışacaktır.
+
+Şu anda:
+
+* Web sitesi yok
+* Lisans sunucusu yok
+* API yok
+* Domain zorunluluğu yok
+
+Bu nedenle:
+
+ES Lisans Merkezi internet olmadan çalışacaktır.
+
+Lisans üretmek için internet gerekmeyecektir.
+
+============================================================
+5. GELECEĞE HAZIRLIK PRENSİBİ
+=============================
+
+Bugünkü sistem offline çalışacaktır.
+
+Ancak mimari gelecekte:
+
+* Lisans sunucusu
+* Web paneli
+* Online lisans doğrulama
+* Uygunsuz kullanım bildirimi
+* Kara liste sistemi
+
+eklenebilecek şekilde hazırlanacaktır.
+
+Bugünkü yapılar gelecekte çöpe atılmayacaktır.
+
+============================================================
+6. PRIVATE KEY FELSEFESİ
+========================
+
+Sistemin en önemli varlığı Private Key'dir.
+
+Private Key:
+
+* Sadece ES Lisans Merkezi içinde bulunacaktır.
+* Müşteri programlarına gitmeyecektir.
+* Dışarı aktarılmayacaktır.
+* Şifreli saklanacaktır.
+
+Private Key kaybolursa:
+
+* Yeni lisans üretilemez.
+* İmzalama yapılamaz.
+
+Bu nedenle:
+
+Private Key mutlaka yedeklenecektir.
+
+============================================================
+7. PUBLIC KEY FELSEFESİ
+=======================
+
+Müşteri programlarında sadece Public Key bulunacaktır.
+
+Müşteri programları:
+
+* Lisans üretmeyecek
+* Lisans imzalamayacak
+
+Sadece:
+
+Bu lisans gerçek mi?
+
+sorusunu doğrulayacaktır.
+
+============================================================
+8. LİSANS ÜRETİM FELSEFESİ
+==========================
+
+Lisans üretimi her zaman merkezden yapılacaktır.
+
+Müşteri:
+
+Makine Kodunu Gönderir
+
+↓
+
+ES Lisans Merkezi
+
+↓
+
+license.lic üretir
+
+↓
+
+Müşteriye gönderilir
+
+Müşteri programı kendi kendine lisans üretemez.
+
+============================================================
+9. ÜRÜN KODU FELSEFESİ
+======================
+
+Her ürün benzersiz Product Code kullanacaktır.
+
+Örnek:
+
+ES_ON_MUHASEBE
+
+ES_HALI_YIKAMA
+
+ES_SOSYAL_MEDYA
+
+Bir ürünün lisansı başka üründe çalışamaz.
+
+============================================================
+10. MAKİNE KODU FELSEFESİ
+=========================
+
+Lisans Windows'a bağlı değildir.
+
+Makine kodu:
+
+CPU
++
+Disk Seri Bilgisi
++
+Product Code
+
+üzerinden oluşturulur.
+
+Windows yeniden kurulsa bile lisans korunmalıdır.
+
+============================================================
+11. MÜŞTERİ FELSEFESİ
+=====================
+
+Bir müşteri:
+
+* Birden fazla lisans alabilir
+* Birden fazla program alabilir
+* Birden fazla bilgisayar kullanabilir
+
+Bu nedenle:
+
+Müşteri
+↓
+Lisanslar
+
+ilişkisi kullanılacaktır.
+
+============================================================
+12. 1 LİSANS = 1 BİLGİSAYAR
+===========================
+
+Her lisans yalnızca üretildiği makine kodunda çalışır.
+
+Örnek:
+
+Bilgisayar A
+↓
+Lisans A
+
+Bilgisayar B
+↓
+Lisans B
+
+Aynı lisans iki bilgisayarda çalışamaz.
+
+============================================================
+13. ÖDEME TAKİBİ FELSEFESİ
+==========================
+
+ES Lisans Merkezi muhasebe programı değildir.
+
+Kasa tutulmayacaktır.
+
+Cari hesap tutulmayacaktır.
+
+Ancak müşteri kartında:
+
+* Satış Bedeli
+* Ödenen Tutar
+* Kalan Tutar
+
+görülebilecektir.
+
+Amaç:
+
+Kim ne kadar ödedi?
+
+sorusuna cevap verebilmektir.
+
+============================================================
+14. YEDEKLEME FELSEFESİ
+=======================
+
+Her lisans üretimi değerlidir.
+
+Bu nedenle:
+
+* Otomatik yedek
+* Manuel yedek
+* Kapanış yedeği
+
+desteklenecektir.
+
+Private Key yedeği ayrıca tutulacaktır.
+
+============================================================
+15. GÜVENİLİR CİHAZ FELSEFESİ
+=============================
+
+ES Lisans Merkezi ilk açılışta ana parola isteyebilir.
+
+İstenirse cihaz:
+
+Güvenilir Cihaz
+
+olarak işaretlenebilir.
+
+Güvenilir cihazlarda tekrar parola sorulmayabilir.
+
+Yeni cihazlarda ana parola zorunludur.
+
+============================================================
+16. TASARIM FELSEFESİ
+=====================
+
+Program dikey yapıda olacaktır.
+
+Sol tarafta sabit menü bulunacaktır.
+
+Sağ tarafta içerik açılacaktır.
+
+Tüm veri girişleri sağ panelde yapılacaktır.
+
+Amaç:
+
+Basit
+Hızlı
+Öğrenmesi kolay
+
+bir yapı oluşturmaktır.
+
+============================================================
+17. MENÜ FELSEFESİ
+==================
+
+Sol menü sabit olacaktır.
+
+Ana menü:
+
+Ana Sayfa
+Müşteriler
+Lisans Üret
+Lisanslar
+Ürünler
+Geçmiş
+Güvenlik
+Yedekleme
+Ayarlar
+Çıkış
+
+olarak tasarlanacaktır.
+
+============================================================
+18. SON KURAL
+=============
+
+ES Lisans Merkezi;
+
+gösterişli değil,
+
+hızlı çalışan,
+
+kararlı çalışan,
+
+güvenli çalışan,
+
+lisans üretimine odaklı
+
+bir yönetim sistemi olacaktır.
+
+Tüm sonraki modüller bu dokümandaki kurallara uymak zorundadır.

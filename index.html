@@ -1,0 +1,704 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES OPS</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/nacl-util.min.js"></script>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="app-container">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>ES OPS</h1>
+                <span>Otomatik Paylaşım Sistemi</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a class="active" data-page="dashboard" onclick="navigateTo('dashboard')"><span class="icon">📊</span> Dashboard</a></li>
+                <li><a data-page="paylasimlar" onclick="navigateTo('paylasimlar')"><span class="icon">📤</span> Paylaşımlar</a></li>
+                <li><a data-page="medya" onclick="navigateTo('medya')"><span class="icon">🖼️</span> Medya Kütüphanesi</a></li>
+                <li><a data-page="yayin-gecmisi" onclick="navigateTo('yayin-gecmisi')"><span class="icon">📜</span> Yayın Geçmişi</a></li>
+                <li><a data-page="raporlar" onclick="navigateTo('raporlar')"><span class="icon">📈</span> Raporlar</a></li>
+                <li><a data-page="bildirim" onclick="navigateTo('bildirim')"><span class="icon">🔔</span> Bildirim Merkezi <span class="sidebar-badge" id="sidebarBildirimBadge" style="display:none;">0</span></a></li>
+                <li><a data-page="ayarlar" onclick="navigateTo('ayarlar')"><span class="icon">⚙️</span> Ayarlar</a></li>
+                <li><a data-page="lisans" onclick="navigateTo('lisans')"><span class="icon">🔑</span> Lisans</a></li>
+                <li><a data-page="yardim" onclick="navigateTo('yardim')"><span class="icon">❓</span> Yardım</a></li>
+            </ul>
+        </nav>
+
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+                    <span class="page-title" id="pageTitle">Dashboard</span>
+                </div>
+            </div>
+
+            <div class="tab-bar" id="tabBar">
+                <div class="tab active" data-tab="sosyal-medya" onclick="switchDashboardTab('sosyal-medya')">Sosyal Medya</div>
+                <div class="tab" data-tab="web-sitesi" onclick="switchDashboardTab('web-sitesi')">Web Sitesi</div>
+            </div>
+
+            <div class="content-area">
+                <div class="page-content active" id="page-dashboard">
+                    <div class="dashboard-tab-content active" id="dash-sosyal-medya">
+                        <div class="dashboard-grid">
+                            <div class="dashboard-card">
+                                <div class="card-title">Bugünkü Paylaşım Durumu</div>
+                                <div class="card-value">0</div>
+                                <div class="card-sub">Bugün yapılan toplam paylaşım</div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Planlanan Paylaşımlar</div>
+                                <div class="card-value">0</div>
+                                <div class="card-sub">Yayın sırası bekleyen içerik</div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Tamamlanan Paylaşımlar</div>
+                                <div class="card-value">0</div>
+                                <div class="card-sub">Başarıyla yayınlanan içerik</div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Bekleyen Paylaşımlar</div>
+                                <div class="card-value">0</div>
+                                <div class="card-sub">Yayınlanmayı bekleyen içerik</div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Başarısız Paylaşımlar</div>
+                                <div class="card-value">0</div>
+                                <div class="card-sub">Hata nedeniyle yayınlanamayan içerik</div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Bağlı Sosyal Medya Hesapları</div>
+                                <div class="status-item"><span class="label"><span class="status-dot gray"></span>Instagram</span><span class="value">Bağlı Değil</span></div>
+                                <div class="status-item"><span class="label"><span class="status-dot gray"></span>Facebook</span><span class="value">Bağlı Değil</span></div>
+                                <div class="status-item"><span class="label"><span class="status-dot gray"></span>LinkedIn</span><span class="value">Bağlı Değil</span></div>
+                                <div class="status-item"><span class="label"><span class="status-dot gray"></span>X</span><span class="value">Bağlı Değil</span></div>
+                                <div class="status-item"><span class="label"><span class="status-dot gray"></span>TikTok</span><span class="value">Bağlı Değil</span></div>
+                                <div class="status-item"><span class="label"><span class="status-dot gray"></span>Pinterest</span><span class="value">Bağlı Değil</span></div>
+                                <div class="status-item"><span class="label"><span class="status-dot gray"></span>YouTube</span><span class="value">Bağlı Değil</span></div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Bildirim Özeti</div>
+                                <div class="card-placeholder">Henüz bildirim bulunmuyor.</div>
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-title">Otomatik Yayin Durumu</div>
+                            <div id="otomatikDurumKart"></div>
+                        </div>
+                                                <div class="dashboard-card">
+                            <div class="card-title">Otomatik Yayin Yonetimi</div>
+                            <div id="otomatikYonetimKart"></div>
+                        </div>
+                    </div>
+                    <div class="dashboard-tab-content" id="dash-web-sitesi" style="display:none;">
+                        <div class="dashboard-grid">
+                            <div class="dashboard-card">
+                                <div class="card-title">Bugün Yayınlanan Web İçeriği</div>
+                                <div class="card-value">0</div>
+                                <div class="card-sub">Bugün web sitesinde yayınlanan içerik</div>
+                            </div>
+                            <div class="dashboard-card">
+
+                                <div class="card-title">Toplam Web Yayını</div>
+                                <div class="card-value">0</div>
+                                <div class="card-sub">Web sitesinde yayınlanan tüm içerik</div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Başarılı Web Yayınları</div>
+                                <div class="card-value">0</div>
+                                <div class="card-sub">Başarıyla yayınlanan web içeriği</div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Başarısız Web Yayınları</div>
+                                <div class="card-value">0</div>
+                                <div class="card-sub">Hata ile sonuçlanan web yayını</div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Web Sitesi Bağlantı Durumu</div>
+                                <div class="status-item"><span class="label"><span class="status-dot gray"></span>Bağlantı</span><span class="value">Bağlı Değil</span></div>
+                            </div>
+                            <div class="dashboard-card">
+                                <div class="card-title">Son Web Yayınları</div>
+                                <div class="card-placeholder">Henüz yayın bulunmuyor.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content" id="page-paylasimlar">
+    <div class="paylasim-tabs">
+        <div class="tab active" data-paylasim-tab="sosyal-medya" onclick="switchSMWebTab('sosyal-medya')">Sosyal Medya</div>
+        <div class="tab" data-paylasim-tab="web-sitesi" onclick="switchSMWebTab('web-sitesi')">Web Sitesi</div>
+    </div>
+    <div class="paylasim-content">
+        <!-- Sosyal Medya icerigi (FAZ 2) -->
+        <div class="sm-web-content active" id="sm-web-sosyal">
+            <div class="paylasim-tabs sm-tabs">
+                <div class="tab active" data-paylasim-tab="standart" onclick="switchPaylasimTab('standart')">Standart Paylaşım</div>
+                <div class="tab" data-paylasim-tab="kampanya" onclick="switchPaylasimTab('kampanya')">Kampanya Paylaşımı</div>
+                <div class="tab" data-paylasim-tab="detayli" onclick="switchPaylasimTab('detayli')">Detaylı Paylaşım</div>
+                <div class="tab" data-paylasim-tab="duyuru" onclick="switchPaylasimTab('duyuru')">Duyuru ve İlanlar</div>
+            </div>
+            <div class="sm-tab-contents">
+                <div class="paylasim-tab-content active" id="paylasim-standart">
+                    <h2>Standart Paylaşım</h2>
+                    <p class="paylasim-desc">Toplu görsel yükleme yapabilirsiniz. Her görsel ayrı sıra numarası alır.</p>
+                    <div class="paylasim-form">
+                        <div class="form-group">
+                            <label>Görsel Yükle</label>
+                            <div class="file-upload-area" id="standartUploadArea">
+                                <input type="file" accept="image/*" multiple class="file-input-hidden" id="standartFileInput">
+                                <div class="file-upload-placeholder">Görselleri sürükleyip bırakın veya seçmek için tıklayın</div>
+                            </div>
+                            <div class="uploaded-files" id="standartUploadedFiles"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Açıklama (isteğe bağlı)</label>
+                            <textarea class="form-textarea" placeholder="Açıklama girin veya otomatik oluşturulmasını bekleyin..."></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="simulateSave('standart')">Kaydet</button>
+                            <button class="btn btn-success" onclick="simulateNow('standart')">Şimdi Paylaş</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="paylasim-tab-content" id="paylasim-kampanya" style="display:none;">
+                    <h2>Kampanya Paylaşımı</h2>
+                    <p class="paylasim-desc">Belirli bir tarih aralığında yayınlanacak kampanya içeriği oluşturun.</p>
+                    <div class="paylasim-form">
+                        <div class="form-group">
+                            <label>Kampanya Sıra Numarası</label>
+                            <input type="text" class="form-input" value="001" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Görsel / Video Yükle</label>
+                            <div class="file-upload-area" id="kampanyaUploadArea">
+                                <input type="file" accept="image/*,video/*" class="file-input-hidden" id="kampanyaFileInput">
+                                <div class="file-upload-placeholder">Dosyayı sürükleyip bırakın veya seçmek için tıklayın</div>
+                            </div>
+                            <div class="uploaded-files" id="kampanyaUploadedFiles"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Kampanya Başlığı</label>
+                            <input type="text" class="form-input" placeholder="Kampanya başlığını girin">
+                        </div>
+                        <div class="form-group">
+                            <label>Kampanya Açıklaması</label>
+                            <textarea class="form-textarea" placeholder="Kampanya açıklamasını girin..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Başlangıç Tarihi</label>
+                                <input type="date" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Bitiş Tarihi</label>
+                                <input type="date" class="form-input">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="simulateSave('kampanya')">Kaydet</button>
+                            <button class="btn btn-success" onclick="simulateNow('kampanya')">Şimdi Paylaş</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="paylasim-tab-content" id="paylasim-detayli" style="display:none;">
+                    <h2>Detaylı Paylaşım</h2>
+                    <p class="paylasim-desc">Bilgi ağırlıklı sektörler için kullanılır. En fazla 10 görsel tek grup olarak yayınlanır.</p>
+                    <div class="paylasim-form">
+                        <div class="form-group">
+                            <label>Görsel Yükle (En fazla 10)</label>
+                            <div class="file-upload-area" id="detayliUploadArea">
+                                <input type="file" accept="image/*" multiple class="file-input-hidden" id="detayliFileInput">
+                                <div class="file-upload-placeholder">Görselleri sürükleyip bırakın veya seçmek için tıklayın (max 10)</div>
+                            </div>
+                            <div class="uploaded-files" id="detayliUploadedFiles"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Açıklama</label>
+                            <textarea class="form-textarea" placeholder="Bu paylaşım için açıklama girin..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Planlı Yayın Tarihi ve Saati</label>
+                            <div class="form-row">
+                                <input type="date" class="form-input">
+                                <input type="time" class="form-input">
+                            </div>
+                            <p class="form-hint">Detaylı Paylaşım için tarih ve saat seçilmesi zorunludur. Otomatik döngü yoktur.</p>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="simulateSave('detayli')">Kaydet (Planlı)</button>
+                            <button class="btn btn-success" onclick="simulateNow('detayli')">Şimdi Paylaş</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="paylasim-tab-content" id="paylasim-duyuru" style="display:none;">
+                    <h2>Duyuru ve İlanlar</h2>
+                    <p class="paylasim-desc">Anlık duyuru ve ilan paylaşımları. Kotaya dahil değildir, sıra numarası almaz.</p>
+                    <div class="paylasim-form">
+                        <div class="form-group">
+                            <label>Görsel / Video Yükle</label>
+                            <div class="file-upload-area" id="duyuruUploadArea">
+                                <input type="file" accept="image/*,video/*" class="file-input-hidden" id="duyuruFileInput">
+                                <div class="file-upload-placeholder">Dosyayı sürükleyip bırakın veya seçmek için tıklayın</div>
+                            </div>
+                            <div class="uploaded-files" id="duyuruUploadedFiles"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Duyuru / İlan İçeriği</label>
+                            <textarea class="form-textarea" placeholder="Duyuru veya ilan içeriğini girin..."></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-success btn-large" onclick="simulateNow('duyuru')">Şimdi Paylaş</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Web Sitesi icerigi (FAZ 3) -->
+        <div class="sm-web-content" id="sm-web-web" style="display:none;">
+            <h2>Web Sitesi İçerik Paylaşımı</h2>
+            <p class="paylasim-desc">Web sitenizin belirli bir bölümüne içerik yayınlayın. Kota, sıra numarası veya döngü yoktur.</p>
+            <div class="paylasim-form">
+                <div class="form-group">
+                    <label>Yayınlanacak İçerik</label>
+                    <textarea class="form-textarea" id="webIcerik" placeholder="Web sitenizde yayınlanacak içeriği girin..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Başlık veya Açıklama</label>
+                    <input type="text" class="form-input" id="webBaslik" placeholder="İçerik başlığı veya açıklaması girin">
+                </div>
+                <div class="form-group">
+                    <label>Görsel Seçme veya Yükleme</label>
+                    <div class="file-upload-area" id="webUploadArea">
+                        <input type="file" accept="image/*" class="file-input-hidden" id="webFileInput">
+                        <div class="file-upload-placeholder">Görsel seçmek için tıklayın</div>
+                    </div>
+                    <div class="uploaded-files" id="webUploadedFiles"></div>
+                </div>
+                <div class="form-group">
+                    <label>Yayınlanacak Web Bölümü <span class="required-star">*</span></label>
+                    <select class="form-input" id="webBolum">
+                        <option value="">-- Web Bölümü Seçin --</option>
+                        <option value="ana-sayfa">Ana Sayfa</option>
+                        <option value="slider">Slider</option>
+                        <option value="hero">Hero</option>
+                        <option value="urunler">Ürünler</option>
+                        <option value="hizmetler">Hizmetler</option>
+                        <option value="kampanyalar">Kampanyalar</option>
+                        <option value="blog">Blog</option>
+                        <option value="duyurular">Duyurular</option>
+                        <option value="popup">Popup</option>
+                        <option value="diger">Diğer tanımlanmış alanlar</option>
+                    </select>
+                    <p class="form-hint">Web bölümü seçimi zorunludur.</p>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="webTaslakKaydet()">Taslak Kaydet</button>
+                    <button class="btn btn-success" onclick="webSimdiYayinla()">Şimdi Yayınla</button>
+                </div>
+            </div>
+            <div class="web-taslaklar" id="webTaslaklarArea" style="display:none;">
+                <h3>Kayıtlı Taslaklar</h3>
+                <div id="webTaslakListesi"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="page-content" id="page-medya">
+    <div class="medya-container">
+        <div class="medya-header">
+            <h2>Medya Kutuphanesi</h2>
+            <p class="paylasim-desc">Firmanin gorsel ve kurumsal dosyalarinin saklandigi ve yonetildigi bolumdur.</p>
+        </div>
+        <div class="medya-ana-klasorler" id="medyaKlasorListesi">
+            <div class="medya-klasor active" data-klasor="01" onclick="medyaKlasorSec(&#39;01&#39;)"><div class="klasor-ikon">📁</div><div class="klasor-ad">01_KAYNAK_GORSELLER</div></div>
+            <div class="medya-klasor" data-klasor="02" onclick="medyaKlasorSec(&#39;02&#39;)"><div class="klasor-ikon">📁</div><div class="klasor-ad">02_SOSYAL_MEDYA_GORSELLERI</div></div>
+            <div class="medya-klasor" data-klasor="03" onclick="medyaKlasorSec(&#39;03&#39;)"><div class="klasor-ikon">📁</div><div class="klasor-ad">03_WEB_GORSELLERI</div></div>
+            <div class="medya-klasor" data-klasor="04" onclick="medyaKlasorSec(&#39;04&#39;)"><div class="klasor-ikon">📁</div><div class="klasor-ad">04_LOGO_VE_KURUMSAL_KIMLIK</div></div>
+            <div class="medya-klasor" data-klasor="05" onclick="medyaKlasorSec(&#39;05&#39;)"><div class="klasor-ikon">📁</div><div class="klasor-ad">05_SABLONLAR</div></div>
+        </div>
+        <div class="medya-icerik" id="medyaIcerikAlani">
+            <div class="medya-alt-klasorler" id="medyaAltKlasorler"></div>
+            <div class="medya-dosya-listesi" id="medyaDosyaListesi">
+                <div class="medya-bos">Henuz dosya bulunmamaktadir. Dosya eklemek icin bir klasor secin ve yukleyin.</div>
+            </div>
+            <div class="medya-yukleme-alani" id="medyaYuklemeAlani" style="display:none;">
+                <div class="form-group"><label>Dosya Yukle</label>
+                    <div class="file-upload-area" id="medyaFileUploadArea">
+                        <input type="file" accept="image/*" class="file-input-hidden" id="medyaFileInput">
+                        <div class="file-upload-placeholder">Gorsel dosyasini surukleyip birakin veya secmek icin tiklayin</div>
+                    </div>
+                    <div class="uploaded-files" id="medyaUploadedFiles"></div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="medyaDosyaYukle()">Yukle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="medya-sablon-bilgi" id="medyaSablonBilgi" style="display:none;">
+        <div class="dashboard-card">
+            <div class="card-title">Sablon Kullanim Kurallari</div>
+            <p style="font-size:0.88rem;color:#4b5563;line-height:1.6;">
+                • Sosyal medya sablonlari web sablonu olarak kullanilamaz.<br>
+                • Web sablonlari sosyal medya sablonu olarak kullanilamaz.<br>
+                • Sosyal Medya olculeri: Dikey, Kare<br>
+                • Web olculeri: Yatay<br>
+                • Yapay zeka yeni tasarim olusturmaz, mevcut sablonlar kullanilir.
+            </p>
+        </div>
+    </div>
+</div>
+<div class="page-content" id="page-yayin-gecmisi">
+    <div class="gecmis-container">
+        <div class="gecmis-header">
+            <h2>Yayin Gecmisi</h2>
+            <p class="paylasim-desc">Tum sosyal medya ve web sitesi yayin kayitlarinin goruntulendigi bolumdur.</p>
+        </div>
+        <div class="gecmis-tabs">
+            <div class="tab active" data-gecmis-tab="sosyal-medya" onclick="switchGecmisTab('sosyal-medya')">Sosyal Medya</div>
+            <div class="tab" data-gecmis-tab="web-sitesi" onclick="switchGecmisTab('web-sitesi')">Web Sitesi</div>
+        </div>
+        <div class="gecmis-icerik active" id="gecmis-sosyal-medya">
+            <div class="gecmis-arama">
+                <input type="text" class="form-input" id="gecmisSMArama" placeholder="Basliga veya sira numarasina gore ara..." oninput="gecmisSMFiltrele()">
+            </div>
+            <div class="gecmis-liste" id="gecmisSMListe">
+                <div class="medya-bos">Henuz sosyal medya yayin kaydi bulunmamaktadir.</div>
+            </div>
+        </div>
+        <div class="gecmis-icerik" id="gecmis-web-sitesi" style="display:none;">
+            <div class="gecmis-arama">
+                <input type="text" class="form-input" id="gecmisWebArama" placeholder="Basliga gore ara..." oninput="gecmisWebFiltrele()">
+            </div>
+            <div class="gecmis-liste" id="gecmisWebListe">
+                <div class="medya-bos">Henuz web sitesi yayin kaydi bulunmamaktadir.</div>
+            </div>
+        </div>
+    </div>
+    <div class="gecmis-modal-overlay" id="gecmisModalOverlay" style="display:none;" onclick="gecmisModalKapat()"></div>
+    <div class="gecmis-modal" id="gecmisModal" style="display:none;">
+        <div class="gecmis-modal-header">
+            <h3 id="gecmisModalBaslik">Kayit Detayi</h3>
+            <span class="gecmis-modal-kapat" onclick="gecmisModalKapat()">X</span>
+        </div>
+        <div class="gecmis-modal-icerik" id="gecmisModalIcerik"></div>
+    </div>
+</div>
+                                <div class="page-content" id="page-raporlar">
+                    <div class="rapor-container">
+                        <div class="rapor-header">
+                            <h2>Raporlar</h2>
+                            <p class="paylasim-desc">Paylasim performansi ve sistem durumunun sayisal ozetidir.</p>
+                        </div>
+                        <div class="rapor-tabs">
+                            <div class="tab active" data-rapor-tab="sosyal-medya" onclick="switchRaporTab('sosyal-medya')">Sosyal Medya</div>
+                            <div class="tab" data-rapor-tab="web-sitesi" onclick="switchRaporTab('web-sitesi')">Web Sitesi</div>
+                            <div class="tab" data-rapor-tab="genel" onclick="switchRaporTab('genel')">Genel</div>
+                        </div>
+                        <div class="rapor-icerik active" id="rapor-sosyal-medya">
+                            <div class="dashboard-grid">
+                                <div class="dashboard-card">
+                                    <div class="card-title">Toplam Paylasim</div>
+                                    <div class="card-value" id="rapor-sm-toplam">0</div>
+                                </div>
+                                <div class="dashboard-card">
+                                    <div class="card-title">Basari</div>
+                                    <div class="card-value" id="rapor-sm-basari">0</div>
+                                </div>
+                                <div class="dashboard-card">
+                                    <div class="card-title">Basarisiz</div>
+                                    <div class="card-value" id="rapor-sm-basarisiz">0</div>
+                                </div>
+                            </div>
+                            <div class="dashboard-card" style="margin-top:16px;">
+                                <div class="card-title">Platform Bazinda</div>
+                                <div id="rapor-sm-platform" style="font-size:0.88rem;color:#6b7280;">Henuz veri yok.</div>
+                            </div>
+                        </div>
+                        <div class="rapor-icerik" id="rapor-web-sitesi" style="display:none;">
+                            <div class="dashboard-grid">
+                                <div class="dashboard-card">
+                                    <div class="card-title">Toplam Web Yayini</div>
+                                    <div class="card-value" id="rapor-web-toplam">0</div>
+                                </div>
+                                <div class="dashboard-card">
+                                    <div class="card-title">Basari</div>
+                                    <div class="card-value" id="rapor-web-basari">0</div>
+                                </div>
+                                <div class="dashboard-card">
+                                    <div class="card-title">Basarisiz</div>
+                                    <div class="card-value" id="rapor-web-basarisiz">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rapor-icerik" id="rapor-genel" style="display:none;">
+                            <div class="dashboard-grid">
+                                <div class="dashboard-card">
+                                    <div class="card-title">Toplam Tum Paylasimlar</div>
+                                    <div class="card-value" id="rapor-genel-toplam">0</div>
+                                </div>
+                                <div class="dashboard-card">
+                                    <div class="card-title">SM / Web Dagilimi</div>
+                                    <div class="card-value" id="rapor-genel-dagilim" style="font-size:1rem;">SM: 0 / Web: 0</div>
+                                </div>
+                                <div class="dashboard-card">
+                                    <div class="card-title">Genel Basari Orani</div>
+                                    <div class="card-value" id="rapor-genel-oran">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content" id="page-bildirim">
+                    <div class="bildirim-container">
+                        <div class="bildirim-header">
+                            <h2>Bildirim Merkezi</h2>
+                            <p class="paylasim-desc">Sistem uyarilari ve bilgilendirme mesajlarinin goruntulendigi bolumdur.</p>
+                        </div>
+                        <div class="bildirim-ust">
+                            <div class="bildirim-kategori-filtre" id="bildirimKategoriFiltre">
+                                <div class="kategori-tab active" data-kategori="tumu" onclick="bildirimFiltrele('tumu')">Tumu</div>
+                                <div class="kategori-tab" data-kategori="sistem-uyari" onclick="bildirimFiltrele('sistem-uyari')">Sistem Uyarilari</div>
+                                <div class="kategori-tab" data-kategori="sosyal-medya-baglanti" onclick="bildirimFiltrele('sosyal-medya-baglanti')">Sosyal Medya Baglanti</div>
+                                <div class="kategori-tab" data-kategori="web-baglanti" onclick="bildirimFiltrele('web-baglanti')">Web Sitesi Baglanti</div>
+                                <div class="kategori-tab" data-kategori="yayin-hatasi" onclick="bildirimFiltrele('yayin-hatasi')">Yayin Hatalari</div>
+                                <div class="kategori-tab" data-kategori="kampanya" onclick="bildirimFiltrele('kampanya')">Kampanya Uyarilari</div>
+                                <div class="kategori-tab" data-kategori="lisans" onclick="bildirimFiltrele('lisans')">Lisans Uyarilari</div>
+                                <div class="kategori-tab" data-kategori="genel" onclick="bildirimFiltrele('genel')">Genel Bilgilendirmeler</div>
+                            </div>
+                            <div class="bildirim-sayac-okundu">
+                                <span class="bildirim-okunmamis-sayisi">Okunmamis: <strong id="bildirimOkunmamisSayisi">0</strong></span>
+                                <button class="btn btn-small btn-outline" onclick="bildirimTumunuOkunduYap()">Tumunu Okundu Isaretle</button>
+                            </div>
+                        </div>
+                        <div class="bildirim-liste" id="bildirimListe">
+                            <div class="bildirim-bos">Henuz bildirim bulunmuyor.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content" id="page-ayarlar">
+                    <div class="ayarlar-container">
+                        <div class="ayarlar-header">
+                            <h2>Ayarlar</h2>
+                            <p class="paylasim-desc">Sosyal medya hesaplari, web sitesi baglantisi ve genel sistem ayarlari.</p>
+                        </div>
+                        <div class="ayarlar-tabs">
+                            <div class="tab active" data-ayarlar-tab="sosyal-medya" onclick="switchAyarlarTab('sosyal-medya')">Sosyal Medya Hesaplari</div>
+                            <div class="tab" data-ayarlar-tab="web-sitesi" onclick="switchAyarlarTab('web-sitesi')">Web Sitesi Baglantisi</div>
+                            <div class="tab" data-ayarlar-tab="genel" onclick="switchAyarlarTab('genel')">Genel Ayarlar</div>
+                        </div>
+                        <div class="ayarlar-icerik active" id="ayarlar-sosyal-medya">
+                            <div class="ayarlar-form">
+                                <div class="ayarlar-platform-listesi" id="ayarlarPlatformListesi"></div>
+                            </div>
+                        </div>
+                        <div class="ayarlar-icerik" id="ayarlar-web-sitesi" style="display:none;">
+                            <div class="ayarlar-form">
+                                <div class="form-group">
+                                    <label>Web Sitesi Adresi <span class="required-star">*</span></label>
+                                    <input type="text" class="form-input" id="ayarlarWebAdres" placeholder="https://www.ornek.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>API Adresi <span class="required-star">*</span></label>
+                                    <input type="text" class="form-input" id="ayarlarApiAdres" placeholder="https://api.ornek.com/v1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Kimlik Dogrulama Yontemi <span class="required-star">*</span></label>
+                                    <select class="form-input" id="ayarlarAuthYontem">
+                                        <option value="">-- Yontem Seciniz --</option>
+                                        <option value="API Key">API Key</option>
+                                        <option value="OAuth">OAuth</option>
+                                        <option value="JWT">JWT</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>API Anahtari</label>
+                                    <input type="password" class="form-input" id="ayarlarApiAnahtar" placeholder="API anahtari (ekranda gosterilmez)">
+                                </div>
+                                <div class="form-group" id="ayarlarWebDurumGrubu" style="display:none;">
+                                    <label>Baglanti Durumu</label>
+                                    <div id="ayarlarWebDurum" style="font-size:0.88rem;color:#6b7280;">Bagli Degil</div>
+                                    <div style="font-size:0.78rem;color:#9ca3af;margin-top:4px;" id="ayarlarWebSonKontrol">Son kontrol: -</div>
+                                </div>
+                                <div class="form-actions">
+                                    <button class="btn btn-secondary" onclick="ayarlarWebTestEt()">Baglantiyi Test Et</button>
+                                    <button class="btn btn-primary" onclick="ayarlarWebKaydet()">Kaydet</button>
+                                    <button class="btn btn-warning" onclick="ayarlarWebKaldir()" id="ayarlarWebKaldirBtn" style="display:none;">Baglantiyi Kaldir</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ayarlar-icerik" id="ayarlar-genel" style="display:none;">
+                            <div class="ayarlar-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Firma Adi</label>
+                                        <input type="text" class="form-input" id="ayarlarFirmaAdi" placeholder="Firma adi">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Ulke</label>
+                                        <input type="text" class="form-input" id="ayarlarUlke" placeholder="Ulke">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Saat Dilimi</label>
+                                        <select class="form-input" id="ayarlarSaatDilimi">
+                                            <option value="Europe/Istanbul">(UTC+03:00) Istanbul</option>
+                                            <option value="Europe/London">(UTC+00:00) Londra</option>
+                                            <option value="Europe/Berlin">(UTC+01:00) Berlin</option>
+                                            <option value="America/New_York">(UTC-05:00) New York</option>
+                                            <option value="Asia/Dubai">(UTC+04:00) Dubai</option>
+                                            <option value="Asia/Tokyo">(UTC+09:00) Tokyo</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Dil</label>
+                                        <select class="form-input" id="ayarlarDil">
+                                            <option value="tr">Turkce</option>
+                                            <option value="en">English</option>
+                                            <option value="de">Deutsch</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Tarih Formati</label>
+                                        <select class="form-input" id="ayarlarTarihFormat">
+                                            <option value="DD.MM.YYYY">GG.AA.YYYY</option>
+                                            <option value="MM/DD/YYYY">AA/GG/YYYY</option>
+                                            <option value="YYYY-MM-DD">YYYY-AA-GG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Saat Formati</label>
+                                        <select class="form-input" id="ayarlarSaatFormat">
+                                            <option value="24">24 Saat</option>
+                                            <option value="12">12 Saat (AM/PM)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="ayarlar-toggle-label">
+                                        <input type="checkbox" class="ayarlar-toggle" id="ayarlarOtomatikBaslangic" checked>
+                                        <span class="ayarlar-toggle-text">Otomatik Yayin Baslangic Durumu</span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="ayarlar-toggle-label">
+                                        <input type="checkbox" class="ayarlar-toggle" id="ayarlarBildirimler" checked>
+                                        <span class="ayarlar-toggle-text">Bildirimler</span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="ayarlar-toggle-label">
+                                        <input type="checkbox" class="ayarlar-toggle" id="ayarlarSistemUyarilari" checked>
+                                        <span class="ayarlar-toggle-text">Sistem Uyarilari</span>
+                                    </label>
+                                </div>
+                                <div class="form-actions">
+                                    <button class="btn btn-primary" onclick="ayarlarGenelKaydet()">Genel Ayarlari Kaydet</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content" id="page-lisans">
+                    <div class="lisans-container">
+                        <div class="lisans-header">
+                            <h2>Lisans Yonetimi</h2>
+                            <p class="paylasim-desc">Lisans durumunuzu goruntuleyin ve lisans dosyasi yukleyin.</p>
+                        </div>
+                        <div id="lisansDurumKart" class="lisans-durum-kart">
+                            <div class="lisans-durum-loading">Lisans bilgileri kontrol ediliyor...</div>
+                        </div>
+                        <div id="lisansBilgiKart" class="lisans-bilgi-kart" style="display:none;">
+                            <div class="dashboard-card">
+                                <div class="card-title">Lisans Bilgileri</div>
+                                <div class="lisans-bilgi-grid" id="lisansBilgiGrid"></div>
+                            </div>
+                        </div>
+                        <div id="lisansYuklemeAlani" class="lisans-yukleme-alani">
+                            <div class="dashboard-card">
+                                <div class="card-title">Lisans Dosyasi Yukle</div>
+                                <p class="form-hint" style="margin-bottom:12px;">ES Merkez Lisanslama tarafindan uretilen license.lic dosyasini yukleyin.</p>
+                                <div class="file-upload-area" id="lisansFileUploadArea">
+                                    <input type="file" accept=".lic,.json" class="file-input-hidden" id="lisansFileInput">
+                                    <div class="file-upload-placeholder">license.lic dosyasini secmek icin tiklayin</div>
+                                </div>
+                                <div class="uploaded-files" id="lisansUploadedFiles"></div>
+                                <div class="form-actions">
+                                    <button class="btn btn-primary" onclick="lisansDosyaYukle()">Lisansi Yukle ve Dogrula</button>
+                                </div>
+                                <div id="lisansSonuc" style="margin-top:12px;"></div>
+                            </div>
+                        </div>
+                        <div id="lisansDemoBilgi" class="lisans-demo-bilgi" style="display:none;">
+                            <div class="dashboard-card">
+                                <div class="card-title">Demo Bilgileri</div>
+                                <div id="lisansDemoGrid" class="lisans-bilgi-grid"></div>
+                            </div>
+                        </div>
+                        <div id="lisansKilitEkrani" class="lisans-kilit-ekrani" style="display:none;">
+                            <div class="dashboard-card" style="text-align:center;padding:40px 20px;">
+                                <div style="font-size:3rem;margin-bottom:16px;">&#x1f512;</div>
+                                <h3 style="color:#ef4444;margin-bottom:12px;">Deneme Sureniz Sona Ermistir</h3>
+                                <p style="color:#6b7280;margin-bottom:20px;font-size:0.95rem;">
+                                    15 gunluk deneme sureniz sona ermistir. Programi kullanmaya devam etmek icin gecerli bir lisans dosyasi yukleyin.
+                                </p>
+                                <p style="color:#9ca3af;font-size:0.82rem;">
+                                    Lisans dosyaniz ES Merkez Lisanslama tarafindan uretilir. Lisans almak icin yetkili saticinizla iletisime gecin.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+<div class="page-content" id="page-yardim">
+                    <div class="empty-page"><div class="empty-icon">❓</div><h2>Yardım</h2><p>Bu modül FAZ 10'da geliştirilecektir.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- OAuth callback handler (FAZ 10) -->
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var code = params.get('code');
+        var state = params.get('state');
+        var error = params.get('error');
+        if (code && state) {
+            if (window.opener && !window.opener.closed) {
+                window.opener.postMessage({
+                    type: 'es_oauth_callback',
+                    platform: window.name.replace('_auth', ''),
+                    code: code,
+                    state: state
+                }, '*');
+                setTimeout(function() { window.close(); }, 500);
+            }
+        } else if (error) {
+            if (window.opener && !window.opener.closed) {
+                window.opener.postMessage({
+                    type: 'es_oauth_callback',
+                    platform: window.name.replace('_auth', ''),
+                    error: error
+                }, '*');
+                setTimeout(function() { window.close(); }, 500);
+            }
+        }
+    })();
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
+
+
+
+
+

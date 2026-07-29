@@ -1,0 +1,444 @@
+============================================================
+ES LİSANS MERKEZİ
+RECOVERY CODE VE PAROLA KURTARMA ŞARTNAMESİ
+============================================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Ana parola unutulduğunda ES Lisans Merkezi'ne güvenli şekilde tekrar erişebilmek.
+
+Bu sistem:
+
+- Güvenlik Sorusu
+- Recovery Code
+
+birlikte kullanılarak çalışacaktır.
+
+Tek başına hiçbir yöntem parola sıfırlamak için yeterli olmayacaktır.
+
+============================================================
+1. TEMEL FELSEFE
+============================================================
+
+Ana parola unutulabilir.
+
+Ancak Private Key güvenliği asla zayıflatılmamalıdır.
+
+Bu nedenle parola kurtarma sistemi güçlü ve güvenli olmalıdır.
+
+============================================================
+2. ANA PAROLA
+============================================================
+
+Ana parola:
+
+Private Key'i koruyan temel şifredir.
+
+============================================================
+3. ANA PAROLA KAYBI
+============================================================
+
+Kullanıcı ana parolasını unutabilir.
+
+Bu durumda:
+
+Parolamı Unuttum
+
+işlemi kullanılacaktır.
+
+============================================================
+4. GÜVENLİK SORUSU
+============================================================
+
+İlk kurulum sırasında güvenlik sorusu oluşturulacaktır.
+
+============================================================
+5. GÜVENLİK SORUSU TÜRLERİ
+============================================================
+
+Sistem hazır sorular sunabilir.
+
+Örnek:
+
+İlk öğretmeninizin adı nedir?
+
+Çocukluk lakabınız nedir?
+
+İlk evcil hayvanınızın adı nedir?
+
+============================================================
+6. ÖZEL GÜVENLİK SORUSU
+============================================================
+
+Kullanıcı isterse kendi sorusunu yazabilir.
+
+============================================================
+7. GÜVENLİK CEVABI
+============================================================
+
+Güvenlik sorusunun cevabı tanımlanacaktır.
+
+============================================================
+8. CEVAP SAKLAMA KURALI
+============================================================
+
+Güvenlik cevabı düz metin olarak saklanamaz.
+
+Hashlenerek saklanmalıdır.
+
+============================================================
+9. RECOVERY CODE
+============================================================
+
+İlk kurulum sırasında sistem otomatik Recovery Code oluşturacaktır.
+
+============================================================
+10. RECOVERY CODE FORMATI
+============================================================
+
+Örnek:
+
+ESRM-74KX-29PA-LL81-90QD
+
+============================================================
+11. RECOVERY CODE ÖZELLİKLERİ
+============================================================
+
+Her kurulum için benzersiz olmalıdır.
+
+Tahmin edilmesi zor olmalıdır.
+
+Rastgele oluşturulmalıdır.
+
+============================================================
+12. RECOVERY CODE GÖSTERİMİ
+============================================================
+
+İlk kurulumdan sonra kullanıcıya gösterilmelidir.
+
+============================================================
+13. KULLANICI UYARISI
+============================================================
+
+Aşağıdaki uyarı gösterilmelidir:
+
+Bu kurtarma kodunu güvenli bir yerde saklayın.
+
+Ana parolanızı unutursanız bu kod gerekli olacaktır.
+
+Bu kod olmadan parola kurtarma yapılamaz.
+
+============================================================
+14. RECOVERY CODE YAZDIRMA
+============================================================
+
+Kullanıcı isterse Recovery Code'u yazdırabilmelidir.
+
+============================================================
+15. RECOVERY CODE DIŞA AKTARMA
+============================================================
+
+TXT veya PDF olarak kaydedilebilir.
+
+============================================================
+16. RECOVERY CODE SAKLAMA
+============================================================
+
+Recovery Code düz metin olarak saklanamaz.
+
+Hashlenerek saklanmalıdır.
+
+============================================================
+17. PAROLA KURTARMA AKIŞI
+============================================================
+
+Parolamı Unuttum
+
+↓
+
+Güvenlik Sorusu
+
+↓
+
+Güvenlik Cevabı
+
+↓
+
+Recovery Code
+
+↓
+
+Yeni Parola
+
+↓
+
+Tamamlandı
+
+============================================================
+18. GÜVENLİK SORUSU DOĞRULAMA
+============================================================
+
+Güvenlik cevabı doğrulanmalıdır.
+
+============================================================
+19. RECOVERY CODE DOĞRULAMA
+============================================================
+
+Recovery Code doğrulanmalıdır.
+
+============================================================
+20. ÇİFT DOĞRULAMA KURALI
+============================================================
+
+Hem güvenlik cevabı
+
+hem Recovery Code
+
+doğru olmak zorundadır.
+
+============================================================
+21. TEK BAŞINA GÜVENLİK SORUSU
+============================================================
+
+Yeterli değildir.
+
+============================================================
+22. TEK BAŞINA RECOVERY CODE
+============================================================
+
+Yeterli değildir.
+
+============================================================
+23. BAŞARILI DOĞRULAMA
+============================================================
+
+İki doğrulama da başarılı ise:
+
+Yeni parola belirlenebilir.
+
+============================================================
+24. YENİ PAROLA
+============================================================
+
+Kullanıcı yeni parola oluşturur.
+
+============================================================
+25. PAROLA TEKRARI
+============================================================
+
+Yeni parola iki kez girilmelidir.
+
+============================================================
+26. PAROLA KURALLARI
+============================================================
+
+En az 8 karakter.
+
+Büyük harf önerilir.
+
+Küçük harf önerilir.
+
+Rakam önerilir.
+
+============================================================
+27. PAROLA DEĞİŞİMİ SONRASI
+============================================================
+
+Private Key yeni parola ile yeniden şifrelenmelidir.
+
+============================================================
+28. PRIVATE KEY KORUMA
+============================================================
+
+Parola değişse bile mevcut Private Key korunmalıdır.
+
+============================================================
+29. BAŞARISIZ DENEMELER
+============================================================
+
+Yanlış cevaplar kayıt altına alınabilir.
+
+============================================================
+30. DENEME SAYISI
+============================================================
+
+Arka arkaya başarısız denemeler sınırlandırılmalıdır.
+
+============================================================
+31. ÖNERİLEN SINIR
+============================================================
+
+5 başarısız deneme.
+
+============================================================
+32. GEÇİCİ KİLİT
+============================================================
+
+Limit aşılırsa sistem geçici olarak kilitlenebilir.
+
+============================================================
+33. ÖNERİLEN KİLİT SÜRESİ
+============================================================
+
+15 dakika.
+
+============================================================
+34. GÜVENLİK KAYDI
+============================================================
+
+Başarısız denemeler geçmişe yazılabilir.
+
+============================================================
+35. BAŞARILI KURTARMA KAYDI
+============================================================
+
+Parola başarıyla kurtarıldığında geçmiş kaydı oluşturulmalıdır.
+
+============================================================
+36. GEÇMİŞ ÖRNEĞİ
+============================================================
+
+Ana parola recovery yöntemi ile yenilendi.
+
+============================================================
+37. RECOVERY CODE YENİLEME
+============================================================
+
+Güvenlik modülünde:
+
+Recovery Code Yenile
+
+butonu bulunmalıdır.
+
+============================================================
+38. RECOVERY CODE YENİLEME KURALI
+============================================================
+
+Yeni kod üretildiğinde eski kod geçersiz olur.
+
+============================================================
+39. RECOVERY CODE YENİLEME İÇİN
+============================================================
+
+Mevcut ana parola sorulmalıdır.
+
+============================================================
+40. GÜVENLİK SORUSU DEĞİŞTİRME
+============================================================
+
+Kullanıcı güvenlik sorusunu değiştirebilir.
+
+============================================================
+41. GÜVENLİK SORUSU DEĞİŞTİRME KURALI
+============================================================
+
+Mevcut ana parola doğrulanmalıdır.
+
+============================================================
+42. YEDEKLEME İLİŞKİSİ
+============================================================
+
+Recovery bilgileri sistem yedeğine dahil edilmelidir.
+
+============================================================
+43. GERİ YÜKLEME SONRASI
+============================================================
+
+Recovery sistemi çalışmaya devam etmelidir.
+
+============================================================
+44. PRIVATE KEY KAYBI
+============================================================
+
+Recovery sistemi Private Key üretmez.
+
+Sadece parola sıfırlar.
+
+============================================================
+45. PRIVATE KEY YEDEĞİ GEREKLİLİĞİ
+============================================================
+
+Recovery Code,
+
+Private Key yedeğinin yerine geçmez.
+
+============================================================
+46. AMAÇ
+============================================================
+
+Ana parola unutulduğunda sistemi güvenli şekilde tekrar erişilebilir hale getirmektir.
+
+============================================================
+47. GÜVENLİK PRENSİBİ
+============================================================
+
+Kolay kurtarma değil,
+
+güvenli kurtarma hedeflenmektedir.
+
+============================================================
+48. KABUL KRİTERLERİ
+============================================================
+
+TEST 1
+
+İlk kurulumda güvenlik sorusu oluşturulmalıdır.
+
+------------------------------------------------------------
+
+TEST 2
+
+Recovery Code üretilmelidir.
+
+------------------------------------------------------------
+
+TEST 3
+
+Recovery Code kullanıcıya gösterilmelidir.
+
+------------------------------------------------------------
+
+TEST 4
+
+Güvenlik cevabı hashlenmelidir.
+
+------------------------------------------------------------
+
+TEST 5
+
+Recovery Code hashlenmelidir.
+
+------------------------------------------------------------
+
+TEST 6
+
+Sadece güvenlik sorusu ile parola sıfırlanamamalıdır.
+
+------------------------------------------------------------
+
+TEST 7
+
+Sadece Recovery Code ile parola sıfırlanamamalıdır.
+
+------------------------------------------------------------
+
+TEST 8
+
+İkisi birlikte doğruysa parola sıfırlanabilmelidir.
+
+------------------------------------------------------------
+
+TEST 9
+
+Private Key korunmalıdır.
+
+------------------------------------------------------------
+
+TEST 10
+
+İşlem geçmişe yazılmalıdır.

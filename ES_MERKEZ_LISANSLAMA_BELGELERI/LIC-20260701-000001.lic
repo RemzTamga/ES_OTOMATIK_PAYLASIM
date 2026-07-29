@@ -1,0 +1,18 @@
+{
+  "customer_name": "fatih EFE",
+  "customer_no": "M000001",
+  "issued_at": "2026-07-01",
+  "license_expire_date": null,
+  "license_id": "LIC-20260701-000001",
+  "license_policy": "PERPETUAL",
+  "license_type": "FULL",
+  "machine_id": "MID-F15F7-D9812-929D4-C10AE-DDF0B",
+  "max_transfer_count": 3,
+  "notes": "",
+  "product_code": "VIRÜS1",
+  "product_name": "es_antivirüs",
+  "signature": "SI8mKuTlwXF2xJInG2aWVwOeTeeWlw9MG2r37W15rcnGzZ29buQKFQWIw5QxsW5PlFdu7zBDKh7gsA9Nxmi4fFLQE0g5VxbWv2hh2pVcoJdASDXoT71e7utda57z4ewuZxCPksh2-Mjt_wxGldrJWLiy4_G3jRo4o54_HwZpBYzLD7rKDtpcV_HZHn1iSiMyadP19Le7c-CcZx-PjMHV5HD1opRC4aBUg_pzeunVuvdoh0o-VY8iaIw_52zfHlFZbcq5jRskrYpRDLE38oDoZeDZD225jnn43ROWW7LcO74oOVwXB4hWjYCd2OhdLzLffIjf1xf7nn50kFAkFdu7fQ==",
+  "status": "ACTIVE",
+  "support_expire_date": null,
+  "transfer_count": 0
+}

@@ -1,0 +1,552 @@
+02_ES_ON_MUHASEBE_LISANS_SISTEMI.txt
+
+============================================================
+ES ÖN MUHASEBE
+LİSANS SİSTEMİ ŞARTNAMESİ
+=========================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+ES Ön Muhasebe programının lisans sistemini tanımlamak.
+
+Bu doküman:
+
+* Demo sistemi
+* Lisans sistemi
+* Kilit ekranı
+* Lisans ekranı
+* Lisans yükleme
+* Lisans doğrulama
+* Makine kodu kullanımı
+
+kurallarını içerir.
+
+============================================================
+
+1. GENEL AMAÇ
+   ============================================================
+
+Program ilk kurulduğunda müşteri sistemi tam olarak deneyebilmelidir.
+
+Bu nedenle:
+
+Kısıtlı demo modeli kullanılmayacaktır.
+
+İlk çalıştırmadan itibaren:
+
+Tam sürüm demo
+
+mantığı kullanılacaktır.
+
+============================================================
+2. LİSANS DURUMLARI
+===================
+
+Programda 3 ana durum bulunacaktır.
+
+────────────────────────
+TRIAL_ACTIVE
+────────────────────────
+
+Demo devam ediyor.
+
+* Tüm modüller çalışır.
+* Tüm ekranlar açıktır.
+* Hiçbir özellik kapatılmaz.
+
+────────────────────────
+TRIAL_EXPIRED
+────────────────────────
+
+Demo sona ermiştir.
+
+Program açılır.
+
+Ancak iş modülleri çalışmaz.
+
+Kilit ekranı açılır.
+
+────────────────────────
+LICENSED
+────────────────────────
+
+Geçerli lisans yüklenmiştir.
+
+Program tam sürüm çalışır.
+
+Demo sistemi devre dışı kalır.
+
+============================================================
+3. DEMO SİSTEMİ
+===============
+
+Demo süresi:
+
+7 Gün
+
+olarak sabittir.
+
+Kullanıcıya tam kullanım verilir.
+
+============================================================
+4. DEMO BAŞLANGICI
+==================
+
+Demo kurulum tarihinde başlamaz.
+
+İlk çalıştırma tarihinde başlar.
+
+İlk açılışta kayıt edilir:
+
+trial_start_date
+
+Örnek:
+
+19.06.2026
+
+============================================================
+5. DEMO BİTİŞİ
+==============
+
+trial_end_date
+
+otomatik hesaplanır.
+
+Örnek:
+
+trial_start_date
++
+7 Gün
+
+============================================================
+6. DEMO SIRASINDA PROGRAM
+=========================
+
+Aşağıdaki modüller eksiksiz çalışacaktır.
+
+* Satış Yap
+* Ürünler
+* Ürün Girişi
+* Müşteriler
+* Toptancılar
+* Bankalar
+* Çekler ve Senetler
+* Günlük Kasa
+* Personeller
+* Raporlar
+* Ayarlar
+
+Hiçbir kısıtlama uygulanmaz.
+
+============================================================
+7. DEMO GÖSTERGESİ
+==================
+
+Programda küçük bilgi alanı bulunabilir.
+
+Örnek:
+
+Deneme Sürümü
+
+Kalan Süre:
+5 Gün
+
+============================================================
+8. DEMO BİTMEDEN LİSANS ALMA
+============================
+
+Müşteri:
+
+1. gün
+2. gün
+3. gün
+
+lisans satın alabilir.
+
+Demo süresinin dolması beklenmez.
+
+============================================================
+9. LİSANS YÜKLENİNCE
+====================
+
+Geçerli lisans doğrulanır.
+
+Program:
+
+LICENSED
+
+durumuna geçer.
+
+Demo sayaç önemsiz hale gelir.
+
+============================================================
+10. DEMO SONU
+=============
+
+7 gün sonunda:
+
+TRIAL_EXPIRED
+
+durumuna geçilir.
+
+============================================================
+11. DEMO SONUNDA KİLİTLENECEK MODÜLLER
+======================================
+
+* Satış Yap
+* Ürünler
+* Ürün Girişi
+* Müşteriler
+* Toptancılar
+* Bankalar
+* Çekler ve Senetler
+* Günlük Kasa
+* Personeller
+* Raporlar
+* Ayarlar
+
+tamamen kapatılır.
+
+============================================================
+12. KİLİTLENMEYEN İŞLEMLER
+==========================
+
+Demo bitse bile:
+
+Makine Kodunu Göster
+
+Lisans Dosyası Yükle
+
+Lisans Kodu Gir
+
+Lisans Durumunu Gör
+
+Veri Yedeği Al
+
+Çıkış
+
+işlemleri açık kalacaktır.
+
+============================================================
+13. VERİ KORUMA KURALI
+======================
+
+Demo bitince:
+
+* Satışlar silinmez
+* Stoklar silinmez
+* Müşteriler silinmez
+* Taksitler silinmez
+* Kasa silinmez
+* Banka kayıtları silinmez
+* Rapor verileri silinmez
+
+Hiçbir veri silinmez.
+
+============================================================
+14. KİLİT EKRANI
+================
+
+Program açılır.
+
+Lisans yoksa:
+
+Kilit Ekranı
+
+açılır.
+
+============================================================
+15. KİLİT EKRANI İÇERİĞİ
+========================
+
+Başlık:
+
+Deneme süreniz sona ermiştir.
+
+Alt açıklama:
+
+Programı kullanmaya devam etmek için lisans satın almanız gerekmektedir.
+
+Makine Kodu:
+
+XXXX-XXXX-XXXX
+
+============================================================
+16. KİLİT EKRANI BUTONLARI
+==========================
+
+Makine Kodunu Kopyala
+
+Lisans Dosyası Yükle
+
+Lisans Kodu Gir
+
+Veri Yedeği Al
+
+Çıkış
+
+============================================================
+17. LİSANS EKRANI
+=================
+
+Programda ayrı lisans ekranı bulunacaktır.
+
+============================================================
+18. LİSANS EKRANI ALANLARI
+==========================
+
+Lisans Durumu
+
+Ürün Adı
+
+Firma Adı
+
+Makine Kodu
+
+Demo Başlangıç Tarihi
+
+Demo Bitiş Tarihi
+
+Kalan Gün
+
+Lisans Başlangıç Tarihi
+
+Lisans Bitiş Tarihi
+
+Lisans ID
+
+============================================================
+19. LİSANS EKRANI BUTONLARI
+===========================
+
+Makine Kodunu Kopyala
+
+Lisans Dosyası Yükle
+
+Lisans Kodu Gir
+
+Veri Yedeği Al
+
+============================================================
+20. LİSANS DOSYASI
+==================
+
+Tercih edilen format:
+
+license.lic
+
+============================================================
+21. LİSANS DOSYASI İÇERİĞİ
+==========================
+
+product_code
+
+product_name
+
+company_name
+
+customer_name
+
+phone
+
+machine_id
+
+license_type
+
+license_start_date
+
+license_expire_date
+
+support_expire_date
+
+issued_at
+
+license_id
+
+features
+
+signature
+
+============================================================
+22. LİSANS KODU GİRİŞİ
+======================
+
+Yedek yöntem olarak:
+
+Elle Lisans Kodu Gir
+
+desteklenecektir.
+
+Kullanıcı:
+
+WhatsApp
+
+E-posta
+
+Mesaj
+
+ile gelen lisansı yapıştırabilecektir.
+
+============================================================
+23. LİSANS YÜKLEME
+==================
+
+Kullanıcı:
+
+license.lic
+
+dosyasını seçer.
+
+Program doğrulama yapar.
+
+Başarılıysa:
+
+LICENSED
+
+durumuna geçer.
+
+============================================================
+24. LİSANS DOĞRULAMA
+====================
+
+Kontrol edilecek:
+
+İmza geçerli mi
+
+Product Code doğru mu
+
+Machine ID doğru mu
+
+Lisans süresi uygun mu
+
+Lisans tipi uygun mu
+
+============================================================
+25. GEÇERSİZ LİSANS
+===================
+
+Aşağıdaki durumlarda lisans reddedilir:
+
+Yanlış Product Code
+
+Yanlış Machine ID
+
+Bozuk İmza
+
+Eksik Veri
+
+Sahte Lisans
+
+============================================================
+26. YANLIŞ MAKİNE UYARISI
+=========================
+
+Mesaj:
+
+Bu lisans bu bilgisayar için geçerli değildir.
+
+============================================================
+27. YANLIŞ ÜRÜN UYARISI
+=======================
+
+Mesaj:
+
+Bu lisans farklı bir ürüne aittir.
+
+============================================================
+28. KAYITLI LİSANS
+==================
+
+Program lisansı saklar.
+
+Her açılışta tekrar doğrular.
+
+============================================================
+29. WINDOWS YENİDEN KURULUMU
+============================
+
+Windows yeniden kurulduğunda:
+
+CPU aynı
+
+Disk aynı
+
+ise makine kodu değişmemelidir.
+
+============================================================
+30. ESKİ LİSANSI GERİ YÜKLEME
+=============================
+
+Kullanıcı eski:
+
+license.lic
+
+dosyasını tekrar yükleyebilmelidir.
+
+============================================================
+31. TARİH GERİ ALMA KORUMASI
+============================
+
+Program:
+
+last_run_date
+
+tutar.
+
+============================================================
+32. TARİH HİLESİ
+================
+
+Eğer sistem tarihi:
+
+last_run_date
+
+değerinden geriye giderse:
+
+Sistem tarihinde tutarsızlık tespit edildi.
+
+Lütfen destek ile iletişime geçin.
+
+uyarısı verilir.
+
+============================================================
+33. DEMO TEKRAR KURULUM KORUMASI
+================================
+
+Program silinip yeniden kurulunca:
+
+Demo sıfırlanmamalıdır.
+
+============================================================
+34. DEMO KAYIT ALANLARI
+=======================
+
+trial_start_date
+
+trial_end_date
+
+last_run_date
+
+machine_id
+
+product_code
+
+birden fazla noktada saklanabilir.
+
+============================================================
+35. KABUL KRİTERİ
+=================
+
+* İlk açılışta demo başlamalı.
+* Demo boyunca tüm modüller çalışmalı.
+* Demo bitince kilit ekranı açılmalı.
+* Veri silinmemeli.
+* Lisans yüklenince program açılmalı.
+* Yanlış lisans reddedilmeli.
+* Tarih hilesi tespit edilmeli.
+* Windows yeniden kurulsa bile lisans korunmalı.

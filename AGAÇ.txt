@@ -1,0 +1,76 @@
+SOSYAL_MEDYA_OTOMASYON
+
+├── 01_DASHBOARD
+│
+├── 02_PAYLASIMLAR
+│   ├── SOSYAL_MEDYA
+│   │   ├── Normal_Paylasim
+│   │   ├── Kampanya_ve_Indirimler
+│   │   ├── Detayli_Paylasim
+│   │   └── Duyuru_ve_Ilanlar
+│   │
+│   └── WEB_SITESI
+│       ├── Normal_Web_Paylasimi
+│       ├── Web_Kampanya_ve_Indirimleri
+│       ├── Detayli_Web_Paylasimi
+│       └── Web_Duyurulari
+│
+├── 03_MEDYA_KUTUPHANESI
+│   ├── 01_KAYNAK_GORSELLER
+│   ├── 02_SOSYAL_MEDYA_GORSELLERI
+│   ├── 03_WEB_GORSELLERI
+│   ├── 04_VIDEO_VE_HAREKETLI_MEDYA
+│   ├── 05_LOGO_VE_KURUMSAL_KIMLIK
+│   ├── 06_SABLONLAR
+│   ├── 07_YAYINLANAN
+│   ├── 08_ARSIV
+│   └── 09_COP
+│
+├── 04_YAYIN_GECMISI
+│   ├── Sosyal_Medya
+│   └── Web_Sitesi
+│
+├── 05_RAPORLAR
+│   ├── Sosyal_Medya
+│   ├── Web_Sitesi
+│   └── Genel
+│
+├── 06_BILDIRIM_MERKEZI
+│   ├── Sistem_Uyarilari
+│   ├── Sosyal_Medya_Baglanti_Uyarilari
+│   ├── Web_Sitesi_Baglanti_Uyarilari
+│   ├── Yayin_Hatalari
+│   ├── Kampanya_Uyarilari
+│   ├── Lisans_Uyarilari
+│   └── Genel_Bilgilendirmeler
+│
+├── 07_AYARLAR
+│   ├── Genel_Ayarlar
+│   ├── Sosyal_Medya_Hesaplari
+│   │   ├── Instagram
+│   │   ├── Facebook
+│   │   ├── LinkedIn
+│   │   ├── X
+│   │   ├── TikTok
+│   │   ├── Pinterest
+│   │   ├── YouTube
+│   │   └── Diger_Desteklenen_Platformlar
+│   │
+│   ├── Web_Sitesi_Baglantisi
+│   │   ├── Bizim_Hazirladigimiz_Web_Sitesi
+│   │   └── Harici_Web_Sitesi_Entegrasyonu
+│   │
+│   ├── Yedekleme
+│   │   ├── Sosyal_Medya_Baglanti_Ayarlari
+│   │   ├── Web_Sitesi_Baglanti_Ayarlari
+│   │   └── Temel_Program_Ayarlari
+│   │
+│   └── Bildirim_Ayarlari
+│
+├── 08_LISANS
+│   └── ES_Lisanslama_Entegrasyonu
+│
+└── 09_YARDIM
+    ├── Kullanim_Kilavuzu
+    ├── Sikca_Sorulan_Sorular
+    └── Destek

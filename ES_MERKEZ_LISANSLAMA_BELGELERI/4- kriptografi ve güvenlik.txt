@@ -1,0 +1,558 @@
+04_KRIPTOGRAFI_VE_GUVENLIK.txt
+
+============================================================
+ES LİSANS MERKEZİ
+KRİPTOGRAFİ VE GÜVENLİK ŞARTNAMESİ
+==================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu doküman ES Lisans Merkezi ve ES yazılımlarının lisans güvenliği, dijital imza yapısı, Private Key yönetimi ve güvenlik kurallarını tanımlar.
+
+Bu dokümandaki kurallar sistemin en kritik güvenlik kurallarıdır.
+
+============================================================
+
+1. TEMEL GÜVENLİK FELSEFESİ
+   ============================================================
+
+Amaç:
+
+Lisansı kopyalamayı zorlaştırmak
+
+Sahte lisans üretimini engellemek
+
+Private Key'i korumak
+
+Lisans doğrulamayı güvenli hale getirmek
+
+Sistem:
+
+Kırılamaz
+
+olarak tasarlanmayacaktır.
+
+Amaç:
+
+Kırılması zor
+
+Taklit edilmesi zor
+
+Yönetilebilir
+
+bir yapı kurmaktır.
+
+============================================================
+2. PRIVATE KEY FELSEFESİ
+========================
+
+Sistemin en değerli varlığı:
+
+Private Key
+
+olacaktır.
+
+Private Key:
+
+Lisans üretir.
+
+Dijital imza atar.
+
+Yeni lisans oluşturur.
+
+============================================================
+3. PRIVATE KEY KURALI
+=====================
+
+Private Key:
+
+Asla müşteri programına gitmeyecektir.
+
+Asla:
+
+ES Ön Muhasebe
+
+ES Halı Yıkama
+
+ES Sosyal Medya
+
+içine konulmayacaktır.
+
+============================================================
+4. PRIVATE KEY YERİ
+===================
+
+Private Key yalnızca:
+
+ES Lisans Merkezi
+
+içinde bulunacaktır.
+
+Başka hiçbir programda bulunamaz.
+
+============================================================
+5. PRIVATE KEY DIŞA AKTARIM YASAĞI
+==================================
+
+Private Key:
+
+Kopyalanamaz
+
+Dışa aktarılamaz
+
+Müşteriye gönderilemez
+
+Paylaşılamaz
+
+============================================================
+6. PRIVATE KEY ŞİFRELEME
+========================
+
+Private Key düz metin tutulmayacaktır.
+
+Şifrelenmiş olarak saklanacaktır.
+
+Ana parola kullanılacaktır.
+
+============================================================
+7. ANA PAROLA
+=============
+
+ES Lisans Merkezi ilk açılışta:
+
+Ana Parola
+
+isteyebilir.
+
+Bu parola:
+
+Private Key'i açmak için kullanılır.
+
+============================================================
+8. GÜVENİLİR CİHAZ
+==================
+
+Kullanıcı isterse:
+
+Bu cihaz güvenilir cihaz olarak kaydedilsin mi?
+
+işaretleyebilir.
+
+Güvenilir cihazlarda tekrar parola sorulmayabilir.
+
+============================================================
+9. YENİ CİHAZ
+=============
+
+Yeni bilgisayarda:
+
+Ana parola tekrar istenmelidir.
+
+============================================================
+10. PRIVATE KEY YEDEĞİ
+======================
+
+Private Key kaybolursa:
+
+Yeni lisans üretilemez.
+
+Bu nedenle:
+
+Şifreli yedek alınmalıdır.
+
+============================================================
+11. HARİCİ YEDEK
+================
+
+Private Key için:
+
+Harici yedek
+
+tutulmalıdır.
+
+Örnek:
+
+Şifreli USB
+
+Şifreli harici disk
+
+============================================================
+12. PUBLIC KEY FELSEFESİ
+========================
+
+Public Key:
+
+Lisans üretmez.
+
+Sadece doğrular.
+
+============================================================
+13. PUBLIC KEY KULLANIMI
+========================
+
+Müşteri programlarında:
+
+yalnızca Public Key bulunacaktır.
+
+============================================================
+14. PUBLIC KEY SABİTLİĞİ
+========================
+
+Program:
+
+İnternetten Public Key indirmeyecektir.
+
+Program:
+
+Yeni Public Key üretmeyecektir.
+
+Program:
+
+Sabit Public Key kullanacaktır.
+
+============================================================
+15. DİJİTAL İMZA
+================
+
+Her lisans:
+
+Dijital olarak imzalanacaktır.
+
+İmzasız lisans kabul edilmeyecektir.
+
+============================================================
+16. TERCİH EDİLEN ALGORİTMA
+===========================
+
+Tercih edilen algoritma:
+
+Ed25519
+
+============================================================
+17. ALTERNATİF ALGORİTMA
+========================
+
+Gerekirse:
+
+RSA
+
+kullanılabilir.
+
+============================================================
+18. LİSANS ÜRETİM AKIŞI
+=======================
+
+Machine ID
+
+↓
+
+Lisans Verisi
+
+↓
+
+Private Key
+
+↓
+
+İmzalama
+
+↓
+
+license.lic
+
+============================================================
+19. LİSANS DOĞRULAMA AKIŞI
+==========================
+
+license.lic
+
+↓
+
+Public Key
+
+↓
+
+İmza Kontrolü
+
+↓
+
+Geçerli / Geçersiz
+
+============================================================
+20. SAHTE LİSANS
+================
+
+Aşağıdaki durumlarda lisans reddedilir:
+
+İmza yok
+
+İmza bozuk
+
+Veri değiştirilmiş
+
+Machine ID yanlış
+
+Product Code yanlış
+
+============================================================
+21. LİSANS DOSYASI DEĞİŞTİRME
+=============================
+
+Kullanıcı:
+
+license.lic
+
+dosyasını açıp değiştirirse
+
+imza bozulmalıdır.
+
+============================================================
+22. İMZA BOZULUNCA
+==================
+
+Mesaj:
+
+Lisans doğrulanamadı.
+
+Geçersiz lisans dosyası.
+
+============================================================
+23. LİSANS ÜRETİMİ YASAĞI
+=========================
+
+Müşteri programları:
+
+Lisans üretemez.
+
+Yeni lisans oluşturamaz.
+
+Yeni imza oluşturamaz.
+
+============================================================
+24. PROGRAM İÇİNDE LİSANS ÜRETME YASAĞI
+=======================================
+
+ES Ön Muhasebe
+
+ES Halı Yıkama
+
+ES Sosyal Medya
+
+içinde lisans üretici bulunmayacaktır.
+
+============================================================
+25. GİZLİ ANAHTARIN KORUNMASI
+=============================
+
+Private Key:
+
+GitHub'a yüklenmeyecektir.
+
+Projelere gömülmeyecektir.
+
+Kaynak kod içine yazılmayacaktır.
+
+============================================================
+26. DAĞITIM GÜVENLİĞİ
+=====================
+
+Müşteriye verilen programlarda:
+
+PyInstaller kullanılacaktır.
+
+============================================================
+27. KAYNAK KOD KORUMASI
+=======================
+
+Mümkün olan yerlerde:
+
+Obfuscation
+
+uygulanacaktır.
+
+============================================================
+28. DÜZ .PY DAĞITIMI
+====================
+
+Müşteriye:
+
+açık kaynak .py
+
+dosyaları verilmemelidir.
+
+============================================================
+29. GÜVENLİK LOGU
+=================
+
+Program aşağıdaki olayları kayıt altına alabilir:
+
+Lisans doğrulandı
+
+Geçersiz lisans
+
+Yanlış Machine ID
+
+Bozuk imza
+
+Lisans yükleme
+
+============================================================
+30. UYGUNSUZ KULLANIM TESPİTİ
+=============================
+
+Gelecekte online sistem kurulursa:
+
+Farklı makinede kullanım denemeleri
+
+kayıt altına alınabilir.
+
+Şu an aktif değildir.
+
+============================================================
+31. E-POSTA GÖMÜLME YASAĞI
+==========================
+
+Program içine:
+
+SMTP kullanıcı adı
+
+SMTP şifresi
+
+Gmail bilgileri
+
+gömülmeyecektir.
+
+============================================================
+32. ONLINE BİLDİRİM FELSEFESİ
+=============================
+
+İleride:
+
+Program
+
+↓
+
+ES Lisans Sunucusu
+
+↓
+
+Bildirim
+
+mimarisi kullanılabilir.
+
+============================================================
+33. KARA LİSTE YAPISI
+=====================
+
+Gelecekte desteklenebilir.
+
+Durumlar:
+
+ACTIVE
+
+SUSPENDED
+
+BLACKLISTED
+
+============================================================
+34. UZAKTAN KAPATMA
+===================
+
+Şu an:
+
+Uzaktan kapatma yoktur.
+
+Offline sistem devam eder.
+
+============================================================
+35. GELECEKTEKİ SUNUCU KONTROLÜ
+===============================
+
+İleride internet varsa:
+
+Lisans durumu sorgulanabilir.
+
+Bugün aktif değildir.
+
+============================================================
+36. GÜVENLİK LOG GEÇMİŞİ
+========================
+
+ES Lisans Merkezi kayıt tutabilir:
+
+Lisans üretildi
+
+Lisans gönderildi
+
+Lisans taşındı
+
+Geçici lisans üretildi
+
+İptal edildi
+
+============================================================
+37. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Private Key müşteri programında bulunmamalıdır.
+
+---
+
+TEST 2
+
+Public Key ile doğrulama yapılmalıdır.
+
+---
+
+TEST 3
+
+license.lic değiştirildiğinde lisans bozulmalıdır.
+
+---
+
+TEST 4
+
+Sahte lisans reddedilmelidir.
+
+---
+
+TEST 5
+
+Yanlış Machine ID reddedilmelidir.
+
+---
+
+TEST 6
+
+Yanlış Product Code reddedilmelidir.
+
+---
+
+TEST 7
+
+Private Key şifreli saklanmalıdır.
+
+---
+
+TEST 8
+
+Private Key yedeği alınabilmelidir.
+
+---
+
+TEST 9
+
+Program lisans üretememelidir.
+
+---
+
+TEST 10
+
+Sadece ES Lisans Merkezi lisans üretebilmelidir.

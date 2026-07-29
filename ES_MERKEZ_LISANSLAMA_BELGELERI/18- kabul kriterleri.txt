@@ -1,0 +1,605 @@
+18_KABUL_KRITERLERI.txt
+
+============================================================
+ES LİSANS MERKEZİ
+GENEL KABUL KRİTERLERİ VE CANLIYA ALMA ŞARTNAMESİ
+=================================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu doküman ES Lisans Merkezi geliştirmesi tamamlandıktan sonra sistemin kabul edilip edilmeyeceğini belirlemek amacıyla hazırlanmıştır.
+
+Bu doküman:
+
+* Fonksiyon testleri
+* Güvenlik testleri
+* Lisans testleri
+* Taşıma testleri
+* Demo testleri
+* Yedekleme testleri
+* Kullanıcı testleri
+
+için resmi kontrol listesidir.
+
+============================================================
+
+1. GENEL KURAL
+   ============================================================
+
+Bir modül kodlandı diye tamamlanmış sayılmaz.
+
+Bu dokümandaki testleri geçmelidir.
+
+============================================================
+2. CANLIYA ÇIKIŞ ŞARTI
+======================
+
+Kritik testlerin tamamı başarılı olmalıdır.
+
+============================================================
+3. KRİTİK HATA TANIMI
+=====================
+
+Aşağıdaki durumlar kritik hatadır:
+
+Lisans üretilemiyor
+
+Lisans doğrulanamıyor
+
+Private Key kayboluyor
+
+Machine ID yanlış çalışıyor
+
+Veriler siliniyor
+
+Yedek geri yüklenemiyor
+
+============================================================
+4. GENEL ARAYÜZ TESTİ
+=====================
+
+TEST G-01
+
+Program açılmalıdır.
+
+---
+
+TEST G-02
+
+Ana Sayfa görünmelidir.
+
+---
+
+TEST G-03
+
+Sol menü sabit kalmalıdır.
+
+---
+
+TEST G-04
+
+Menüler arasında geçiş yapılabilmelidir.
+
+---
+
+TEST G-05
+
+Yeni pencere karmaşası oluşmamalıdır.
+
+---
+
+TEST G-06
+
+Tam ekran çalışmalıdır.
+
+---
+
+TEST G-07
+
+Normal moda geri dönmelidir.
+
+============================================================
+5. MÜŞTERİ MODÜLÜ TESTLERİ
+==========================
+
+TEST M-01
+
+Yeni müşteri eklenebilmelidir.
+
+---
+
+TEST M-02
+
+Müşteri aranabilmelidir.
+
+---
+
+TEST M-03
+
+Müşteri düzenlenebilmelidir.
+
+---
+
+TEST M-04
+
+Müşteri pasif yapılabilmelidir.
+
+---
+
+TEST M-05
+
+Müşteri kartı açılabilmelidir.
+
+---
+
+TEST M-06
+
+Bir müşteriye birden fazla lisans bağlanabilmelidir.
+
+============================================================
+6. ÜRÜNLER MODÜLÜ TESTLERİ
+==========================
+
+TEST U-01
+
+Yeni ürün eklenebilmelidir.
+
+---
+
+TEST U-02
+
+Product Code benzersiz olmalıdır.
+
+---
+
+TEST U-03
+
+Pasif ürün oluşturulabilmelidir.
+
+---
+
+TEST U-04
+
+Pasif ürün için lisans üretilememelidir.
+
+============================================================
+7. LİSANS ÜRETİM TESTLERİ
+=========================
+
+TEST L-01
+
+FULL lisans üretilebilmelidir.
+
+---
+
+TEST L-02
+
+TEMPORARY lisans üretilebilmelidir.
+
+---
+
+TEST L-03
+
+SUPPORT lisans üretilebilmelidir.
+
+---
+
+TEST L-04
+
+License ID otomatik oluşmalıdır.
+
+---
+
+TEST L-05
+
+License ID benzersiz olmalıdır.
+
+---
+
+TEST L-06
+
+license.lic oluşturulmalıdır.
+
+---
+
+TEST L-07
+
+Veritabanı kaydı oluşmalıdır.
+
+============================================================
+8. MACHINE ID TESTLERİ
+======================
+
+TEST MID-01
+
+Aynı bilgisayarda aynı Machine ID oluşmalıdır.
+
+---
+
+TEST MID-02
+
+Windows yeniden kurulunca Machine ID değişmemelidir.
+
+---
+
+TEST MID-03
+
+CPU değişirse Machine ID değişebilmelidir.
+
+---
+
+TEST MID-04
+
+Disk değişirse Machine ID değişebilmelidir.
+
+---
+
+TEST MID-05
+
+Başka makine lisansı reddedilmelidir.
+
+============================================================
+9. DEMO TESTLERİ
+================
+
+TEST D-01
+
+İlk açılışta demo başlamalıdır.
+
+---
+
+TEST D-02
+
+Demo süresi 7 gün olmalıdır.
+
+---
+
+TEST D-03
+
+Demo sırasında tüm modüller çalışmalıdır.
+
+---
+
+TEST D-04
+
+Demo bitince program kilitlenmelidir.
+
+---
+
+TEST D-05
+
+Veriler silinmemelidir.
+
+---
+
+TEST D-06
+
+Demo bitince lisans yüklenebilmelidir.
+
+============================================================
+10. LİSANS DOĞRULAMA TESTLERİ
+=============================
+
+TEST V-01
+
+Doğru lisans kabul edilmelidir.
+
+---
+
+TEST V-02
+
+Yanlış Machine ID reddedilmelidir.
+
+---
+
+TEST V-03
+
+Yanlış Product Code reddedilmelidir.
+
+---
+
+TEST V-04
+
+Bozuk imza reddedilmelidir.
+
+---
+
+TEST V-05
+
+Eksik lisans dosyası reddedilmelidir.
+
+============================================================
+11. KRİPTOGRAFİ TESTLERİ
+========================
+
+TEST C-01
+
+Private Key müşteri programında bulunmamalıdır.
+
+---
+
+TEST C-02
+
+Public Key doğrulama yapmalıdır.
+
+---
+
+TEST C-03
+
+license.lic değiştirildiğinde geçersiz olmalıdır.
+
+---
+
+TEST C-04
+
+Sahte lisans üretilememelidir.
+
+============================================================
+12. GÜVENİLİR CİHAZ TESTLERİ
+============================
+
+TEST T-01
+
+İlk girişte parola sorulmalıdır.
+
+---
+
+TEST T-02
+
+Güvenilir cihaz kaydedilebilmelidir.
+
+---
+
+TEST T-03
+
+Güvenilir cihaz tekrar parola istememelidir.
+
+---
+
+TEST T-04
+
+Yeni cihaz parola istemelidir.
+
+---
+
+TEST T-05
+
+Güvenilir cihaz kaldırılabilmelidir.
+
+============================================================
+13. ÖDEME TAKİBİ TESTLERİ
+=========================
+
+TEST O-01
+
+Satış bedeli girilebilmelidir.
+
+---
+
+TEST O-02
+
+Ödeme girilebilmelidir.
+
+---
+
+TEST O-03
+
+Kısmi ödeme çalışmalıdır.
+
+---
+
+TEST O-04
+
+Kalan bakiye hesaplanmalıdır.
+
+---
+
+TEST O-05
+
+Borç nedeniyle lisans kapanmamalıdır.
+
+============================================================
+14. LİSANS TAŞIMA TESTLERİ
+==========================
+
+TEST LT-01
+
+Lisans taşınabilmelidir.
+
+---
+
+TEST LT-02
+
+Yeni lisans oluşturulmalıdır.
+
+---
+
+TEST LT-03
+
+Eski lisans silinmemelidir.
+
+---
+
+TEST LT-04
+
+Eski lisans TRANSFERRED olmalıdır.
+
+---
+
+TEST LT-05
+
+Geçmiş kaydı oluşmalıdır.
+
+============================================================
+15. GEÇİCİ LİSANS TESTLERİ
+==========================
+
+TEST GL-01
+
+1 günlük lisans üretilebilmelidir.
+
+---
+
+TEST GL-02
+
+7 günlük lisans üretilebilmelidir.
+
+---
+
+TEST GL-03
+
+30 günlük lisans üretilebilmelidir.
+
+---
+
+TEST GL-04
+
+Süre sonunda lisans sona ermelidir.
+
+---
+
+TEST GL-05
+
+Veriler korunmalıdır.
+
+============================================================
+16. YEDEKLEME TESTLERİ
+======================
+
+TEST Y-01
+
+Manuel yedek alınabilmelidir.
+
+---
+
+TEST Y-02
+
+Otomatik yedek alınmalıdır.
+
+---
+
+TEST Y-03
+
+Program kapanışında yedek alınabilmelidir.
+
+---
+
+TEST Y-04
+
+Geri yükleme yapılabilmelidir.
+
+---
+
+TEST Y-05
+
+Bozuk yedek reddedilmelidir.
+
+============================================================
+17. PRIVATE KEY TESTLERİ
+========================
+
+TEST PK-01
+
+Private Key şifreli saklanmalıdır.
+
+---
+
+TEST PK-02
+
+Private Key yedeklenebilmelidir.
+
+---
+
+TEST PK-03
+
+Private Key geri yüklenebilmelidir.
+
+---
+
+TEST PK-04
+
+Private Key düz metin gösterilmemelidir.
+
+============================================================
+18. GEÇMİŞ MODÜLÜ TESTLERİ
+==========================
+
+TEST H-01
+
+Lisans üretimi geçmişe yazılmalıdır.
+
+---
+
+TEST H-02
+
+Lisans taşıma geçmişe yazılmalıdır.
+
+---
+
+TEST H-03
+
+Ödeme işlemleri geçmişe yazılmalıdır.
+
+---
+
+TEST H-04
+
+Geçmiş kayıtları silinememelidir.
+
+---
+
+TEST H-05
+
+Geçmiş kayıtları değiştirilememelidir.
+
+============================================================
+19. PERFORMANS TESTLERİ
+=======================
+
+TEST P-01
+
+1.000 müşteri ile çalışmalıdır.
+
+---
+
+TEST P-02
+
+10.000 lisans kaydı ile çalışmalıdır.
+
+---
+
+TEST P-03
+
+Aramalar makul sürede sonuç vermelidir.
+
+============================================================
+20. CANLIYA ALMA ŞARTI
+======================
+
+Aşağıdaki koşullar sağlanmadan proje tamamlanmış kabul edilmez:
+
+* Kritik hata bulunmamalıdır.
+* Lisans üretimi çalışmalıdır.
+* Lisans doğrulama çalışmalıdır.
+* Demo sistemi çalışmalıdır.
+* Machine ID sistemi çalışmalıdır.
+* Private Key sistemi çalışmalıdır.
+* Yedekleme sistemi çalışmalıdır.
+* Veriler korunmalıdır.
+
+============================================================
+21. SON KURAL
+=============
+
+ES Lisans Merkezi;
+
+yalnızca derlenmiş olmasıyla değil,
+
+bu dokümandaki tüm testleri geçmesiyle
+
+tamamlanmış kabul edilir.

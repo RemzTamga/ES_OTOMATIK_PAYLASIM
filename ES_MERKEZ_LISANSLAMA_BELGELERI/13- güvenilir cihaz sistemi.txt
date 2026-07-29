@@ -1,0 +1,386 @@
+13_GUVENILIR_CIHAZ_SISTEMI.txt
+
+============================================================
+ES LİSANS MERKEZİ
+GÜVENİLİR CİHAZ SİSTEMİ ŞARTNAMESİ
+==================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül ES Lisans Merkezi'nin sadece geliştirici tarafından kullanılmasını kolaylaştırmak ve güvenliği korumak amacıyla tasarlanmıştır.
+
+Amaç:
+
+Her açılışta parola sormamak
+
+Ama güvenliği de kaybetmemek
+
+============================================================
+
+1. TEMEL FELSEFE
+   ============================================================
+
+ES Lisans Merkezi:
+
+Her gün kullanılabilir.
+
+Bu nedenle:
+
+Program her açılışta parola sorarsa kullanım zorlaşır.
+
+Ancak:
+
+Hiç parola koruması olmazsa güvenlik azalır.
+
+Bu nedenle:
+
+Güvenilir Cihaz
+
+mantığı kullanılacaktır.
+
+============================================================
+2. ANA PAROLA
+=============
+
+Sistemin ana güvenlik mekanizmasıdır.
+
+============================================================
+3. ANA PAROLA AMACI
+===================
+
+Private Key'i korumaktır.
+
+============================================================
+4. İLK KURULUM
+==============
+
+Program ilk kurulduğunda:
+
+Ana Parola
+
+oluşturulmalıdır.
+
+============================================================
+5. İLK AÇILIŞ
+=============
+
+Program ilk açıldığında:
+
+Ana Parola
+
+sorulacaktır.
+
+============================================================
+6. GÜVENİLİR CİHAZ SORUSU
+=========================
+
+Başarılı giriş sonrası:
+
+Bu cihaz güvenilir cihaz olarak kaydedilsin mi?
+
+sorusu gösterilebilir.
+
+============================================================
+7. KULLANICI EVET DERSE
+=======================
+
+Cihaz güvenilir cihaz listesine eklenir.
+
+============================================================
+8. KULLANICI HAYIR DERSE
+========================
+
+Her açılışta parola sorulmaya devam eder.
+
+============================================================
+9. GÜVENİLİR CİHAZ
+==================
+
+Güvenilir cihaz:
+
+Ana parolayı tekrar istemeyen cihazdır.
+
+============================================================
+10. GÜVENİLİR CİHAZ KAYDI
+=========================
+
+Her cihaz için kayıt tutulmalıdır.
+
+============================================================
+11. KAYIT ALANLARI
+==================
+
+Cihaz ID
+
+Cihaz Adı
+
+İlk Giriş Tarihi
+
+Son Kullanım Tarihi
+
+Durum
+
+============================================================
+12. CİHAZ ID
+============
+
+Benzersiz olmalıdır.
+
+============================================================
+13. CİHAZ ADI
+=============
+
+Bilgisayar adı veya kullanıcı tarafından verilen isim olabilir.
+
+============================================================
+14. DURUM
+=========
+
+Aktif
+
+Kaldırıldı
+
+============================================================
+15. AKTİF CİHAZ
+===============
+
+Parola istemeden giriş yapabilir.
+
+============================================================
+16. KALDIRILAN CİHAZ
+====================
+
+Tekrar parola istemelidir.
+
+============================================================
+17. YENİ BİLGİSAYAR
+===================
+
+Program yeni bilgisayara taşındığında:
+
+Ana parola sorulmalıdır.
+
+============================================================
+18. YENİ CİHAZ SENARYOSU
+========================
+
+Yeni cihaz
+
+↓
+
+Ana parola
+
+↓
+
+Güvenilir cihaz seçeneği
+
+↓
+
+Kayıt
+
+============================================================
+19. GÜVENİLİR CİHAZLAR EKRANI
+=============================
+
+Tüm güvenilir cihazlar listelenmelidir.
+
+============================================================
+20. TABLO SÜTUNLARI
+===================
+
+Cihaz Adı
+
+İlk Giriş
+
+Son Kullanım
+
+Durum
+
+============================================================
+21. SON KULLANIM
+================
+
+Her başarılı girişte güncellenmelidir.
+
+============================================================
+22. CİHAZ KALDIR
+================
+
+Buton bulunmalıdır.
+
+============================================================
+23. CİHAZ KALDIRMA SONUCU
+=========================
+
+Cihaz tekrar parola istemelidir.
+
+============================================================
+24. TÜM CİHAZLARI TEMİZLE
+=========================
+
+Buton bulunabilir.
+
+============================================================
+25. TÜM CİHAZLARI TEMİZLE SONUCU
+================================
+
+Tüm cihazlar:
+
+Parola istemek zorunda kalır.
+
+============================================================
+26. PRIVATE KEY KORUMASI
+========================
+
+Güvenilir cihaz olmak:
+
+Private Key'i düz metin erişilebilir yapmaz.
+
+============================================================
+27. PRIVATE KEY KURALI
+======================
+
+Private Key her zaman korumalı kalmalıdır.
+
+============================================================
+28. OTOMATİK GİRİŞ
+==================
+
+Güvenilir cihazlarda otomatik giriş yapılabilir.
+
+============================================================
+29. GÜVENLİK UYARISI
+====================
+
+Yeni cihaz eklenince kayıt oluşturulmalıdır.
+
+============================================================
+30. GEÇMİŞ KAYDI
+================
+
+Örnek:
+
+Yeni güvenilir cihaz eklendi.
+
+============================================================
+31. CİHAZ KALDIRMA KAYDI
+========================
+
+Örnek:
+
+Güvenilir cihaz kaldırıldı.
+
+============================================================
+32. ANA PAROLA DEĞİŞTİRME
+=========================
+
+Parola değişince:
+
+Mevcut güvenilir cihazlar korunabilir.
+
+============================================================
+33. İSTEĞE BAĞLI GÜVENLİK
+=========================
+
+İstenirse:
+
+Parola değişince tüm cihazlar sıfırlanabilir.
+
+============================================================
+34. İLK SÜRÜM KARARI
+====================
+
+Parola değişse bile:
+
+Güvenilir cihazlar korunacaktır.
+
+============================================================
+35. CİHAZ SINIRI
+================
+
+İlk sürümde cihaz sınırı yoktur.
+
+============================================================
+36. GÜVENİLİR CİHAZ YEDEĞİ
+==========================
+
+Kayıtlar sistem yedeğine dahil edilmelidir.
+
+============================================================
+37. GERİ YÜKLEME SONRASI
+========================
+
+Güvenilir cihaz kayıtları korunmalıdır.
+
+============================================================
+38. PRIVATE KEY GERİ YÜKLEME
+============================
+
+Bu işlem güvenilir cihazları etkilemez.
+
+============================================================
+39. AMAÇ
+========
+
+Güvenlik ile kullanım kolaylığı arasında denge kurmaktır.
+
+============================================================
+40. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+İlk açılışta parola sorulmalıdır.
+
+---
+
+TEST 2
+
+Güvenilir cihaz olarak işaretlenebilmelidir.
+
+---
+
+TEST 3
+
+Güvenilir cihaz tekrar parola istememelidir.
+
+---
+
+TEST 4
+
+Yeni cihaz parola istemelidir.
+
+---
+
+TEST 5
+
+Güvenilir cihazlar listelenebilmelidir.
+
+---
+
+TEST 6
+
+Güvenilir cihaz kaldırılabilmelidir.
+
+---
+
+TEST 7
+
+Kaldırılan cihaz tekrar parola istemelidir.
+
+---
+
+TEST 8
+
+Yeni cihaz ekleme kayıt altına alınmalıdır.
+
+---
+
+TEST 9
+
+Yedekleme sonrası kayıtlar korunmalıdır.

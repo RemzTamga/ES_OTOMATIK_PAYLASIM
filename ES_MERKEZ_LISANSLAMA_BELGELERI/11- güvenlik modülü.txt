@@ -1,0 +1,425 @@
+11_GUVENLIK_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+GÜVENLİK MODÜLÜ ŞARTNAMESİ
+==========================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül ES Lisans Merkezi'nin güvenlik yönetim ekranıdır.
+
+Bu modül:
+
+* Ana Parola Yönetimi
+* Private Key Yönetimi
+* Güvenilir Cihaz Yönetimi
+* Private Key Yedekleme
+* Private Key Geri Yükleme
+* Güvenlik Durumu Takibi
+
+işlemlerini yönetir.
+
+============================================================
+
+1. MODÜL AMACI
+   ============================================================
+
+Bu modül sistemin en kritik modülüdür.
+
+Çünkü:
+
+Private Key
+
+buradan yönetilir.
+
+============================================================
+2. GÜVENLİK FELSEFESİ
+=====================
+
+Amaç:
+
+Private Key'i korumaktır.
+
+============================================================
+3. PRIVATE KEY
+==============
+
+Private Key:
+
+Lisans üretir.
+
+Dijital imza atar.
+
+Yeni lisans oluşturur.
+
+============================================================
+4. PRIVATE KEY KAYBI
+====================
+
+Private Key kaybolursa:
+
+Yeni lisans üretilemez.
+
+============================================================
+5. PRIVATE KEY KORUMA
+=====================
+
+Private Key:
+
+Şifreli tutulmalıdır.
+
+============================================================
+6. GÜVENLİK EKRANI
+==================
+
+Güvenlik menüsüne basıldığında açılır.
+
+============================================================
+7. GÜVENLİK EKRANI BÖLÜMLERİ
+============================
+
+Güvenlik Durumu
+
+Ana Parola
+
+Private Key
+
+Güvenilir Cihazlar
+
+Yedekleme İşlemleri
+
+============================================================
+8. GÜVENLİK DURUMU
+==================
+
+Üst bölümde sistem durumu gösterilir.
+
+============================================================
+9. GÖSTERİLECEK BİLGİLER
+========================
+
+Private Key Durumu
+
+Ana Parola Durumu
+
+Güvenilir Cihaz Sayısı
+
+Son Yedekleme
+
+============================================================
+10. PRIVATE KEY DURUMU
+======================
+
+Aktif
+
+Eksik
+
+Hatalı
+
+============================================================
+11. ANA PAROLA DURUMU
+=====================
+
+Tanımlı
+
+Tanımlı Değil
+
+============================================================
+12. ANA PAROLA
+==============
+
+Private Key'i koruyan ana şifredir.
+
+============================================================
+13. ANA PAROLA DEĞİŞTİR
+=======================
+
+Buton bulunacaktır.
+
+============================================================
+14. PAROLA DEĞİŞTİRME
+=====================
+
+Eski Parola
+
+Yeni Parola
+
+Yeni Parola Tekrar
+
+============================================================
+15. PAROLA DOĞRULAMA
+====================
+
+Yeni parola eşleşmek zorundadır.
+
+============================================================
+16. ZAYIF PAROLA UYARISI
+========================
+
+Basit parolalarda uyarı verilebilir.
+
+============================================================
+17. PRIVATE KEY ALANI
+=====================
+
+Private Key bilgileri yönetilir.
+
+============================================================
+18. PRIVATE KEY GÖRÜNTÜLEME
+===========================
+
+Private Key düz metin olarak gösterilmez.
+
+============================================================
+19. PRIVATE KEY KOPYALAMA
+=========================
+
+Varsayılan olarak izin verilmez.
+
+============================================================
+20. PRIVATE KEY DIŞA AKTARMA
+============================
+
+Varsayılan olarak yasaktır.
+
+============================================================
+21. PRIVATE KEY YEDEĞİ
+======================
+
+Buton bulunacaktır.
+
+============================================================
+22. PRIVATE KEY YEDEKLEME
+=========================
+
+Şifreli yedek oluşturulur.
+
+============================================================
+23. PRIVATE KEY YEDEK DOSYASI
+=============================
+
+Örnek:
+
+private_key_backup.enc
+
+============================================================
+24. YEDEKLEME ŞİFRESİ
+=====================
+
+Yedek oluştururken parola sorulabilir.
+
+============================================================
+25. PRIVATE KEY GERİ YÜKLE
+==========================
+
+Buton bulunacaktır.
+
+============================================================
+26. GERİ YÜKLEME KURALI
+=======================
+
+Yedek doğrulanmalıdır.
+
+============================================================
+27. HATALI YEDEK
+================
+
+Yükleme reddedilmelidir.
+
+============================================================
+28. PRIVATE KEY DEĞİŞTİRME
+==========================
+
+İlk sürümde önerilmez.
+
+============================================================
+29. PRIVATE KEY YENİLEME
+========================
+
+İleri sürümlerde desteklenebilir.
+
+============================================================
+30. GÜVENİLİR CİHAZLAR
+======================
+
+Bu bölüm güvenilir cihazları listeler.
+
+============================================================
+31. GÜVENİLİR CİHAZ TABLOSU
+===========================
+
+Cihaz Adı
+
+İlk Giriş Tarihi
+
+Son Kullanım Tarihi
+
+Durum
+
+============================================================
+32. DURUM
+=========
+
+Aktif
+
+Kaldırıldı
+
+============================================================
+33. GÜVENİLİR CİHAZI KALDIR
+===========================
+
+Buton bulunacaktır.
+
+============================================================
+34. KALDIRMA SONUCU
+===================
+
+Cihaz tekrar parola istemelidir.
+
+============================================================
+35. YENİ CİHAZ
+==============
+
+Yeni cihazda:
+
+Ana parola zorunludur.
+
+============================================================
+36. GÜVENLİK KAYITLARI
+======================
+
+Aşağıdaki işlemler kayıt altına alınmalıdır.
+
+============================================================
+37. KAYIT ÖRNEKLERİ
+===================
+
+Parola değiştirildi
+
+Private Key yedeği alındı
+
+Private Key geri yüklendi
+
+Cihaz kaldırıldı
+
+Yeni cihaz eklendi
+
+============================================================
+38. OTURUM KORUMASI
+===================
+
+İlk sürümde zorunlu değildir.
+
+============================================================
+39. OTOMATİK KİLİT
+==================
+
+İleride eklenebilir.
+
+============================================================
+40. BAŞARISIZ PAROLA DENEMELERİ
+===============================
+
+Kayıt altına alınabilir.
+
+============================================================
+41. YANLIŞ PAROLA
+=================
+
+Private Key açılmamalıdır.
+
+============================================================
+42. PRIVATE KEY OLMADAN
+=======================
+
+Lisans üretilememelidir.
+
+============================================================
+43. PRIVATE KEY BOZUKSA
+=======================
+
+Lisans üretimi engellenmelidir.
+
+============================================================
+44. GÜVENLİK UYARILARI
+======================
+
+Kritik durumlar kırmızı gösterilebilir.
+
+============================================================
+45. KRİTİK UYARILAR
+===================
+
+Private Key Eksik
+
+Yedek Yok
+
+Parola Tanımlı Değil
+
+============================================================
+46. AMAÇ
+========
+
+Lisans üretim sisteminin güvenliğini korumaktır.
+
+============================================================
+47. MUHASEBE YASAĞI
+===================
+
+Bu modül finansal işlem içermez.
+
+============================================================
+48. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Ana parola değiştirilebilmelidir.
+
+---
+
+TEST 2
+
+Private Key yedeği alınabilmelidir.
+
+---
+
+TEST 3
+
+Private Key geri yüklenebilmelidir.
+
+---
+
+TEST 4
+
+Private Key düz metin gösterilmemelidir.
+
+---
+
+TEST 5
+
+Güvenilir cihazlar görüntülenebilmelidir.
+
+---
+
+TEST 6
+
+Güvenilir cihaz kaldırılabilmelidir.
+
+---
+
+TEST 7
+
+Private Key olmadan lisans üretilememelidir.
+
+---
+
+TEST 8
+
+Güvenlik işlemleri geçmişe kaydedilmelidir.

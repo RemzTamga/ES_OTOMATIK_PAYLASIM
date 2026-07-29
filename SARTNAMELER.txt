@@ -1,0 +1,1147 @@
+01_DASHBOARDŞARTNAME
+
+AmaçDashboard, kullanıcının programa giriş yaptıktan sonra gördüğü ilk ekrandır. Dashboard yalnızca genel durumu özetler. İşlem ekranı değildir. Tüm ayrıntılı işlemler ilgili modüllerden yapılacaktır.
+
+Genel YapıDashboard; Sosyal Medya ve Web Sitesi olmak üzere üst bölümde bulunan sekmeye göre çalışacaktır. Sekme değiştirildiğinde sol menü değişmeyecek, sadece Dashboard içerikleri değişecektir.
+
+Gösterilecek BilgilerDashboard yalnızca özet bilgi gösterecektir:
+
+Bugünkü paylaşım durumu
+
+Planlanan paylaşımlar
+
+Tamamlanan paylaşımlar
+
+Bekleyen paylaşımlar
+
+Başarısız paylaşımlar
+
+Bağlı sosyal medya hesaplarının durumu
+
+Web sitesi bağlantı durumu
+
+Bildirim özeti
+
+BildirimlerDashboard üzerinde yalnızca özet bildirimler gösterilecektir. Teknik hata kodları gösterilmeyecektir.
+
+Bildirim örnekleri:
+
+Yayın başarısız oldu.
+
+Hesap bağlantısı koptu.
+
+Kampanya süresi sona erdi.
+
+Web sitesi bağlantısı başarısız.
+
+Lisans durumu uyarısı.
+
+Sol MenüDashboard açıldığında programın ana sol menüsü görüntülenir:
+
+Dashboard
+
+Paylaşımlar
+
+Medya Kütüphanesi
+
+Yayın Geçmişi
+
+Raporlar
+
+Ayarlar
+
+Lisans
+
+Yardım
+
+Sekme değiştiğinde sol menü değişmeyecektir.
+
+Paylaşımlar BölümüDashboard yalnızca özet bilgi gösterir. Paylaşımlar modülüne geçildiğinde kullanıcı aşağıdaki paylaşım türlerinden birini kullanacaktır:
+
+Standart Paylaşım
+
+Kampanya Paylaşımı
+
+Detaylı Paylaşım
+
+Duyuru ve İlanlar
+
+Dashboard bu ekranların yerine geçmez.
+
+Medya KütüphanesiDashboard medya yönetimi yapmaz. Medya işlemleri yalnızca Medya Kütüphanesi modülünde yapılacaktır.
+
+Yayın GeçmişiDashboard yalnızca özet gösterir. Ayrıntılı yayın kayıtları Yayın Geçmişi modülünde görüntülenir.
+
+AyarlarDashboard üzerinden ayar değiştirilmez. Ayarlar modülünden sosyal medya bağlantıları, web sitesi bağlantıları, yedekleme ve genel ayarlar yönetilecektir.
+
+LisansDashboard yalnızca lisans durumunu gösterebilir. Lisans işlemleri ES Lisanslama sistemi tarafından yürütülecektir. Dashboard lisans doğrulama işlemi yapmaz.
+
+Responsive YapıDashboard; bilgisayar, tablet ve telefon ekranlarında aynı web uygulaması içerisinde çalışacaktır. Ayrı masaüstü veya mobil uygulama bulunmayacaktır.
+
+Teknik İlkelerDashboard;
+
+Veri oluşturmaz.
+
+Paylaşım oluşturmaz.
+
+Medya oluşturmaz.
+
+Dosya yönetmez.
+
+Lisans yönetmez.
+
+Dashboard yalnızca sistemin mevcut durumunu özetleyen giriş ekranıdır.
+
+02_PAYLASIMLARŞARTNAME
+
+AmaçPaylaşımlar modülü, sosyal medya ve web sitesi için içerik oluşturma, yönetme ve yayınlama işlemlerinin yapıldığı ana modüldür. Modül, Sosyal Medya ve Web Sitesi olmak üzere iki ana sekme altında çalışır.
+
+Sekme YapısıPaylaşımlar modülünde üst bölümde iki sekme bulunur:
+
+Sosyal Medya
+
+Web Sitesi
+
+Sekme değiştiğinde sol menü değişmez, içerik alanı ilgili sekmenin paylaşım türlerini gösterir.
+
+Paylaşım Türleri (Sosyal Medya)Sosyal Medya sekmesi altında dört paylaşım türü bulunur:
+
+Standart Paylaşım
+
+Kampanya Paylaşımı
+
+Detaylı Paylaşım
+
+Duyuru ve İlanlar
+
+Standart PaylaşımTanım:Toplu görsel yükleme yapılan paylaşım türüdür.
+
+Kurallar:
+
+Kullanıcı çok sayıda görseli tek seferde yükleyebilir.
+
+Her görsel ayrı bir sıra numarası alır. Sıra numarası 001'den başlar ve ardışık olarak devam eder.
+
+Açıklama girilmesi zorunlu değildir.
+
+Program istenirse otomatik açıklama oluşturabilir.
+
+Görseller, sıra numarasına göre döngüsel olarak yayınlanır.
+
+Yalnızca Standart Paylaşımda otomatik döngü vardır.
+
+Kampanya PaylaşımıTanım:Belirli bir tarih aralığında yayınlanan kampanya içerikleridir.
+
+Kurallar:
+
+Kullanıcı aşağıdaki bilgileri girer:
+
+Kampanya sıra numarası (001'den başlar, ardışık devam eder)
+
+Görsel veya görseller
+
+Kampanya başlığı
+
+Kampanya açıklaması
+
+Başlangıç tarihi
+
+Bitiş tarihi
+
+Kampanya yalnızca belirlenen tarih aralığında yayınlanır.
+
+Kampanya aktif olduğu sürece her gün, sıra numarasına göre yayınlanır.
+
+Süresi dolan kampanya kilitlenir ve tekrar yayınlanmaz.
+
+Kampanya tek görsel, çoklu görsel veya tek video olabilir.
+
+Kampanyalar günlük 5 paylaşım kotasının içinde değerlendirilir. Otomatik döngüsü yoktur.
+
+Kampanya önceliklidir:
+
+Kampanya paylaşımı 5 ise Standart paylaşım yapılmaz.
+
+Kampanya paylaşımı 3 ise 3 Kampanya + kalan 2 paylaşım Standart Paylaşım sıra numarasına göre yayınlanır.
+
+Kampanya yoksa 5 paylaşım Standart Paylaşım sıra numarasına göre yayınlanır.
+
+Detaylı Paylaşım kalan kotadan pay almaz. Detaylı paylaşımlar yalnızca kendi kurallarıyla çalışır.
+
+Detaylı PaylaşımTanım:Bilgi ağırlıklı sektörler (emlak, otomotiv, turizm, iş ilanı vb.) için kullanılan paylaşım türüdür.
+
+Kurallar:
+
+Her kayıt tek bir paylaşım grubu olarak oluşturulur.
+
+Bir paylaşım grubunda en fazla 10 görsel bulunur.
+
+Kullanıcı tüm görselleri tek seferde yükler.
+
+Kullanıcı bu paylaşım için açıklamasını girer.
+
+Program bu grubu tek bir çoklu görsel paylaşımı (carousel) olarak yayınlar.
+
+Tüm grup tek sıra numarası ile yönetilir. Sıra numarası 001'den başlar ve ardışık devam eder.
+
+Otomatik döngüsü yoktur.
+
+Döngü sırasında grup parçalanmaz, her zaman tek paylaşım olarak yayınlanır.
+
+Grup silindiğinde içindeki görseller bağımsız içerik olarak geri dönmez. Program sonraki sıra numarasından devam eder.
+
+Detaylı Paylaşım, günlük 5 paylaşım kotasına dahil değildir. Kendi kurallarıyla çalışır.
+
+Duyuru ve İlanlarTanım:Kullanıcının manuel olarak yaptığı, anlık duyuru ve ilan paylaşımlarıdır.
+
+Kurallar:
+
+Otomatik paylaşım kotasına dahil değildir.
+
+Yalnızca "Şimdi Paylaş" butonu ile manuel olarak yayınlanır.
+
+Sıra numarası almaz.
+
+Otomatik paylaşım döngüsüne girmez.
+
+Tüm bağlı sosyal medya hesaplarında anında yayınlanır.
+
+Paylaşım Türleri (Web Sitesi)Web Sitesi sekmesi altında dört paylaşım türü bulunur:
+
+Standart Web Paylaşımı
+
+Web Kampanya Paylaşımı
+
+Detaylı Web Paylaşımı
+
+Web Duyuruları
+
+Standart Web PaylaşımıKurallar:
+
+Sosyal Medya Standart Paylaşım kuralları ile aynıdır.
+
+Web sitesi ölçülerine uygun (yatay ağırlıklı) çıktı üretilir.
+
+Sosyal medya görseli web görseli olarak kullanılmaz.
+
+Otomatik döngü vardır.
+
+Web Kampanya PaylaşımıKurallar:
+
+Sosyal Medya Kampanya Paylaşımı kuralları ile aynıdır.
+
+Web sitesi ölçülerine uygun (yatay ağırlıklı) çıktı üretilir.
+
+Sosyal medya kampanya görseli web kampanya görseli olarak kullanılmaz.
+
+Otomatik döngü yoktur.
+
+Detaylı Web PaylaşımıKurallar:
+
+Sosyal Medya Detaylı Paylaşım kuralları ile aynıdır.
+
+Web sitesi ölçülerine uygun (yatay ağırlıklı) çıktı üretilir.
+
+En fazla 10 görsel.
+
+Tek sıra numarası.
+
+Tek açıklama.
+
+Otomatik döngü yoktur.
+
+Web DuyurularıKurallar:
+
+Sosyal Medya Duyuru ve İlanlar kuralları ile aynıdır.
+
+Web sitesinde anında yayınlanır.
+
+Sıra numarası almaz.
+
+Otomatik paylaşım döngüsüne girmez.
+
+Otomatik paylaşım kotasına dahil değildir.
+
+Yalnızca "Şimdi Paylaş" butonu ile yayınlanır.
+
+Sıra Numarası ve DöngüTemel Kural:
+
+Her paylaşım türü kendi içinde 001'den başlayarak sıra numarası alır.
+
+Standart Paylaşım: 001, 002, 003...
+
+Kampanya Paylaşımı: 001, 002, 003...
+
+Detaylı Paylaşım: 001, 002, 003...
+
+Duyuru ve İlanlar: Sıra numarası almaz.
+
+Sıra numarası içerik değişse bile sabit kalır.
+
+Her yeni içerik yeni sıra numarası alır.
+
+Döngü Kuralları (Yalnızca Standart Paylaşım içindir):
+
+Klasör sonuna gelindiğinde başa döner.
+
+Yeni içerik döngüye dahil olur.
+
+Silinen içerik döngüden çıkar.
+
+Eksik sıra numarası hata vermez, atlanır.
+
+Örnek: 024 → 026 → 027
+
+Kampanya, Detaylı Paylaşım ve Duyuru ve İlanlarda döngü yoktur.
+
+"Kaydet" ve "Şimdi Paylaş" SeçenekleriKullanıcı her paylaşım türünde (Standart / Kampanya / Detaylı) içerik oluştururken iki seçenekle karşılaşır:
+
+Kaydet:
+
+İçerik otomatik paylaşım sırasına girer.
+
+Sıra numarası alır.
+
+Günlük 5 paylaşım kotasından düşer.
+
+Standart Paylaşımda otomatik döngüye girer.
+
+Kampanya ve Detaylı Paylaşımda otomatik döngüye girmez.
+
+Şimdi Paylaş (Standart / Kampanya / Detaylı):
+
+İçerik, tüm bağlı sosyal medya hesaplarında anında yayınlanır.
+
+Sıra numarası alır.
+
+Otomatik paylaşım döngüsüne girer (yalnızca Standart Paylaşım türünde).
+
+Günlük 5 paylaşım kotasından düşmez.
+
+Duyuru ve İlanlar "Şimdi Paylaş"Duyuru ve İlanlar için yalnızca "Şimdi Paylaş" seçeneği vardır.
+
+"Kaydet" seçeneği yoktur.
+
+Sıra numarası almaz.
+
+Kotadan düşmez.
+
+Döngüye girmez.
+
+Tüm bağlı sosyal medya hesaplarında anında yayınlanır.
+
+Web Duyuruları "Şimdi Paylaş"Web Duyuruları için yalnızca "Şimdi Paylaş" seçeneği vardır.
+
+"Kaydet" seçeneği yoktur.
+
+Sıra numarası almaz.
+
+Kotadan düşmez.
+
+Döngüye girmez.
+
+Web sitesinde anında yayınlanır.
+
+Özel GünlerTicari Özel Günler:
+
+Anneler Günü, Babalar Günü, Sevgililer Günü, Yılbaşı vb.
+
+Firma kampanya içeriğini indirim yapmak istediği tarihte İndirimler klasörüne ekler.
+
+Program içeriği paylaşım adayı olarak değerlendirir.
+
+Özel gün sona erdiğinde içerik otomatik arşivlenir.
+
+Kurumsal / Millî / Anma Günleri:
+
+Cumhuriyet Bayramı, 10 Kasım vb.
+
+Program indirim içeriği aramaz.
+
+Yalnızca ilgili özel gün tebrik veya anma paylaşımını değerlendirir.
+
+Medya KarmaSürüm 1 Kapsamı:
+
+Tek video (maksimum 55 saniye)
+
+Tek görsel
+
+Çoklu görsel (carousel)
+
+Sürüm 1 Kapsamı Dışı:
+
+Çoklu video
+
+Görsel + video karışık
+
+03_MEDYA_KUTUPHANESIŞARTNAME
+
+AmaçMedya Kütüphanesi, firmanın tüm görsel, video ve kurumsal dosyalarının saklandığı, yönetildiği ve paylaşımlara hazırlandığı modüldür.
+
+Ana Klasör YapısıtextFIRMA_MEDYA_KUTUPHANESI│├── 01_KAYNAK_GORSELLER├── 02_SOSYAL_MEDYA_GORSELLERI├── 03_WEB_GORSELLERI├── 04_VIDEO_VE_HAREKETLI_MEDYA├── 05_LOGO_VE_KURUMSAL_KIMLIK├── 06_SABLONLAR├── 07_YAYINLANAN_GORSELLER├── 08_ARSIV└── 09_COP_KUTUSU
+
+01_KAYNAK_GORSELLERTanım:Firmanın sisteme yüklediği, henüz paylaşım için hazırlanmamış orijinal görseller.
+
+Alt Klasörler:
+
+text01_KAYNAK_GORSELLER│├── Urunler├── Hizmetler├── Magaza_Ofis├── Personel├── Etkinlikler├── Kampanyalar├── Referanslar├── Marka_Gorselleri└── DigerKurallar:
+
+Bu görseller sosyal medya veya web için henüz kırpılmamış, düzenlenmemiş ana kaynaklardır.
+
+Program bu klasördeki görselleri doğrudan paylaşım için kullanmaz.
+
+02_SOSYAL_MEDYA_GORSELLERITanım:Sosyal medya platformlarında kullanılacak tüm görseller.
+
+Alt Klasörler:
+
+text02_SOSYAL_MEDYA_GORSELLERI│├── 01_Gunluk_Paylasimlar├── 02_Haftalik_Paylasimlar├── 03_Aylik_Paylasimlar├── 04_Ozel_Gunler│   ├── Resmi_Bayramlar│   ├── Dini_Bayramlar│   ├── Milli_Gunler│   ├── Mesleki_Gunler│   ├── Sektorel_Gunler│   ├── Yilbasi│   ├── Anneler_Gunu│   ├── Babalar_Gunu│   ├── Sevgililer_Gunu│   └── Firmaya_Ozel_Gunler├── 05_Kampanyalar├── 06_Yeni_Urunler├── 07_Hizmet_Tanitimlari├── 08_Duyurular├── 09_Kurumsal_Paylasimlar├── 10_Bilgilendirici_Icerikler├── 11_Musteri_Yorumlari├── 12_Etkinlikler├── 13_Sezonluk_Paylasimlar└── 14_DigerKurallar:
+
+Sosyal medya ağırlıklı dikey ve kare format kullanılır.
+
+Bu klasördeki görseller web sitesi için kullanılmaz.
+
+03_WEB_GORSELLERITanım:Web sitesinde kullanılacak tüm görseller.
+
+Alt Klasörler:
+
+text03_WEB_GORSELLERI│├── 01_Ana_Sayfa├── 02_Slider_Banner├── 03_Hero_Gorselleri├── 04_Urun_Gorselleri├── 05_Kategori_Gorselleri├── 06_Hizmet_Gorselleri├── 07_Kampanya_Bannerlari├── 08_Blog_Gorselleri├── 09_Hakkimizda├── 10_Referanslar├── 11_Ekip_Gorselleri├── 12_Popup_Gorselleri├── 13_Mobil_Web_Gorselleri└── 14_DigerKurallar:
+
+Web ağırlıklı yatay format kullanılır.
+
+Bu klasördeki görseller sosyal medya için kullanılmaz.
+
+Masaüstü ve mobil web için ayrı çıktılar üretilir.
+
+04_VIDEO_VE_HAREKETLI_MEDYATanım:Video ve hareketli medya dosyaları.
+
+Kurallar:
+
+Tek video maksimum 55 saniye.
+
+Çoklu video Sürüm 1 kapsamında değildir.
+
+Video + görsel karışık paylaşım Sürüm 1 kapsamında değildir.
+
+05_LOGO_VE_KURUMSAL_KIMLIKTanım:Firma logosu, marka renkleri, fontlar ve kurumsal kimlik dosyaları.
+
+Kurallar:
+
+Program bu dosyaları şablonlara otomatik yerleştirir.
+
+Tasarım değiştirilmez.
+
+Renkler değiştirilmez.
+
+Logo değiştirilmez.
+
+06_SABLONLARTanım:Firma tarafından tanımlanan kurumsal şablonlar.
+
+Alt Klasörler:
+
+text06_SABLONLAR│├── 01_SOSYAL_MEDYA_SABLONLARI│   ├── Dikey_Gonderi│   ├── Kare_Gonderi│   ├── Story│   ├── Reels_Kapagi│   ├── Yatay_Gonderi│   └── Platforma_Ozel│└── 02_WEB_SABLONLARI├── Masaustu_Hero├── Mobil_Hero├── Yatay_Banner├── Kampanya_Banneri├── Blog_Kapagi├── Urun_Karti└── Kategori_GorseliKurallar:
+
+Her firma istediği sayıda şablon tanımlayabilir.
+
+Her şablonda tanımlanabilir alanlar bulunur.
+
+Yapay zekâ yeni tasarım oluşturmaz, şablonu doldurur.
+
+Sosyal medya şablonu web şablonu olarak kullanılamaz.
+
+Web şablonu sosyal medya şablonu olarak kullanılamaz.
+
+Şablon Alanları:
+
+Logo alanı
+
+Ürün görseli alanı
+
+Başlık alanı
+
+Alt başlık alanı
+
+Açıklama alanı
+
+Fiyat alanı
+
+Kampanya etiketi
+
+QR kod alanı
+
+Web sitesi
+
+Telefon
+
+Adres
+
+Sosyal medya ikonları
+
+Filigran
+
+Arka plan
+
+Sabit grafik öğeleri
+
+07_YAYINLANAN_GORSELLERTanım:Program tarafından yayınlanmış tüm görseller.
+
+Kurallar:
+
+Yayınlanan içerikler otomatik olarak buraya taşınır.
+
+Otomatik tekrar yayınlanmaz.
+
+Kullanıcı manuel olarak tekrar yayına alabilir.
+
+08_ARSIVTanım:Yayınlanmış ve belirli süre geçmiş içerikler.
+
+Kurallar:
+
+İçerikler fiziksel olarak arşivlenmez, durum bilgisi "Arşiv" olarak işaretlenir.
+
+Arşivden geri getirme yoktur.
+
+Yedekleme kapsamında değildir.
+
+09_COP_KUTUSUTanım:Kullanıcı tarafından silinen içerikler.
+
+Kurallar:
+
+Silinen içerikler doğrudan silinmez, çöp kutusuna taşınır.
+
+Kullanıcı çöp kutusundan geri getirebilir.
+
+Belirli bir süre sonra otomatik temizlenir.
+
+Dosya Tek Kopya MantığıKural:
+
+Aynı dosya farklı klasörlere tekrar tekrar kopyalanmaz.
+
+Sistemde tek bir ana kayıt olarak saklanır.
+
+Diğer klasörler bu kayda yalnızca görünüm veya bağlantı sağlar.
+
+Avantajları:
+
+Aynı dosyanın onlarca kopyası oluşmaz.
+
+Yapılan düzeltme her yerde geçerli olur.
+
+Yanlış sürümün paylaşılması engellenir.
+
+Depolama gereksiz yere şişmez.
+
+Görüntü Kalitesi (Sürüm 1)Kural:
+
+Program çözünürlük artırmaz.
+
+Bulanıklık düzeltmez.
+
+Yapay zekâ ile netleştirme yapmaz.
+
+Eski fotoğrafları iyileştirmez.
+
+Piksel onarma işlemi yapmaz.
+
+Yüklenen dosya mevcut kalitesiyle kullanılır.
+
+Kalite Sorumluluğu:
+
+Çözünürlük
+
+Netlik
+
+Renk kalitesi
+
+Çekim kalitesi
+
+Profesyonellik
+
+Tamamı firmanın sorumluluğundadır.
+
+Sürüm 2 Kapsamı:
+
+Yapay zekâ destekli çözünürlük artırma
+
+Netleştirme
+
+Gürültü temizleme
+
+Eski fotoğraf iyileştirme
+
+Profesyonel kalite yükseltme
+
+Web ve Sosyal Medya Ölçü AyrımıSosyal Medya:
+
+Mobil ekran ağırlıklı
+
+Dikey ve kare kullanım ağırlıklı
+
+Metin daha büyük
+
+Mesaj daha kısa
+
+Dikkat çekme süresi daha düşük
+
+Logo ve mesaj güvenli alan içinde
+
+Story ve Reels alanları önemli
+
+Web:
+
+Masaüstü ve mobil ayrı ele alınır
+
+Yatay görsel ağırlıklıdır
+
+Banner ve hero kullanımı vardır
+
+Metin bazen görselin dışında bulunur
+
+Görsel farklı ekranlarda yeniden boyutlanır
+
+Sayfa düzenine göre güvenli alan gerekir
+
+04_YAYIN_GECMISIŞARTNAME
+
+AmaçYayın Geçmişi modülü, program tarafından yapılan tüm paylaşımların kayıtlarının görüntülendiği modüldür.
+
+Genel YapıYayın Geçmişi, Sosyal Medya ve Web Sitesi olmak üzere iki sekme altında çalışır. Sekme değiştiğinde sol menü değişmez, içerik alanı ilgili sekmenin yayın geçmişini gösterir.
+
+Gösterilecek BilgilerHer yayın kaydı aşağıdaki bilgileri içerir:
+
+Yayın tarihi ve saati
+
+Paylaşım türü (Standart, Kampanya, Detaylı, Duyuru ve İlanlar)
+
+Sıra numarası (Duyuru ve İlanlar için boş)
+
+İçerik başlığı / açıklaması
+
+Platform (Instagram, Facebook, LinkedIn, X, TikTok, Pinterest, YouTube vb.)
+
+Yayın durumu (Başarılı / Başarısız)
+
+Başarısız ise hata nedeni
+
+SıralamaVarsayılan sıralama: En yeni tarihten en eski tarihe.
+
+Kullanıcı sıralamayı değiştirebilir.
+
+AramaKullanıcı, içerik başlığı veya sıra numarasına göre arama yapabilir.
+
+Detay GörüntülemeKullanıcı herhangi bir kayda tıkladığında:
+
+Paylaşımın tam içeriği
+
+Kullanılan görsel/video
+
+Şablon bilgisi
+
+Platforma özel çıktı
+
+Yayın saati
+
+Varsa hata mesajı
+
+görüntülenir.
+
+Tekrar PaylaşımWeb Sitesi:
+
+Yayınlanan içerik otomatik olarak arşivlenir.
+
+Tekrar yayınlanmaz.
+
+Manuel olarak yeniden yayına alınamaz.
+
+Sosyal Medya:
+
+Yayınlanan içerik gerektiğinde tekrar kullanılabilir.
+
+Aynı gün veya gereksiz sıklıkta yapılmaz.
+
+Platformun yapısına göre değerlendirilir.
+
+Önceki paylaşım tarihi dikkate alınır.
+
+İçerik eskimişse veya kampanya sona ermişse kullanılmaz.
+
+Gerektiğinde farklı metin, ölçü veya şablon versiyonuyla yeniden hazırlanabilir.
+
+Responsive YapıYayın Geçmişi; bilgisayar, tablet ve telefon ekranlarında aynı web uygulaması içerisinde çalışır.
+
+05_RAPORLARŞARTNAME
+
+AmaçRaporlar modülü, paylaşım performansının ve sistem durumunun özetlendiği modüldür.
+
+Genel YapıRaporlar üç ana sekme altında çalışır:
+
+Sosyal Medya
+
+Web Sitesi
+
+Genel
+
+Sekme değiştiğinde sol menü değişmez, içerik alanı ilgili sekmenin raporlarını gösterir.
+
+Sosyal Medya RaporlarıGösterilecek Bilgiler:
+
+Toplam paylaşım sayısı
+
+Başarılı paylaşım sayısı
+
+Başarısız paylaşım sayısı
+
+Platform bazında paylaşım sayısı
+
+Platform bazında başarı/başarısızlık oranı
+
+Günlük / haftalık / aylık paylaşım grafiği
+
+En çok paylaşım yapılan platform
+
+En az paylaşım yapılan platform
+
+Web Sitesi RaporlarıGösterilecek Bilgiler:
+
+Toplam web paylaşım sayısı
+
+Başarılı paylaşım sayısı
+
+Başarısız paylaşım sayısı
+
+Günlük / haftalık / aylık web paylaşım grafiği
+
+Genel RaporlarGösterilecek Bilgiler:
+
+Toplam tüm paylaşımlar
+
+Sosyal medya / web dağılımı
+
+Sistem genel başarı oranı
+
+Kampanya performans özeti
+
+Detaylı paylaşım performans özeti
+
+Responsive YapıRaporlar; bilgisayar, tablet ve telefon ekranlarında aynı web uygulaması içerisinde çalışır.
+
+06_BILDIRIM_MERKEZIŞARTNAME
+
+AmaçBildirim Merkezi, sistem tarafından oluşturulan tüm uyarı ve bilgilendirme mesajlarının toplandığı modüldür.
+
+Genel YapıBildirim Merkezi yedi ana kategori altında çalışır:
+
+Sistem Uyarıları
+
+Sosyal Medya Bağlantı Uyarıları
+
+Web Sitesi Bağlantı Uyarıları
+
+Yayın Hataları
+
+Kampanya Uyarıları
+
+Lisans Uyarıları
+
+Genel Bilgilendirmeler
+
+Sistem Uyarılarıİçerik:
+
+Sistem genel durum uyarıları
+
+Bakım bildirimleri
+
+Güncelleme bildirimleri
+
+Sosyal Medya Bağlantı Uyarılarıİçerik:
+
+Hesap bağlantısı koptuğunda uyarı
+
+Bağlantı süresi dolduğunda uyarı
+
+Yetki iptal edildiğinde uyarı
+
+Bağlantı başarısız olduğunda uyarı
+
+Web Sitesi Bağlantı Uyarılarıİçerik:
+
+Web sitesi bağlantısı koptuğunda uyarı
+
+Bağlantı başarısız olduğunda uyarı
+
+Yayın Hatalarıİçerik:
+
+Başarısız yayın bildirimi
+
+Başarısızlık nedeni açıkça belirtilir
+
+5 deneme sonrası uyarı verilir
+
+Hata Nedeni Örnekleri:
+
+İnternet bağlantısı yok
+
+Platform API'si cevap vermiyor
+
+Oturum süresi doldu
+
+İçerik geçersiz
+
+Yetki yetersiz
+
+Kampanya Uyarılarıİçerik:
+
+Kampanya başlangıç bildirimi
+
+Kampanya bitiş bildirimi
+
+Kampanya süresi sona erdi uyarısı
+
+Kampanya içeriği eksik uyarısı
+
+Lisans Uyarılarıİçerik:
+
+Lisans süresi dolmak üzere uyarısı
+
+Lisans süresi doldu uyarısı
+
+Lisans doğrulama hatası
+
+Lisans geçersiz uyarısı
+
+Genel Bilgilendirmelerİçerik:
+
+Yeni içerik eklendi bildirimi
+
+Paylaşım başarıyla tamamlandı bildirimi
+
+Planlanan paylaşım hatırlatması
+
+Bildirim GösterimiTarih ve saat ile birlikte gösterilir.
+
+Okundu / okunmadı durumu işaretlenir.
+
+Okunmayan bildirimler için sayısal gösterge bulunur.
+
+Tümü okundu işareti ile toplu okunabilir.
+
+Bildirim TürleriUyarı (sarı)
+
+Hata (kırmızı)
+
+Bilgi (mavi)
+
+Başarılı (yeşil)
+
+Teknik Hata KodlarıKural:
+
+Kullanıcıya teknik hata kodları gösterilmez.
+
+Teknik hata kodları yerine kullanıcı dostu açıklamalar gösterilir.
+
+Örnekler:
+
+invalid_grant → "Hesap bağlantısının süresi doldu. Yeniden bağlayın."
+
+token_expired → "Hesap bağlantısının süresi doldu. Yeniden bağlayın."
+
+scope_missing → "Paylaşım izni verilmedi. Bağlantıyı tekrar onaylayın."
+
+API_ERROR → "Platform bağlantısı geçici olarak kullanılamıyor."
+
+Responsive YapıBildirim Merkezi; bilgisayar, tablet ve telefon ekranlarında aynı web uygulaması içerisinde çalışır.
+
+07_AYARLARŞARTNAME
+
+AmaçAyarlar modülü, tüm sistem ayarlarının yönetildiği modüldür.
+
+Genel YapıAyarlar beş ana bölümden oluşur:
+
+Genel Ayarlar
+
+Sosyal Medya Hesapları
+
+Web Sitesi Bağlantısı
+
+Yedekleme
+
+Bildirim Ayarları
+
+Genel AyarlarKapsam:
+
+Program dili (Sürüm 1: Türkçe)
+
+Zaman dilimi
+
+Varsayılan paylaşım ayarları
+
+Sosyal Medya HesaplarıDesteklenen Platformlar:
+
+Instagram
+
+Facebook
+
+LinkedIn
+
+X
+
+TikTok
+
+Pinterest
+
+YouTube
+
+Diğer desteklenen platformlar
+
+Bağlantı Akışı:
+
+Kullanıcı sosyal medya hesabını seçer.
+
+Bağlan düğmesine basar.
+
+İlgili platformun resmî giriş ekranı açılır.
+
+Kullanıcı hesabına giriş yapar.
+
+Paylaşım izinlerini onaylar.
+
+Program hesabı otomatik bağlar.
+
+Bağlantı durumu "Bağlı" olarak görünür.
+
+Kullanıcının Girmediği Bilgiler:
+
+API anahtarı
+
+Client ID
+
+Client Secret
+
+Access Token
+
+Refresh Token
+
+Redirect URL
+
+Webhook
+
+Uygulama kimliği
+
+Geliştirici paneli
+
+Platform API ayarı
+
+Gösterilecek Bilgiler:
+
+Bağlı hesap adı
+
+Bağlantı durumu (Bağlı / Bağlı Değil)
+
+Bağlantı tarihi
+
+Son bağlantı kontrolü
+
+İşlemler:
+
+Bağlan
+
+Bağlantıyı Yenile
+
+Bağlantıyı Kaldır
+
+Web Sitesi BağlantısıBağlantı Türleri:
+
+Bizim Hazırladığımız Web Sitesi
+
+Harici Web Sitesi
+
+Bizim Hazırladığımız Web Sitesi:
+
+Program otomatik bağlantı kurar.
+
+Kullanıcı teknik ayar girmez.
+
+Harici Web Sitesi:
+
+Harici web sitesini yapan teknik kişi bağlantıyı kurar.
+
+Normal kullanıcı teknik ayarlarla uğraşmaz.
+
+Teknik kişiye ayrılan entegrasyon bölümü üzerinden bağlantı yapılır.
+
+Gösterilecek Bilgiler:
+
+Bağlantı durumu (Bağlı / Bağlı Değil)
+
+Web sitesi URL
+
+Son bağlantı kontrolü
+
+YedeklemeYedeklenecek Bilgiler:
+
+Sosyal medya bağlantı ayarları
+
+Web sitesi bağlantı ayarları
+
+Temel program ayarları
+
+Gerekli bağlantı yapılandırmaları
+
+Yedeklenmeyecek Bilgiler:
+
+Paylaşılan görseller
+
+Paylaşılan videolar
+
+Yayınlanmış medya dosyaları
+
+Kullanıcının medya klasörleri
+
+Arşivlenmiş görsel ve videolar
+
+Kural:
+
+Hiçbir koşulda medya dosyaları yedeklenmez.
+
+Bildirim AyarlarıKapsam:
+
+Hangi bildirim türlerinin gösterileceği
+
+E-posta bildirimi (Sürüm 1'de yok)
+
+SMS bildirimi (Sürüm 1'de yok)
+
+Sürüm 1:
+
+Bildirimler yalnızca program içinde gösterilir.
+
+Teknik İlkelerKullanıcı teknik ayarlarla uğraşmaz.
+
+Tüm teknik işlemler arka planda yürütülür.
+
+Platform yetkilendirmesi arka planda yapılır.
+
+Erişim anahtarları güvenli saklanır.
+
+Süresi dolan bağlantılar otomatik yenilenir.
+
+Bağlantı doğrulaması arka planda yapılır.
+
+Responsive YapıAyarlar; bilgisayar, tablet ve telefon ekranlarında aynı web uygulaması içerisinde çalışır.
+
+08_LISANSŞARTNAME
+
+AmaçLisans modülü, programın lisans durumunun görüntülendiği ve yönetildiği modüldür.
+
+Genel YapıProgram için ayrı bir lisanslama sistemi yazılmaz.
+
+Lisans işlemleri mevcut ES Lisanslama Programı üzerinden yapılır.
+
+Sosyal medya programı, ES Lisanslama sistemiyle uyumlu çalışır.
+
+ES Lisanslama EntegrasyonuGösterilecek Bilgiler:
+
+Lisans durumu (Aktif / Pasif / Süresi Doldu)
+
+Lisans türü
+
+Lisans sahibi
+
+Lisans başlangıç tarihi
+
+Lisans bitiş tarihi
+
+Kalan gün sayısı
+
+Lisans İşlemleriLisans aktivasyonu (ES Lisanslama üzerinden)
+
+Lisans doğrulama (ES Lisanslama üzerinden)
+
+Lisans süre uzatma (ES Lisanslama üzerinden)
+
+Çoklu şube lisans yapısı (ES Lisanslama üzerinden)
+
+Kullanıcıya Gösterilen Mesajlar"Lisans aktif."
+
+"Lisans süresi dolmak üzere. (X gün kaldı)"
+
+"Lisans süresi doldu. Lütfen yenileyin."
+
+"Lisans geçersiz. Lütfen destek ile iletişime geçin."
+
+Teknik Hata KodlarıKural:
+
+Kullanıcıya teknik hata kodları gösterilmez.
+
+Kullanıcı dostu mesajlar gösterilir.
+
+ES Lisanslama ŞartnamesiŞartname hazırlanırken önce ES Lisanslama şartnamesi incelenecektir.
+
+Sosyal medya programının lisanslama bölümü, ES Lisanslama şartnamesindeki gerçek yapıya göre yazılacaktır.
+
+Lisanslama çekirdeğinin Codex'e ayrıca yazdırılması gerekmeyecektir.
+
+Responsive YapıLisans modülü; bilgisayar, tablet ve telefon ekranlarında aynı web uygulaması içerisinde çalışır.
+
+09_YARDIMŞARTNAME
+
+AmaçYardım modülü, kullanıcının programı kullanırken ihtiyaç duyabileceği dokümantasyon ve destek bilgilerine eriştiği modüldür.
+
+Genel YapıYardım üç ana bölümden oluşur:
+
+Kullanım Kılavuzu
+
+Sıkça Sorulan Sorular
+
+Destek
+
+Kullanım Kılavuzuİçerik:
+
+Programa giriş
+
+Modüllerin tanıtımı
+
+Adım adım kullanım rehberleri
+
+Görsel anlatımlar (ekran görüntüleri ile)
+
+Sık yapılan işlemlerin anlatımı
+
+Format:
+
+HTML / Metin tabanlı
+
+Aranabilir
+
+Sıkça Sorulan Sorularİçerik:
+
+Programla ilgili en sık sorulan sorular
+
+Kısa ve net cevaplar
+
+Konu Başlıkları:
+
+Bağlantı sorunları
+
+Paylaşım sorunları
+
+Kampanya yönetimi
+
+Medya yönetimi
+
+Lisans sorunları
+
+Destekİçerik:
+
+Destek iletişim bilgileri
+
+E-posta adresi
+
+Telefon numarası (varsa)
+
+Destek talebi oluşturma (Sürüm 1'de yok)
+
+Sürüm 1:
+
+Yalnızca iletişim bilgileri gösterilir.
+
+Responsive YapıYardım modülü; bilgisayar, tablet ve telefon ekranlarında aynı web uygulaması içerisinde çalışır.

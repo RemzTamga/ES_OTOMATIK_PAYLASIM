@@ -1,0 +1,469 @@
+03_MAKINE_KODU_SISTEMI.txt
+
+============================================================
+ES LİSANS MERKEZİ
+MAKİNE KODU SİSTEMİ ŞARTNAMESİ
+==============================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu doküman ES yazılımlarında kullanılacak makine kimliği (Machine ID) sistemini tanımlar.
+
+Makine kodu;
+
+* Lisans üretimi
+* Lisans doğrulama
+* Bilgisayar tanımlama
+* Lisans taşıma
+
+işlemlerinin temelini oluşturacaktır.
+
+============================================================
+
+1. TEMEL FELSEFE
+   ============================================================
+
+Makine kodunun amacı:
+
+Bilgisayarı tanımaktır.
+
+Amaç:
+
+Kullanıcıyı değil
+
+Bilgisayarı lisanslamaktır.
+
+Bu nedenle lisans:
+
+Kullanıcı adına değil
+
+Makine kimliğine bağlı olacaktır.
+
+============================================================
+2. WINDOWS'A BAĞIMLI OLMAMA KURALI
+==================================
+
+Makine kodu Windows'a bağlı olmayacaktır.
+
+Çünkü:
+
+* Windows bozulabilir
+* Windows yeniden kurulabilir
+* Windows güncellenebilir
+
+Bunlar lisansı etkilememelidir.
+
+============================================================
+3. KULLANILMAYACAK VERİLER
+==========================
+
+Makine kodu oluşturulurken aşağıdaki bilgiler kullanılmayacaktır.
+
+* Windows SID
+* Windows kullanıcı adı
+* Windows lisans numarası
+* Windows kurulum tarihi
+* Windows ürün anahtarı
+* Bilgisayar adı
+* IP adresi
+* MAC adresi
+* Yerel ağ bilgileri
+
+Bu bilgiler lisansın bozulmasına neden olabilir.
+
+============================================================
+4. KULLANILACAK VERİLER
+=======================
+
+Makine kodu aşağıdaki bilgilerden üretilecektir.
+
+1.
+
+CPU Kimliği
+
+2.
+
+Ana Disk / SSD Seri Bilgisi
+
+3.
+
+Product Code
+
+============================================================
+5. PRODUCT CODE KULLANIMI
+=========================
+
+Aynı bilgisayar için:
+
+ES Ön Muhasebe
+
+ve
+
+ES Halı Yıkama
+
+farklı machine_id üretebilir.
+
+Çünkü:
+
+Product Code
+
+hesaplamaya dahil edilir.
+
+Örnek:
+
+CPU + Disk + ES_ON_MUHASEBE
+
+↓
+
+Machine ID A
+
+CPU + Disk + ES_HALI_YIKAMA
+
+↓
+
+Machine ID B
+
+============================================================
+6. MACHINE ID ÜRETİMİ
+=====================
+
+Veriler birleştirilir.
+
+Örnek:
+
+CPU_ID
++
+DISK_SERIAL
++
+PRODUCT_CODE
+
+Daha sonra hash işleminden geçirilir.
+
+Kullanıcıya ham veri gösterilmez.
+
+============================================================
+7. KULLANICIYA GÖSTERİLEN FORMAT
+================================
+
+Machine ID okunabilir formatta gösterilir.
+
+Örnek:
+
+ESON-A8F4-22KD-91XZ
+
+veya
+
+ESHW-BX72-99LK-PQ88
+
+Amaç:
+
+Telefonla okunabilmesi
+
+WhatsApp'tan gönderilebilmesi
+
+kolay olmasıdır.
+
+============================================================
+8. MACHINE ID KOPYALAMA
+=======================
+
+Kullanıcı:
+
+Makine Kodunu Kopyala
+
+butonuna bastığında kod panoya alınmalıdır.
+
+============================================================
+9. MACHINE ID GÖRÜNTÜLEME
+=========================
+
+Machine ID aşağıdaki ekranlarda görünmelidir.
+
+* Lisans Ekranı
+* Kilit Ekranı
+* Lisans Bilgileri
+
+============================================================
+10. WINDOWS YENİDEN KURULUMU
+============================
+
+Windows yeniden kurulursa:
+
+Machine ID değişmemelidir.
+
+Şart:
+
+CPU aynı
+
+Disk aynı
+
+olmalıdır.
+
+============================================================
+11. FORMAT SONRASI SENARYO
+==========================
+
+Müşteri:
+
+Windows'u yeniden kurdu
+
+Programı tekrar yükledi
+
+Eski license.lic dosyasını yükledi
+
+Machine ID aynıysa:
+
+Program lisanslı açılmalıdır.
+
+============================================================
+12. CPU DEĞİŞİMİ
+================
+
+CPU değişirse:
+
+Machine ID değişebilir.
+
+Bu normaldir.
+
+Yeni lisans gerekebilir.
+
+============================================================
+13. DİSK DEĞİŞİMİ
+=================
+
+Ana lisans diski değişirse:
+
+Machine ID değişebilir.
+
+Yeni lisans gerekebilir.
+
+============================================================
+14. LİSANS TAŞIMA SENARYOSU
+===========================
+
+Müşteri:
+
+Yeni bilgisayar aldı
+
+↓
+
+Yeni Machine ID oluştu
+
+↓
+
+ES Lisans Merkezi
+
+↓
+
+Yeni lisans üretildi
+
+↓
+
+Eski lisans
+
+TRANSFERRED
+
+olarak işaretlenir.
+
+============================================================
+15. ÇOKLU DİSK SENARYOSU
+========================
+
+Makine kodu hesaplanırken:
+
+Sistem diski
+
+esas alınmalıdır.
+
+İkinci diskler dikkate alınmamalıdır.
+
+============================================================
+16. USB DİSKLER
+===============
+
+USB diskler
+
+harici diskler
+
+flash bellekler
+
+hesaplamaya dahil edilmemelidir.
+
+============================================================
+17. SANAL MAKİNE KORUMASI
+=========================
+
+Mümkünse:
+
+VirtualBox
+
+VMware
+
+Hyper-V
+
+ortamları tespit edilebilir.
+
+Bu bilgi lisans loguna yazılabilir.
+
+Ancak ilk sürümde zorunlu değildir.
+
+============================================================
+18. MACHINE ID DEĞİŞİMİ KAYDI
+=============================
+
+Program eski Machine ID ile yeni Machine ID arasında fark tespit ederse:
+
+uyarı kaydı oluşturabilir.
+
+============================================================
+19. MACHINE ID SAKLAMA
+======================
+
+Program aşağıdaki alanlarda machine_id saklayabilir:
+
+Veritabanı
+
+Lisans dosyası
+
+Lisans özeti
+
+Ayar dosyası
+
+============================================================
+20. MACHINE ID MANUEL DEĞİŞTİRİLEMEZ
+====================================
+
+Kullanıcı machine_id değerini elle değiştiremez.
+
+Program tarafından üretilir.
+
+============================================================
+21. GÜVENLİK KURALI
+===================
+
+Ham CPU bilgileri
+
+ham disk seri bilgileri
+
+arayüzde gösterilmez.
+
+Sadece üretilmiş Machine ID gösterilir.
+
+============================================================
+22. MACHINE ID DOĞRULAMA
+========================
+
+Lisans doğrulama sırasında:
+
+License Machine ID
+
+ile
+
+Current Machine ID
+
+karşılaştırılır.
+
+============================================================
+23. EŞLEŞME VARSA
+=================
+
+Lisans doğrulamaya devam edilir.
+
+============================================================
+24. EŞLEŞME YOKSA
+=================
+
+Lisans reddedilir.
+
+Mesaj:
+
+Bu lisans bu bilgisayar için geçerli değildir.
+
+============================================================
+25. GELECEKTEKİ ONLINE SİSTEM
+=============================
+
+İleride online lisans sistemi kurulursa:
+
+license_id
+
+machine_id
+
+eşleştirmesi sunucu tarafından da doğrulanabilir.
+
+Şu an bu sistem aktif değildir.
+
+============================================================
+26. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Aynı bilgisayar
+
+Aynı CPU
+
+Aynı Disk
+
+↓
+
+Aynı Machine ID
+
+oluşmalıdır.
+
+---
+
+TEST 2
+
+Windows yeniden kurulur
+
+↓
+
+Machine ID değişmemelidir.
+
+---
+
+TEST 3
+
+CPU değişirse
+
+↓
+
+Machine ID değişebilir.
+
+---
+
+TEST 4
+
+Disk değişirse
+
+↓
+
+Machine ID değişebilir.
+
+---
+
+TEST 5
+
+Başka makineye ait lisans
+
+↓
+
+reddedilmelidir.
+
+---
+
+TEST 6
+
+Machine ID kolay kopyalanabilmelidir.
+
+---
+
+TEST 7
+
+Ham donanım bilgileri kullanıcıya gösterilmemelidir.

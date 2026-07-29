@@ -1,0 +1,499 @@
+17_ONLINE_ALTYAPI_HAZIRLIGI.txt
+
+============================================================
+ES LİSANS MERKEZİ
+ONLINE ALTYAPI HAZIRLIĞI ŞARTNAMESİ
+===================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Gelecek Sürüm Hazırlığı
+
+AMAÇ:
+Bu doküman bugün kullanılmayacak olan ancak gelecekte kurulacak:
+
+* ES Merkezi Web Sitesi
+* ES Lisans Sunucusu
+* Online Lisans Kontrol Sistemi
+* Uygunsuz Kullanım Takibi
+* Kara Liste Sistemi
+* Uzaktan Lisans Yönetimi
+
+altyapısının temel kurallarını tanımlar.
+
+Bu bölüm şu anda aktif değildir.
+
+Ancak sistem bugünden buna uygun tasarlanacaktır.
+
+============================================================
+
+1. TEMEL FELSEFE
+   ============================================================
+
+Bugün:
+
+Tamamen Offline
+
+Yarın:
+
+Offline + Online Destekli
+
+mimari hedeflenmektedir.
+
+============================================================
+2. BUGÜNKÜ DURUM
+================
+
+Şu an:
+
+Web sitesi yok.
+
+Lisans sunucusu yok.
+
+API yok.
+
+Domain zorunluluğu yok.
+
+============================================================
+3. BUGÜNKÜ ÇALIŞMA ŞEKLİ
+========================
+
+Programlar:
+
+İnternet olmadan çalışır.
+
+Lisans üretimi:
+
+Offline yapılır.
+
+============================================================
+4. GELECEKTEKİ YAPI
+===================
+
+ES Programı
+
+↓
+
+ES Lisans Sunucusu
+
+↓
+
+ES Merkezi
+
+============================================================
+5. ES LİSANS SUNUCUSU
+=====================
+
+Gelecekte ayrı bir sunucu bulunacaktır.
+
+Bu sunucu:
+
+Lisans durumlarını saklayacaktır.
+
+============================================================
+6. SUNUCU GÖREVLERİ
+===================
+
+Lisans doğrulama
+
+Kara liste yönetimi
+
+Aktif lisans yönetimi
+
+Makine eşleştirme
+
+Bildirim sistemi
+
+============================================================
+7. API YAPISI
+=============
+
+İleride API desteği olacaktır.
+
+Bugün zorunlu değildir.
+
+============================================================
+8. PROGRAM TARAFI
+=================
+
+ES programları:
+
+Offline çalışmaya devam edecektir.
+
+============================================================
+9. İNTERNET ZORUNLULUĞU
+=======================
+
+Olmayacaktır.
+
+============================================================
+10. BAĞLANTI YOKSA
+==================
+
+Program çalışmaya devam etmelidir.
+
+============================================================
+11. ONLINE KONTROL
+==================
+
+İleride program belirli aralıklarla:
+
+Lisans durumu sorgulayabilir.
+
+============================================================
+12. SORGULANABİLECEK ALANLAR
+============================
+
+license_id
+
+machine_id
+
+product_code
+
+program_version
+
+============================================================
+13. SUNUCU CEVAPLARI
+====================
+
+ACTIVE
+
+SUSPENDED
+
+BLACKLISTED
+
+EXPIRED
+
+TRANSFERRED
+
+============================================================
+14. ACTIVE
+==========
+
+Program normal çalışır.
+
+============================================================
+15. SUSPENDED
+=============
+
+İleride kullanılabilir.
+
+============================================================
+16. BLACKLISTED
+===============
+
+İleride kullanılabilir.
+
+============================================================
+17. EXPIRED
+===========
+
+Süresi dolmuş lisans.
+
+============================================================
+18. TRANSFERRED
+===============
+
+Başka makineye taşınmış lisans.
+
+============================================================
+19. UYGUNSUZ KULLANIM TAKİBİ
+============================
+
+Gelecekte desteklenecektir.
+
+============================================================
+20. ÖRNEK OLAYLAR
+=================
+
+Farklı makinede kullanım
+
+Sahte lisans
+
+Bozuk imza
+
+Machine ID uyuşmazlığı
+
+============================================================
+21. BİLDİRİM FELSEFESİ
+======================
+
+Program doğrudan e-posta göndermeyecektir.
+
+============================================================
+22. SMTP YASAĞI
+===============
+
+Program içinde:
+
+SMTP kullanıcı adı
+
+SMTP şifresi
+
+Gmail hesabı
+
+bulunmayacaktır.
+
+============================================================
+23. DOĞRU MİMARİ
+================
+
+Program
+
+↓
+
+Sunucu
+
+↓
+
+Bildirim
+
+============================================================
+24. UZAKTAN LİSANS DURUMU
+=========================
+
+İleride desteklenebilir.
+
+============================================================
+25. DURUM DEĞİŞİKLİĞİ
+=====================
+
+ACTIVE
+
+↓
+
+BLACKLISTED
+
+gibi değişiklikler yapılabilir.
+
+============================================================
+26. BUGÜNÜN KURALI
+==================
+
+Bu özellik aktif değildir.
+
+============================================================
+27. KARA LİSTE
+==============
+
+Gelecekte desteklenecektir.
+
+============================================================
+28. KARA LİSTE AMACI
+====================
+
+Kötüye kullanımı kayıt altına almak.
+
+============================================================
+29. MAKİNE EŞLEŞTİRME
+=====================
+
+Sunucu:
+
+License ID
+
+↓
+
+Machine ID
+
+eşleşmesini tutabilir.
+
+============================================================
+30. ONLINE LİSANS GEÇMİŞİ
+=========================
+
+Gelecekte desteklenecektir.
+
+============================================================
+31. SENKRONİZASYON
+==================
+
+ES Lisans Merkezi
+
+↓
+
+Sunucu
+
+senkronizasyonu yapılabilir.
+
+============================================================
+32. AKTARILACAK VERİLER
+=======================
+
+Müşteriler
+
+Lisanslar
+
+Lisans Geçmişi
+
+Ürünler
+
+============================================================
+33. TOPLU AKTARIM
+=================
+
+İlk kurulumda desteklenebilir.
+
+============================================================
+34. GERİYE DÖNÜK UYUMLULUK
+==========================
+
+Bugün üretilen lisanslar
+
+yarın da çalışmalıdır.
+
+============================================================
+35. LICENSE ID KORUMA
+=====================
+
+License ID yapısı korunmalıdır.
+
+============================================================
+36. MACHINE ID KORUMA
+=====================
+
+Machine ID yapısı korunmalıdır.
+
+============================================================
+37. PRODUCT CODE KORUMA
+=======================
+
+Product Code yapısı korunmalıdır.
+
+============================================================
+38. LİSANS DOSYASI UYUMLULUĞU
+=============================
+
+Bugünkü license.lic
+
+yarın da okunabilmelidir.
+
+============================================================
+39. SUNUCU OLMADAN ÇALIŞMA
+==========================
+
+Programlar her zaman:
+
+offline çalışabilmelidir.
+
+============================================================
+40. OFFLINE ÖNCELİĞİ
+====================
+
+Offline sistem ana sistemdir.
+
+============================================================
+41. ONLINE DESTEK
+=================
+
+Online sistem yardımcı sistemdir.
+
+============================================================
+42. KESİNTİ SENARYOSU
+=====================
+
+Sunucu kapansa bile:
+
+Programlar çalışmalıdır.
+
+============================================================
+43. VERİ GİZLİLİĞİ
+==================
+
+Gereksiz veri gönderilmemelidir.
+
+============================================================
+44. MİNİMUM VERİ PRENSİBİ
+=========================
+
+Sadece gerekli bilgiler aktarılmalıdır.
+
+============================================================
+45. GELECEKTEKİ MOBİL DESTEK
+============================
+
+Telefon uygulaması geliştirilebilir.
+
+============================================================
+46. MOBİL İŞLEMLER
+==================
+
+Lisans görüntüleme
+
+Müşteri görüntüleme
+
+Tekrar gönderme
+
+============================================================
+47. PRIVATE KEY KURALI
+======================
+
+Private Key sunucuya taşınsa bile:
+
+müşteri programlarına gitmez.
+
+============================================================
+48. AMAÇ
+========
+
+Bugünkü sistemi bozmadan
+
+yarının sistemine hazır olmaktır.
+
+============================================================
+49. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Program internet olmadan çalışmalıdır.
+
+---
+
+TEST 2
+
+Sunucu olmadan çalışmalıdır.
+
+---
+
+TEST 3
+
+Bugünkü lisanslar korunmalıdır.
+
+---
+
+TEST 4
+
+Machine ID yapısı korunmalıdır.
+
+---
+
+TEST 5
+
+License ID yapısı korunmalıdır.
+
+---
+
+TEST 6
+
+Online sisteme geçiş mümkün olmalıdır.
+
+---
+
+TEST 7
+
+SMTP bilgileri program içinde bulunmamalıdır.
+
+---
+
+TEST 8
+
+Sunucu kapalı olsa bile sistem çalışmalıdır.
+
+---
+
+TEST 9
+
+Offline kullanım ana sistem olarak kalmalıdır.

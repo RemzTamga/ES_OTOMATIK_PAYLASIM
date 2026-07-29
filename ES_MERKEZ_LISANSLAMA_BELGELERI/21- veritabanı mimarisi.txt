@@ -1,0 +1,412 @@
+============================================================
+ES LİSANS MERKEZİ
+VERİTABANI MİMARİSİ ŞARTNAMESİ
+============================================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+ES Lisans Merkezi’nin tüm müşteri, ürün, lisans, ödeme, güvenlik ve geçmiş kayıtlarını düzenli şekilde saklayacak veritabanı yapısını tanımlamak.
+
+============================================================
+1. VERİTABANI TÜRÜ
+============================================================
+
+İlk sürümde SQLite kullanılacaktır.
+
+Sebep:
+
+- Tek kullanıcıya uygundur.
+- Offline çalışır.
+- Kurulumu kolaydır.
+- Yedeklemesi kolaydır.
+- Ek sunucu gerektirmez.
+
+============================================================
+2. VERİTABANI DOSYASI
+============================================================
+
+Ana veritabanı dosyası:
+
+es_lisans_merkezi.db
+
+olacaktır.
+
+============================================================
+3. TEMEL TABLOLAR
+============================================================
+
+Veritabanında en az şu tablolar bulunacaktır:
+
+customers
+products
+licenses
+license_history
+payments
+settings
+trusted_devices
+security_settings
+backups
+app_logs
+
+============================================================
+4. CUSTOMERS TABLOSU
+============================================================
+
+Müşteri kayıtlarını tutar.
+
+Alanlar:
+
+id
+customer_no
+full_name
+company_name
+phone
+email
+address
+tax_no
+tax_office
+tc_no
+notes
+status
+created_at
+updated_at
+
+============================================================
+5. CUSTOMER_NO KURALI
+============================================================
+
+Her müşteri benzersiz numara alır.
+
+Örnek:
+
+MUS-000001
+
+============================================================
+6. PRODUCTS TABLOSU
+============================================================
+
+Lisans üretilecek ES ürünlerini tutar.
+
+Alanlar:
+
+id
+product_name
+product_code
+license_policy
+description
+status
+created_at
+updated_at
+
+============================================================
+7. PRODUCT_CODE KURALI
+============================================================
+
+product_code benzersizdir.
+
+Aynı product_code ikinci kez oluşturulamaz.
+
+============================================================
+8. LICENSE_POLICY ALANI
+============================================================
+
+Değerler:
+
+PERPETUAL
+SUBSCRIPTION
+
+============================================================
+9. LICENSES TABLOSU
+============================================================
+
+Üretilen lisans kayıtlarını tutar.
+
+Alanlar:
+
+id
+license_id
+customer_id
+product_id
+product_code
+product_name
+machine_id
+license_type
+license_policy
+license_start_date
+license_expire_date
+support_expire_date
+issued_at
+status
+features_json
+license_file_path
+license_code_text
+sale_price
+paid_amount
+remaining_amount
+notes
+created_at
+updated_at
+
+============================================================
+10. LICENSE_ID KURALI
+============================================================
+
+Her lisans benzersiz license_id alır.
+
+Örnek:
+
+LIC-20260619-000001
+
+Aynı license_id tekrar üretilemez.
+
+============================================================
+11. LICENSE_TYPE DEĞERLERİ
+============================================================
+
+FULL
+TEMPORARY
+SUPPORT
+TRIAL
+
+============================================================
+12. LICENSE STATUS DEĞERLERİ
+============================================================
+
+ACTIVE
+SUSPENDED
+BLACKLISTED
+TRANSFERRED
+EXPIRED
+CANCELLED
+RENEWED
+
+============================================================
+13. LICENSE_HISTORY TABLOSU
+============================================================
+
+Tüm işlem geçmişini tutar.
+
+Alanlar:
+
+id
+event_type
+customer_id
+license_id_ref
+product_id
+machine_id
+title
+description
+created_at
+
+============================================================
+14. EVENT_TYPE ÖRNEKLERİ
+============================================================
+
+CUSTOMER_CREATED
+CUSTOMER_UPDATED
+LICENSE_CREATED
+LICENSE_REGENERATED
+LICENSE_RESENT
+LICENSE_TRANSFERRED
+LICENSE_CANCELLED
+LICENSE_RENEWED
+TEMPORARY_LICENSE_CREATED
+PAYMENT_ADDED
+BACKUP_CREATED
+PRIVATE_KEY_BACKUP_CREATED
+PASSWORD_CHANGED
+RECOVERY_USED
+
+============================================================
+15. PAYMENTS TABLOSU
+============================================================
+
+Müşteri bazlı ödeme kayıtlarını tutar.
+
+Alanlar:
+
+id
+customer_id
+license_id_ref
+payment_date
+amount
+description
+created_at
+
+============================================================
+16. PAYMENT KURALI
+============================================================
+
+Bu tablo kasa değildir.
+
+Sadece müşteri ne kadar ödedi ve ne kadar kaldı bilgisini izlemek için kullanılır.
+
+============================================================
+17. SETTINGS TABLOSU
+============================================================
+
+Genel program ayarlarını tutar.
+
+Alanlar:
+
+id
+setting_key
+setting_value
+updated_at
+
+============================================================
+18. TRUSTED_DEVICES TABLOSU
+============================================================
+
+Güvenilir cihaz kayıtlarını tutar.
+
+Alanlar:
+
+id
+device_id
+device_name
+first_login_at
+last_login_at
+status
+created_at
+
+============================================================
+19. SECURITY_SETTINGS TABLOSU
+============================================================
+
+Güvenlik ayarlarını tutar.
+
+Alanlar:
+
+id
+password_hash
+security_question
+security_answer_hash
+recovery_code_hash
+private_key_status
+created_at
+updated_at
+
+============================================================
+20. BACKUPS TABLOSU
+============================================================
+
+Yedekleme kayıtlarını tutar.
+
+Alanlar:
+
+id
+backup_type
+file_path
+file_size
+status
+created_at
+description
+
+============================================================
+21. APP_LOGS TABLOSU
+============================================================
+
+Hata ve teknik log kayıtlarını tutar.
+
+Alanlar:
+
+id
+log_level
+module_name
+message
+details
+created_at
+
+============================================================
+22. İLİŞKİLER
+============================================================
+
+customers 1 → N licenses
+
+products 1 → N licenses
+
+customers 1 → N payments
+
+licenses 1 → N license_history
+
+============================================================
+23. SİLME KURALI
+============================================================
+
+Müşteri silinmez.
+
+Pasif yapılır.
+
+Ürün silinmez.
+
+Pasif yapılır.
+
+Lisans silinmez.
+
+Durumu değiştirilir.
+
+Geçmiş kayıtları silinmez.
+
+============================================================
+24. VERİ KORUMA KURALI
+============================================================
+
+Hiçbir lisans işlemi kalıcı olarak silinmemelidir.
+
+Tarihçe korunmalıdır.
+
+============================================================
+25. YEDEKLEME İLİŞKİSİ
+============================================================
+
+Veritabanı dosyası düzenli yedeklenmelidir.
+
+Private Key ayrı yedeklenmelidir.
+
+============================================================
+26. GELECEKTEKİ SUNUCU UYUMLULUĞU
+============================================================
+
+Tablolarda license_id, product_code, machine_id, customer_no gibi benzersiz alanlar korunmalıdır.
+
+Bu alanlar ileride online sunucuya aktarım için kullanılacaktır.
+
+============================================================
+27. KABUL KRİTERLERİ
+============================================================
+
+TEST 1
+SQLite veritabanı oluşturulmalıdır.
+
+TEST 2
+Müşteri kaydı yapılabilmelidir.
+
+TEST 3
+Ürün kaydı yapılabilmelidir.
+
+TEST 4
+Lisans kaydı yapılabilmelidir.
+
+TEST 5
+Ödeme kaydı yapılabilmelidir.
+
+TEST 6
+Geçmiş kaydı otomatik oluşmalıdır.
+
+TEST 7
+Lisans silinmemelidir.
+
+TEST 8
+Müşteri pasif yapılabilmelidir.
+
+TEST 9
+Veritabanı yedeklenebilmelidir.
+
+TEST 10
+Veriler online sisteme aktarılabilecek yapıda tutulmalıdır.

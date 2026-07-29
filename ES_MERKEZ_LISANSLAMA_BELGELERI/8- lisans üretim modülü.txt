@@ -1,0 +1,596 @@
+08_LISANS_URET_MODULU.txt
+
+============================================================
+ES LİSANS MERKEZİ
+LİSANS ÜRET MODÜLÜ ŞARTNAMESİ
+=============================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Bu modül ES Lisans Merkezi'nin en önemli modülüdür.
+
+Amaç:
+
+Müşteri seçmek
+
+Makine kodunu girmek
+
+Lisans üretmek
+
+license.lic oluşturmak
+
+Lisans geçmişini kaydetmek
+
+işlemlerini gerçekleştirmektir.
+
+============================================================
+
+1. MODÜL AMACI
+   ============================================================
+
+Bu ekran:
+
+Lisans Üret
+
+menüsüne basıldığında açılır.
+
+============================================================
+2. TEMEL FELSEFE
+================
+
+Amaç:
+
+Müşteri Bul
+↓
+Makine Kodu Gir
+↓
+Lisans Üret
+↓
+Kaydet
+
+işlemini mümkün olduğunca hızlı yapmaktır.
+
+============================================================
+3. EKRAN YAPISI
+===============
+
+Sağ içerik alanında açılır.
+
+Yeni pencere oluşturulmaz.
+
+============================================================
+4. EKRAN BÖLÜMLERİ
+==================
+
+Müşteri Bilgileri
+
+Ürün Bilgileri
+
+Makine Bilgileri
+
+Lisans Bilgileri
+
+Lisans Sonucu
+
+============================================================
+5. MÜŞTERİ SEÇİMİ
+=================
+
+Lisans üretmeden önce müşteri seçilmelidir.
+
+============================================================
+6. MÜŞTERİ ALANLARI
+===================
+
+Müşteri Ara
+
+Müşteri Seç
+
+Yeni Müşteri
+
+============================================================
+7. YENİ MÜŞTERİ
+===============
+
+Müşteri kayıtlı değilse:
+
+Yeni Müşteri
+
+butonu kullanılabilir.
+
+============================================================
+8. SEÇİLEN MÜŞTERİ
+==================
+
+Seçim sonrası:
+
+Ad Soyad
+
+Firma Adı
+
+Telefon
+
+gösterilir.
+
+============================================================
+9. ÜRÜN SEÇİMİ
+==============
+
+Lisans verilecek ürün seçilir.
+
+============================================================
+10. ÜRÜN LİSTESİ
+================
+
+Aktif ürünler listelenir.
+
+Örnek:
+
+ES Ön Muhasebe
+
+ES Halı Yıkama
+
+ES Sosyal Medya
+
+============================================================
+11. PASİF ÜRÜN
+==============
+
+Pasif ürünler listede görünmez.
+
+============================================================
+12. PRODUCT CODE
+================
+
+Ürün seçildiğinde:
+
+Product Code
+
+otomatik yüklenir.
+
+============================================================
+13. MAKİNE KODU
+===============
+
+Müşteriden gelen Machine ID girilir.
+
+============================================================
+14. MACHINE ID GİRİŞİ
+=====================
+
+Elle yazılabilir.
+
+Yapıştırılabilir.
+
+============================================================
+15. MACHINE ID KONTROLÜ
+=======================
+
+Boş bırakılamaz.
+
+============================================================
+16. MACHINE ID FORMAT KONTROLÜ
+==============================
+
+Format hatası varsa:
+
+Lisans üretilemez.
+
+============================================================
+17. LİSANS TİPİ
+===============
+
+Seçilebilir olmalıdır.
+
+============================================================
+18. LİSANS TİPLERİ
+==================
+
+FULL
+
+TEMPORARY
+
+SUPPORT
+
+TRIAL
+
+============================================================
+19. FULL LİSANS
+===============
+
+Standart satış lisansıdır.
+
+Süresiz olabilir.
+
+============================================================
+20. TEMPORARY LİSANS
+====================
+
+Geçici açma lisansıdır.
+
+============================================================
+21. TEMPORARY ÖRNEKLERİ
+=======================
+
+1 Gün
+
+3 Gün
+
+7 Gün
+
+30 Gün
+
+============================================================
+22. SUPPORT LİSANSI
+===================
+
+Destek amaçlı geçici lisans olabilir.
+
+============================================================
+23. TRIAL LİSANSI
+=================
+
+Normalde müşteri programı kendi trial sistemini kullanır.
+
+İlk sürümde nadiren kullanılacaktır.
+
+============================================================
+24. BAŞLANGIÇ TARİHİ
+====================
+
+Lisans başlangıç tarihi seçilebilir.
+
+Varsayılan:
+
+Bugün
+
+============================================================
+25. BİTİŞ TARİHİ
+================
+
+FULL lisanslarda boş olabilir.
+
+TEMPORARY lisanslarda zorunludur.
+
+============================================================
+26. DESTEK BİTİŞ TARİHİ
+=======================
+
+Opsiyoneldir.
+
+============================================================
+27. SATIŞ BEDELİ
+================
+
+İsteğe bağlı olarak girilebilir.
+
+============================================================
+28. SATIŞ BEDELİ AMACI
+======================
+
+Muhasebe için değil.
+
+Müşteri takibi içindir.
+
+============================================================
+29. ÖDENEN TUTAR
+================
+
+İsteğe bağlı girilebilir.
+
+============================================================
+30. KALAN TUTAR
+===============
+
+Otomatik hesaplanır.
+
+============================================================
+31. NOTLAR
+==========
+
+Serbest metin alanı bulunmalıdır.
+
+============================================================
+32. NOT ÖRNEKLERİ
+=================
+
+İndirim uygulandı
+
+Eski müşteri
+
+Lisans taşındı
+
+Disk arızası nedeniyle yeniden üretildi
+
+============================================================
+33. LİSANS ÜRET BUTONU
+======================
+
+Ana işlem butonudur.
+
+============================================================
+34. ÜRETİM AKIŞI
+================
+
+Müşteri
+
+↓
+
+Ürün
+
+↓
+
+Machine ID
+
+↓
+
+Lisans Tipi
+
+↓
+
+Private Key
+
+↓
+
+İmzalama
+
+↓
+
+license.lic
+
+============================================================
+35. LICENSE ID
+==============
+
+Otomatik üretilir.
+
+============================================================
+36. LICENSE ID KURALI
+=====================
+
+Her lisans benzersizdir.
+
+============================================================
+37. ÖRNEK LICENSE ID
+====================
+
+LIC-20260619-000001
+
+============================================================
+38. LİSANS DOSYASI
+==================
+
+Üretim sonunda:
+
+license.lic
+
+oluşturulur.
+
+============================================================
+39. LİSANS DOSYASI ALANLARI
+===========================
+
+license_id
+
+product_code
+
+product_name
+
+company_name
+
+customer_name
+
+phone
+
+machine_id
+
+license_type
+
+license_start_date
+
+license_expire_date
+
+support_expire_date
+
+issued_at
+
+features
+
+signature
+
+============================================================
+40. DİJİTAL İMZA
+================
+
+Private Key ile oluşturulur.
+
+============================================================
+41. İMZA OLMADAN
+================
+
+Lisans geçerli sayılmaz.
+
+============================================================
+42. LİSANS SONUCU BÖLÜMÜ
+========================
+
+Üretim sonrası bilgiler gösterilir.
+
+============================================================
+43. GÖSTERİLECEK BİLGİLER
+=========================
+
+License ID
+
+Ürün
+
+Müşteri
+
+Machine ID
+
+Üretim Tarihi
+
+============================================================
+44. KAYDET
+==========
+
+license.lic dosyasını kaydeder.
+
+============================================================
+45. FARKLI KAYDET
+=================
+
+İstenilen klasöre kaydedebilir.
+
+============================================================
+46. PANOYA KOPYALA
+==================
+
+Lisans kodu panoya alınabilir.
+
+============================================================
+47. TEKRAR ÜRET
+===============
+
+Aynı lisans tekrar oluşturulabilir.
+
+============================================================
+48. AYNI LİSANS TEKRAR ÜRETİMİ
+==============================
+
+Aynı License ID korunmalıdır.
+
+============================================================
+49. YENİ LİSANS ÜRETİMİ
+=======================
+
+Yeni lisans oluşturuluyorsa:
+
+yeni License ID verilmelidir.
+
+============================================================
+50. VERİTABANI KAYDI
+====================
+
+Her lisans üretimi kaydedilir.
+
+============================================================
+51. GEÇMİŞ KAYDI
+================
+
+Otomatik kayıt oluşturulur.
+
+Örnek:
+
+19.06.2026
+
+ES Ön Muhasebe
+
+Lisans üretildi
+
+============================================================
+52. OTOMATİK YEDEK
+==================
+
+Lisans üretimi tamamlanınca:
+
+otomatik yedek alınmalıdır.
+
+============================================================
+53. HATALI ÜRETİM
+=================
+
+Eksik veri varsa:
+
+üretim yapılmamalıdır.
+
+============================================================
+54. ZORUNLU ALANLAR
+===================
+
+Müşteri
+
+Ürün
+
+Machine ID
+
+Lisans Tipi
+
+============================================================
+55. UYARI MESAJI
+================
+
+Eksik bilgiler tamamlanmalıdır.
+
+============================================================
+56. KABUL KRİTERLERİ
+====================
+
+TEST 1
+
+Müşteri seçilebilmelidir.
+
+---
+
+TEST 2
+
+Ürün seçilebilmelidir.
+
+---
+
+TEST 3
+
+Machine ID girilebilmelidir.
+
+---
+
+TEST 4
+
+FULL lisans üretilebilmelidir.
+
+---
+
+TEST 5
+
+TEMPORARY lisans üretilebilmelidir.
+
+---
+
+TEST 6
+
+license.lic oluşturulmalıdır.
+
+---
+
+TEST 7
+
+License ID benzersiz olmalıdır.
+
+---
+
+TEST 8
+
+Üretim veritabanına kaydedilmelidir.
+
+---
+
+TEST 9
+
+Geçmiş kaydı oluşmalıdır.
+
+---
+
+TEST 10
+
+Otomatik yedek alınmalıdır.
+
+---
+
+TEST 11
+
+Eksik veri ile lisans üretilememelidir.

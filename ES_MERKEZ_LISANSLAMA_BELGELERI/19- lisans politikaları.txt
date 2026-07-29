@@ -1,0 +1,513 @@
+============================================================
+ES LİSANS MERKEZİ
+LİSANS POLİTİKALARI ŞARTNAMESİ
+============================================================
+
+SÜRÜM:
+1.0
+
+DURUM:
+Kilitlenmiş Tasarım Kararı
+
+AMAÇ:
+Her ES yazılımının aynı lisans mantığıyla satılmayacağını tanımlamak.
+
+Bazı programlar süresiz lisansla satılacaktır.
+Bazı programlar ise yenilenebilir / abonelik lisansı ile çalışacaktır.
+
+============================================================
+1. TEMEL KARAR
+============================================================
+
+ES sisteminde tek tip lisans politikası olmayacaktır.
+
+Her ürün kendi lisans politikasına sahip olabilir.
+
+============================================================
+2. LİSANS POLİTİKASI TÜRLERİ
+============================================================
+
+Sistem en az iki ana lisans politikası destekleyecektir:
+
+- Süresiz Lisans
+- Abonelik / Yenilemeli Lisans
+
+============================================================
+3. SÜRESİZ LİSANS
+============================================================
+
+Süresiz lisans:
+
+Programın ömür boyu çalışması anlamına gelir.
+
+Lisans süresi bitmez.
+
+Program, geçerli Machine ID üzerinde çalışmaya devam eder.
+
+============================================================
+4. SÜRESİZ LİSANS ÖRNEKLERİ
+============================================================
+
+ES Ön Muhasebe
+
+ES Halı Yıkama
+
+ES Servis Takip
+
+============================================================
+5. SÜRESİZ LİSANS + DESTEK SÜRESİ
+============================================================
+
+Süresiz lisanslarda destek süresi ayrı tutulabilir.
+
+Örnek:
+
+Program süresiz çalışır.
+
+Destek süresi 1 yıl olabilir.
+
+============================================================
+6. DESTEK BİTİNCE PROGRAM DAVRANIŞI
+============================================================
+
+Program çalışmaya devam eder.
+
+Program kapanmaz.
+
+Lisans iptal edilmez.
+
+Sadece destek hakkı sona erer.
+
+============================================================
+7. ABONELİK / YENİLEMELİ LİSANS
+============================================================
+
+Bu lisans türünde program belirli süre çalışır.
+
+Süre bitince lisans yenilenmelidir.
+
+============================================================
+8. ABONELİK LİSANSI ÖRNEKLERİ
+============================================================
+
+ES Sosyal Medya Otomasyonu
+
+ES SEO Sistemi
+
+ES Dijital Görünürlük Sistemi
+
+ES Yapay Zeka Servisleri
+
+============================================================
+9. ABONELİK NEDEN GEREKLİ?
+============================================================
+
+Bu sistemlerde sürekli maliyet vardır.
+
+Örnek:
+
+Sunucu
+
+API
+
+Yapay Zeka Servisleri
+
+Online Hizmetler
+
+============================================================
+10. ÜRÜN KARTINA EK ALAN
+============================================================
+
+Her ürün için:
+
+Lisans Politikası
+
+alanı bulunacaktır.
+
+Seçenekler:
+
+PERPETUAL
+
+SUBSCRIPTION
+
+============================================================
+11. ÜRÜN SEÇİMİNDE DAVRANIŞ
+============================================================
+
+Lisans üret ekranında ürün seçildiğinde:
+
+ürünün lisans politikası otomatik okunacaktır.
+
+============================================================
+12. PERPETUAL ÜRÜN SEÇİLİRSE
+============================================================
+
+license_expire_date zorunlu değildir.
+
+support_expire_date opsiyoneldir.
+
+============================================================
+13. SUBSCRIPTION ÜRÜNÜ SEÇİLİRSE
+============================================================
+
+license_expire_date zorunludur.
+
+============================================================
+14. ABONELİK BİTİŞ TARİHİ
+============================================================
+
+Bitiş tarihi girilmeden lisans üretilemez.
+
+============================================================
+15. ABONELİK SÜRELERİ
+============================================================
+
+Standart süreler:
+
+1 Ay
+
+3 Ay
+
+6 Ay
+
+1 Yıl
+
+Özel Süre
+
+============================================================
+16. ABONELİK SÜRESİ DOLUNCA
+============================================================
+
+Abonelik lisansının süresi dolduğunda program tamamen kapanmamalıdır.
+
+Program:
+
+Salt Okunur Mod
+
+olarak çalışmalıdır.
+
+============================================================
+17. SALT OKUNUR MOD
+============================================================
+
+Kullanıcı mevcut verilerine erişebilmelidir.
+
+Ancak yeni işlem yapamamalıdır.
+
+============================================================
+18. İZİN VERİLEN İŞLEMLER
+============================================================
+
+Mevcut kayıtları görüntüleme
+
+Rapor görüntüleme
+
+Geçmiş verileri inceleme
+
+Veri dışa aktarma
+
+Yedek alma
+
+============================================================
+19. ENGELLENEN İŞLEMLER
+============================================================
+
+Yeni kayıt oluşturma
+
+Yeni veri ekleme
+
+Kayıt düzenleme
+
+Kayıt silme
+
+Yeni işlem başlatma
+
+============================================================
+20. KULLANICI UYARISI
+============================================================
+
+Program açıldığında:
+
+Abonelik süreniz sona ermiştir.
+
+Program şu anda Salt Okunur Mod'da çalışmaktadır.
+
+Yeni işlem yapabilmek için lisansınızı yenileyiniz.
+
+mesajı gösterilmelidir.
+
+============================================================
+21. LİSANS YENİLEME SONRASI
+============================================================
+
+Yeni lisans yüklenince:
+
+Salt Okunur Mod kaldırılır.
+
+Program tam kullanım moduna döner.
+
+============================================================
+22. VERİ KORUMA PRENSİBİ
+============================================================
+
+Abonelik süresi dolduğu için:
+
+Hiçbir veri silinmez.
+
+Hiçbir müşteri kaydı silinmez.
+
+Hiçbir işlem kaydı silinmez.
+
+Hiçbir rapor kaybolmaz.
+
+============================================================
+23. SÜRESİZ LİSANS SÜRESİ DOLMAZ
+============================================================
+
+PERPETUAL lisanslarda süre kontrolü yapılmaz.
+
+============================================================
+24. GEÇİCİ LİSANS İLE FARKI
+============================================================
+
+TEMPORARY lisans:
+
+Acil destek amaçlıdır.
+
+SUBSCRIPTION lisansı:
+
+Normal satış modelidir.
+
+============================================================
+25. LİSANS DOSYASINA EK ALAN
+============================================================
+
+license.lic içinde:
+
+license_policy
+
+alanı bulunmalıdır.
+
+============================================================
+26. PERPETUAL
+============================================================
+
+Süresiz lisans.
+
+============================================================
+27. SUBSCRIPTION
+============================================================
+
+Yenilemeli lisans.
+
+============================================================
+28. LİSANS DOĞRULAMA KURALI
+============================================================
+
+Müşteri programı:
+
+license_policy
+
+alanını okumalıdır.
+
+============================================================
+29. PERPETUAL DOĞRULAMA
+============================================================
+
+expire_date boş olabilir.
+
+Süre kontrolü yapılmaz.
+
+============================================================
+30. SUBSCRIPTION DOĞRULAMA
+============================================================
+
+expire_date zorunludur.
+
+Süre kontrolü yapılır.
+
+============================================================
+31. LİSANS YENİLEME
+============================================================
+
+Abonelik ürünlerinde:
+
+Lisans Yenile
+
+işlemi bulunmalıdır.
+
+============================================================
+32. YENİLEME AKIŞI
+============================================================
+
+Eski Lisans
+
+↓
+
+Yeni Bitiş Tarihi
+
+↓
+
+Yeni Lisans
+
+↓
+
+Kayıt
+
+============================================================
+33. YENİLEMEDE MACHINE ID
+============================================================
+
+Machine ID korunur.
+
+============================================================
+34. YENİLEMEDE LICENSE ID
+============================================================
+
+Yeni License ID oluşturulacaktır.
+
+============================================================
+35. ESKİ LİSANS DURUMU
+============================================================
+
+Eski lisans:
+
+RENEWED
+
+veya
+
+EXPIRED
+
+olarak işaretlenebilir.
+
+============================================================
+36. DURUM LİSTESİNE EK
+============================================================
+
+RENEWED
+
+durumu eklenebilir.
+
+============================================================
+37. MÜŞTERİ KARTI GÖSTERİMİ
+============================================================
+
+Örnek:
+
+ES Ön Muhasebe - Süresiz
+
+ES Sosyal Medya - Abonelik
+
+============================================================
+38. YAKLAŞAN BİTİŞ UYARISI
+============================================================
+
+Abonelik lisanslarında yaklaşan bitiş uyarıları gösterilebilir.
+
+============================================================
+39. UYARI SÜRELERİ
+============================================================
+
+30 Gün Kaldı
+
+15 Gün Kaldı
+
+7 Gün Kaldı
+
+Bugün Bitiyor
+
+Süresi Doldu
+
+============================================================
+40. ANA SAYFA KARTI
+============================================================
+
+Yaklaşan Abonelik Yenilemeleri
+
+kartı bulunabilir.
+
+============================================================
+41. FİLTRELER
+============================================================
+
+Süresiz Lisanslar
+
+Abonelik Lisansları
+
+Yenilemesi Yaklaşanlar
+
+Süresi Dolanlar
+
+============================================================
+42. ÖDEME TAKİBİ İLİŞKİSİ
+============================================================
+
+Abonelik yenilemelerinde satış bedeli ve ödeme bilgileri tutulabilir.
+
+============================================================
+43. BORÇ NEDENİYLE KİLİTLEME
+============================================================
+
+Borç nedeniyle otomatik lisans kapatma yapılmayacaktır.
+
+============================================================
+44. KİLİTLENME NEDENİ
+============================================================
+
+Kilitlenme yalnızca:
+
+Lisans Süresi Dolduğu İçin
+
+oluşabilir.
+
+============================================================
+45. GELECEKTEKİ ONLINE SİSTEM
+============================================================
+
+Online sistem kurulursa abonelik kontrolü sunucu üzerinden de yapılabilir.
+
+============================================================
+46. OFFLINE ÖNCELİĞİ
+============================================================
+
+İlk sürümde offline lisans doğrulama yeterlidir.
+
+============================================================
+47. AMAÇ
+============================================================
+
+Her ürün için doğru lisans modelini uygulayabilmek.
+
+============================================================
+48. KABUL KRİTERLERİ
+============================================================
+
+TEST 1
+Ürün kartında lisans politikası seçilebilmelidir.
+
+TEST 2
+PERPETUAL ürün için expire_date zorunlu olmamalıdır.
+
+TEST 3
+SUBSCRIPTION ürün için expire_date zorunlu olmalıdır.
+
+TEST 4
+PERPETUAL lisans süresiz çalışmalıdır.
+
+TEST 5
+SUBSCRIPTION lisans süre dolunca Salt Okunur Mod'a geçmelidir.
+
+TEST 6
+Veriler silinmemelidir.
+
+TEST 7
+Lisans yenilenebilmelidir.
+
+TEST 8
+Yenileme geçmişe yazılmalıdır.
+
+TEST 9
+Müşteri kartında lisans politikası görünmelidir.
+
+TEST 10
+Yeni lisans yüklenince tam kullanım geri gelmelidir.
