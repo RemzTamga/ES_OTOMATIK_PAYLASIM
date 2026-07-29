@@ -21,6 +21,10 @@ jobs:
       - name: Install npm dependencies
         run: npm install
 
+      - name: Copy frontend files to frontend/ dir
+        shell: pwsh
+        run: .\scripts\copy-frontend.ps1
+
       - name: Install Tauri CLI
         run: npm install @tauri-apps/cli
 

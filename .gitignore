@@ -27,3 +27,6 @@ src-tauri/icons/icon.ico
 
 # Keep .gitkeep
 !src-tauri/icons/.gitkeep
+
+# Tauri frontend build copy
+frontend/
