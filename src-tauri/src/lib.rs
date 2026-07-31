@@ -9,6 +9,8 @@ pub fn run() {
             social::commands::social_account_connections,
             social::commands::social_account_status,
             social::commands::social_disconnect_account,
+            social::commands::youtube_connect,
+            social::commands::youtube_upload_video,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

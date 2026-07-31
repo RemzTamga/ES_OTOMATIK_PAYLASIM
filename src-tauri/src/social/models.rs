@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SupportStatus {
+    /// Platform tam entegre ve kullanılabilir.
+    Supported,
     /// Entegrasyon bekliyor.
     Planned,
     /// Resmî kısıtlar nedeniyle bekliyor.
@@ -113,6 +115,21 @@ pub enum SocialError {
     ConnectionStoreError,
     UnsupportedPlatform,
     OperationFailed,
+    YoutubeNotConfigured,
+    OauthCancelled,
+    OauthTimeout,
+    OauthStateMismatch,
+    OauthExchangeFailed,
+    ChannelLookupFailed,
+    TokenExpired,
+    TokenRefreshFailed,
+    FileNotFound,
+    InvalidVideoFile,
+    UnsupportedContentType,
+    UnsupportedPostType,
+    UploadSessionFailed,
+    UploadFailed,
+    ApiError,
 }
 
 impl std::fmt::Display for SocialError {
@@ -125,6 +142,21 @@ impl std::fmt::Display for SocialError {
             SocialError::ConnectionStoreError => "connection_store_error",
             SocialError::UnsupportedPlatform => "unsupported_platform",
             SocialError::OperationFailed => "operation_failed",
+            SocialError::YoutubeNotConfigured => "youtube_not_configured",
+            SocialError::OauthCancelled => "oauth_cancelled",
+            SocialError::OauthTimeout => "oauth_timeout",
+            SocialError::OauthStateMismatch => "oauth_state_mismatch",
+            SocialError::OauthExchangeFailed => "oauth_exchange_failed",
+            SocialError::ChannelLookupFailed => "channel_lookup_failed",
+            SocialError::TokenExpired => "token_expired",
+            SocialError::TokenRefreshFailed => "token_refresh_failed",
+            SocialError::FileNotFound => "file_not_found",
+            SocialError::InvalidVideoFile => "invalid_video_file",
+            SocialError::UnsupportedContentType => "unsupported_content_type",
+            SocialError::UnsupportedPostType => "unsupported_post_type",
+            SocialError::UploadSessionFailed => "upload_session_failed",
+            SocialError::UploadFailed => "upload_failed",
+            SocialError::ApiError => "api_error",
         };
         f.write_str(msg)
     }
@@ -137,3 +169,4 @@ impl From<std::io::Error> for SocialError {
         SocialError::ConnectionStoreError
     }
 }
+

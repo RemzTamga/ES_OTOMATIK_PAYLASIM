@@ -20,4 +20,13 @@ serde_json = "1"
 # Güvenli token deposu: Windows Credential Manager (keyring ile).
 # keyring'in `v1` özelliği Windows'ta Windows Credential Manager'ı kullanır.
 keyring = "4"
+# Gerçek YouTube entegrasyonu için HTTP istemcisi.
+# Yalnız bloklama istemcisi ve JSON kullanılır; bu projedeki tek HHTP istemci kütüphanesidir.
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+# Kriptografik olarak güvenli rastgele üretim (OAuth state + PKCE verifier).
+rand = "0.8"
+# PKCE S256 `code_challenge` için SHA-256.
+sha2 = "0.10"
+# URL-safe base64 (padsız) kodlama.
+base64 = "0.22"
 

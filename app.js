@@ -1617,12 +1617,79 @@ function ayarlarPlatformBaglan(id) {
         return;
     }
 
+    // YouTube: gercek OAuth akisi Rust (`youtube_connect`) tarafindan calistirilir.
+    // Tauri ortami (ve derlenmis client id) yoksa sahte baglanti uretilmez;
+    // kullanici dostu bir bilgiyle donulur.
+    if (id === 'youtube') {
+        var connPromise = esTauriInvoke('youtube_connect');
+        if (!connPromise) {
+            bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                'YouTube baglantisi yalniz masaustunde kullanilabilir',
+                'YouTube hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+            return;
+        }
+        // OAuth akisi devam ederken tarayici resmi Google giris ekranina acilir.
+        connPromise.then(function(res) {
+            if (res && res.connection && res.connection.connectionStatus === 'connected') {
+                p.bagli = true;
+                p.hesapAdi = res.connection.accountDisplayName || '';
+                p.sonKontrol = new Date().toLocaleString('tr-TR');
+                ayarlarPlatformListele();
+                dashboardBaglantiGuncelle();
+                bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                    'YouTube baglantisi kuruldu',
+                    p.ad + ' hesap baglantisi basariyla kuruldu.');
+            } else {
+                bildirimEkle('sosyal-medya-baglanti', 'hata',
+                    'YouTube baglantisi kurulamadi',
+                    'YouTube baglanti islemi basarisiz oldu. Lutfen tekrar deneyin.');
+            }
+        }).catch(function(err) {
+            // Rust tarafindan kontrollu hata kodlari dondurulur; kullaniciya
+            // teknik kod gosterilmez, anlasilir bir mesaj kurulur.
+            var msg = 'YouTube baglanti islemi basarisiz oldu. Lutfen tekrar deneyin.';
+            var raw = (err && (err.message || err.code || err)) || '';
+            var code = String(raw);
+            if (code.indexOf('youtube_not_configured') !== -1) {
+                msg = 'YouTube baglanti surumu bu calistirma icin yapilandirilmamis (client id tanimli degil).';
+            } else if (code.indexOf('oauth_cancelled') !== -1) {
+                msg = 'YouTube giris ekraninda yetkilendirme iptal edildi.';
+            } else if (code.indexOf('oauth_timeout') !== -1) {
+                msg = 'YouTube giris oturumu zaman asimina ugradi. Yeniden deneyin.';
+            }
+            bildirimEkle('sosyal-medya-baglanti', 'hata',
+                'YouTube baglantisi kurulamadi', msg);
+        });
+        return;
+    }
+
     // planned / restricted / verification_pending / tanimsiz:
     // Baglanti henuz etkin degil. Sahte baglanti veya token olusturulmaz,
     // OAuth baslatilmaz, baglanti "kuruldu" gibi gosterilmez.
     bildirimEkle('sosyal-medya-baglanti', 'bilgi',
         p.ad + ' baglantisi henuz etkin degil',
         'Bu platformun baglantisi henuz etkinlestirilmedi. Mevcut surumde hesap baglama islemi yapilamamaktadir.');
+}
+
+// Mevcut gercek baglanti durumlarini Rust `social_account_connections`
+// komutundan yukleyip ilgili platformlari "Bagli" olarak isaretler.
+// Baglantisi bulunmayan platformlar "Bagli Degil" olarak kalmaya devam eder.
+function sosyalBaglantiDurumlariYukle() {
+    var p = esTauriInvoke('social_account_connections');
+    if (!p) return; // Tauri ortami yok: liste bos kalir, hata uretilmez
+    p.then(function(list) {
+        if (!list) return;
+        list.forEach(function(c) {
+            var plat = ayarlarPlatformBul(c.platformId);
+            if (plat && c.connectionStatus === 'connected') {
+                plat.bagli = true;
+                plat.hesapAdi = c.accountDisplayName || plat.hesapAdi;
+                plat.sonKontrol = new Date().toLocaleString('tr-TR');
+            }
+        });
+        ayarlarPlatformListele();
+        dashboardBaglantiGuncelle();
+    }).catch(function() {});
 }
 
 function ayarlarPlatformKes(id) {
@@ -1877,6 +1944,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ayarlarWebGeriYukle();
     ayarlarGenelGeriYukle();
     sosyalKatalogYukle();
+    sosyalBaglantiDurumlariYukle(); // YouTube dahil gercek baglanti durumunu yukle
     dashboardBaglantiGuncelle();
 });
 
@@ -2630,4 +2698,26 @@ function _kilitUyarisiGoster() {
 
     var overlay = document.createElement('div');
     overlay.id = 'kilitUyariModal';
-    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;z-index:9999;';
+
+    var modal = document.createElement('div');
+    modal.style.cssText = 'background:#ffffff;border-radius:10px;max-width:420px;width:90%;box-shadow:0 20px 40px rgba(0,0,0,0.25);padding:24px;text-align:center;';
+
+    modal.innerHTML =
+        '<div style="font-size:2rem;margin-bottom:8px;">&#x1f512;</div>' +
+        '<div style="font-size:1.05rem;font-weight:700;color:#1a1a2e;margin-bottom:8px;">Erisim Kisitlandi</div>' +
+        '<div style="font-size:0.88rem;color:#6b7280;line-height:1.5;margin-bottom:18px;">Deneme suresi doldu veya gecerli bir lisans bulunamadi. Calismaya devam etmek icin gecerli bir lisans dosyasi yukleyin.</div>' +
+        '<button class="btn btn-primary" style="padding:10px 18px;" onclick="kilitUyarisiKapat()">Lisans Sayfasina Git</button>';
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+// Kilitleme uyarisini kapatir ve lisans sayfasina yonlendirir.
+function kilitUyarisiKapat() {
+    var ov = document.getElementById('kilitUyariModal');
+    if (ov) ov.remove();
+    if (typeof navigateTo === 'function') {
+        navigateTo('lisans');
+    }
+}

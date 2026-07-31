@@ -8,7 +8,7 @@ pub fn platform_catalog() -> Vec<PlatformDefinition> {
         PlatformDefinition {
             platform_id: "youtube",
             display_name: "YouTube",
-            support_status: SupportStatus::Planned,
+            support_status: SupportStatus::Supported,
         },
         PlatformDefinition {
             platform_id: "x",

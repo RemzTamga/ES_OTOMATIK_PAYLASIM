@@ -14,6 +14,7 @@ use super::credential_store;
 use super::models::{
     ConnectionStatus, PlatformDefinition, SocialAccountConnection, SocialError, TokenType,
 };
+use super::platforms::youtube;
 use super::{metadata_store, registry};
 
 /// Metadata deposunun kök dizinini uygulama veri klasörü üzerinden hesaplar.
@@ -154,4 +155,47 @@ pub fn social_disconnect_account(
     Ok(DisconnectResult {
         status: DisconnectStatus::Disconnected,
     })
+}
+
+/// YouTube OAuth bağlantı sonucu için serilerlenebilir sonuç görünümü.
+/// İçeride yalnız kamuya açık bilgi barınır; ham token döndürülmez.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct YoutubeConnectResult {
+    pub connection: SocialAccountConnection,
+}
+
+/// YouTube'a gerçek OAuth akışıyla bağlanır.
+///
+/// - Google'ın masaüstü uygulama OAuth 2.0 akışını uygular (PKCE-S256, state).
+/// - Tarayıcıyı resmî Tauri shell mekanizmasıyla açar.
+/// - Sonuç gerçek bir `SocialAccountConnection` döndürür; hiçbir durumda
+///   sahte bağlantı, sahte kanal adı veya yer tutucu üretilmez.
+#[tauri::command]
+pub fn youtube_connect(
+    app: AppHandle,
+) -> Result<YoutubeConnectResult, SocialError> {
+    let connection = youtube::connect(&app)?;
+    Ok(YoutubeConnectResult { connection })
+}
+
+/// Bir YouTube hesabına gerçek `videos.insert` (resumable) ile video yükler.
+///
+/// Zorunlu alanlar: bağlı bağlantı id, gerçek video dosya yolu, başlık,
+/// gizlilik. Açıklama isteğe bağlıdır (boş olabilir). Gerçek video id döner.
+///
+/// Gizlilik kontrollü değerlerle gelir (`private`, `unlisted`, `public`);
+/// JavaScript'ten serbest metinle belirlenmez.
+#[tauri::command]
+pub fn youtube_upload_video(
+    app: AppHandle,
+    connection_id: String,
+    video_path: String,
+    title: String,
+    description: String,
+    privacy: String,
+) -> Result<String, SocialError> {
+    let privacy_status = youtube::PrivacyStatus::parse(&privacy)
+        .ok_or(SocialError::UnsupportedPostType)?;
+    youtube::upload_video(&app, &connection_id, &video_path, &title, &description, privacy_status)
 }
