@@ -1523,6 +1523,45 @@ function switchAyarlarTab(tab) {
 }
 
 // ===== SOSYAL MEDYA HESAPLARI =====
+
+// Tauri komutlari icin yardimci. Tauri'nin resmi global invoke mekanizmasini
+// (window.__TAURI__.core.invoke) kullanir. Mevcut proje withGlobalTauri'yi
+// etkinlestirmedigi ve frontend'de bundler/api paketi olmadigi icin, bu global
+// nesne yoksa hicbir islem yapilmaz ve null dondurulur. Boylece "Tauri disi
+// gelistirme onizlemesi"nde yakalanmamis JavaScript hatasi olusmaz.
+function esTauriInvoke(command, args) {
+    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === 'function') {
+        return window.__TAURI__.core.invoke(command, args || {});
+    }
+    return null;
+}
+
+// Rust tarafindaki platform katalogundan gelen destek durumu haritasi.
+// Teknik support_status degerinin yetkili kaynagi Rust (registry) moduludur;
+// bu harita yalniz ondan turetilmis bir onbellektir.
+var sosyalKatalog = {};
+
+function sosyalKatalogYukle() {
+    var p = esTauriInvoke('social_platform_catalog');
+    if (!p) return; // Tauri ortami yok: katalog bos kalir, hata uretilmez
+    p.then(function(platforms) {
+        if (!platforms) return;
+        sosyalKatalog = {};
+        platforms.forEach(function(pl) {
+            sosyalKatalog[pl.platform_id] = pl;
+        });
+    }).catch(function() {});
+}
+
+function ayarlarPlatformBul(id) {
+    for (var i = 0; i < ayarlarPlatformlar.length; i++) {
+        if (ayarlarPlatformlar[i].id === id) {
+            return ayarlarPlatformlar[i];
+        }
+    }
+    return null;
+}
+
 function ayarlarPlatformListele() {
     var liste = document.getElementById('ayarlarPlatformListesi');
     if (!liste) return;
@@ -1563,46 +1602,86 @@ function ayarlarPlatformListele() {
 }
 
 function ayarlarPlatformBaglan(id) {
-    var p = null;
-    for (var i = 0; i < ayarlarPlatformlar.length; i++) {
-        if (ayarlarPlatformlar[i].id === id) {
-            p = ayarlarPlatformlar[i];
-            break;
-        }
-    }
+    var p = ayarlarPlatformBul(id);
     if (!p) return;
 
-    // Hesap adi al
-    var hesapAdi = prompt(p.ad + ' hesap adini girin:', '');
-    if (hesapAdi === null) return; // iptal
-    hesapAdi = hesapAdi.trim();
-    if (hesapAdi === '') {
-        alert('Hesap adi bos birakilamaz.');
+    // Platformun destek durumu yalniz Rust (registry) katalogundan alinir.
+    // Bu, tek yetkili teknik kaynaktir; JavaScript tarafinda bagimsiz bir
+    // teknik destek haritasi tutulmaz.
+    var support = sosyalKatalog[id] ? sosyalKatalog[id].support_status : null;
+
+    if (support === 'unsupported') {
+        bildirimEkle('sosyal-medya-baglanti', 'uyari',
+            p.ad + ' desteklenmiyor',
+            p.ad + ' bu platform mevcut sunucusuz mimaride desteklenmemektedir.');
         return;
     }
 
-    alert('Bu platformun resmi baglanti entegrasyonu henuz yapilandirilmamistir.');
-    bildirimEkle('sosyal-medya-baglanti', 'uyari',
-        p.ad + ' baglantisi kurulamadi',
-        p.ad + ' hesabi icin resmi baglanti entegrasyonu henuz yapilandirilmamistir. Girilen hesap: ' + hesapAdi
-    );
+    // planned / restricted / verification_pending / tanimsiz:
+    // Baglanti henuz etkin degil. Sahte baglanti veya token olusturulmaz,
+    // OAuth baslatilmaz, baglanti "kuruldu" gibi gosterilmez.
+    bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+        p.ad + ' baglantisi henuz etkin degil',
+        'Bu platformun baglantisi henuz etkinlestirilmedi. Mevcut surumde hesap baglama islemi yapilamamaktadir.');
 }
 
 function ayarlarPlatformKes(id) {
-    var p = null;
-    for (var i = 0; i < ayarlarPlatformlar.length; i++) {
-        if (ayarlarPlatformlar[i].id === id) {
-            p = ayarlarPlatformlar[i];
-            break;
+    var p = ayarlarPlatformBul(id);
+    if (!p) return;
+
+    // Baglanti listesi Tauri komutundan alinir. Tauri ortami yoksa
+    // (onizleme) baglanti ozelliklerinin yalniz masaustunde kullanildigi
+    // kullanici dostu sekilde bildirilir; yakalanmamis hata olusmaz.
+    var listPromise = esTauriInvoke('social_account_connections');
+    if (!listPromise) {
+        bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+            'Baglanti yalniz masaustunde kullanilabilir',
+            'Sosyal medya hesap baglantilarini yonetmek icin ES OPS masaustu uygulamasi gerekir.');
+        return;
+    }
+
+    listPromise.then(function(list) {
+        var matches = (list || []).filter(function(c) { return c.platformId === id; });
+
+        // Gercek bir connection_id yok: saglan baglanti kesme basarisi gosterilmez.
+        if (matches.length === 0) {
+            bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                'Bagli hesap bulunmuyor',
+                p.ad + ' platformuna bagli bir hesap bulunmadigi icin baglanti kesme islemi yapilamadi.');
+            return;
         }
-    }
-    if (p && p.bagli) {
-        p.bagli = false;
-        p.hesapAdi = '';
-        p.sonKontrol = '';
-        ayarlarPlatformListele();
-        dashboardBaglantiGuncelle();
-    }
+
+        var connId = matches[0].connectionId;
+        var disPromise = esTauriInvoke('social_disconnect_account', { connectionId: connId });
+        if (!disPromise) return;
+        disPromise.then(function(res) {
+            if (res && res.status === 'disconnected') {
+                bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                    p.ad + ' baglantisi kesildi',
+                    p.ad + ' hesap baglantisi basariyla kesildi.');
+            } else if (res && res.status === 'not_connected') {
+                bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                    p.ad + ' hesap bagli degil',
+                    'Hesap zaten bagli olmadigi icin baglanti kesme islemi yapilamadi.');
+            } else if (res && res.status === 'not_found') {
+                bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                    p.ad + ' baglantisi bulunamadi',
+                    'Baglanti kaydi bulunamadi. Islem yapilamadi.');
+            } else {
+                bildirimEkle('sosyal-medya-baglanti', 'hata',
+                    p.ad + ' baglantisi kesilemedi',
+                    'Baglanti kesme islemi sirasinda bir hata olustu. Lutfen tekrar deneyin.');
+            }
+        }).catch(function() {
+            bildirimEkle('sosyal-medya-baglanti', 'hata',
+                p.ad + ' baglantisi kesilemedi',
+                'Baglanti kesme islemi sirasinda bir hata olustu.');
+        });
+    }).catch(function() {
+        bildirimEkle('sosyal-medya-baglanti', 'hata',
+            'Baglanti islemi gerceklestirilemedi',
+            'Baglantili hesap listesi okunamadi. Lutfen tekrar deneyin.');
+    });
 }
 
 // ===== WEB SITESI BAGLANTISI =====
@@ -1797,6 +1876,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ayarlarPlatformListele();
     ayarlarWebGeriYukle();
     ayarlarGenelGeriYukle();
+    sosyalKatalogYukle();
     dashboardBaglantiGuncelle();
 });
 
@@ -2550,376 +2630,4 @@ function _kilitUyarisiGoster() {
 
     var overlay = document.createElement('div');
     overlay.id = 'kilitUyariModal';
-    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;display:flex;align-items:center;justify-content:center;';
-
-    var modal = document.createElement('div');
-    modal.style.cssText = 'background:#fff;border-radius:12px;padding:32px;max-width:400px;width:90%;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.2);';
-
-    modal.innerHTML =
-        '<div style="font-size:3rem;margin-bottom:16px;">&#x1f512;</div>' +
-        '<h3 style="color:#ef4444;margin-bottom:12px;">Deneme Sureniz Sona Ermistir</h3>' +
-        '<p style="color:#6b7280;margin-bottom:20px;font-size:0.9rem;">' +
-        '15 gunluk deneme sureniz sona ermistir. Bu modulu kullanmaya devam etmek icin gecerli bir lisans dosyasi yukleyin.</p>' +
-        '<div style="display:flex;gap:10px;justify-content:center;">' +
-        '<button onclick="this.closest(\'#kilitUyariModal\').remove()" style="padding:10px 24px;border:none;border-radius:6px;background:#f3f4f6;color:#374151;font-weight:600;cursor:pointer;">Kapat</button>' +
-        '<button onclick="navigateTo(\'lisans\');this.closest(\'#kilitUyariModal\').remove()" style="padding:10px 24px;border:none;border-radius:6px;background:#4f8cff;color:#fff;font-weight:600;cursor:pointer;">Lisans Sayfasina Git</button>' +
-        '</div>';
-
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) overlay.remove();
-    });
-}
-
-// ---- MEVCUT NAVIGATE FONKSIYONUNU EZ - KILIT KONTROLU ----
-(function() {
-    var originalNavigate = window.navigateTo;
-    if (typeof originalNavigate === 'function') {
-        window.navigateTo = function(page) {
-            if (_modullerKilitli) {
-                var acikSayfalar = ['lisans', 'yardim', 'veri-yedek'];
-                if (acikSayfalar.indexOf(page) === -1) {
-                    _kilitUyarisiGoster();
-                    originalNavigate('lisans');
-                    return;
-                }
-            }
-            originalNavigate(page);
-        };
-    }
-})();
-
-// ---- LISANS SAYFASI YONLENDIRME (navigateTo icin lisans basligi) ----
-(function() {
-    var originalTitles = window.navigateTo;
-    // Lisans sayfa basligi zaten 'Lisans' olarak tanimli
-})();
-
-console.log('ES OPS Lisans Modulu FAZ 9 yuklendi.');
-console.log('NOT: Machine ID tarayici tabanli (GECICI) calisir. Referans format: MID-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX');
-console.log('NOT: localStorage kullanici tarafindan silinebilir. Demo sayaci sifirlanir.');
-console.log('NOT: Ed25519 Public Key temin edilene kadar lisans yuklemeleri basarisiz olur.');
-console.log('NOT: Referans license.lic alanlari: customer_name, customer_no, issued_at, license_expire_date, license_id, license_policy, license_type, machine_id, max_transfer_count, notes, product_code, product_name, signature, status, support_expire_date, transfer_count');
-
-
-
-
-
-
-
-
-// ===== FAZ 10 - SOSYAL MEDYA HESAP BAGLANTISI (ISTEMCI TARAFLI) =====
-// Bu modul platformlarin resmi OAuth dokumantasyonuna dayanmaktadir.
-// Varsayimsal destek yoktur.
-// Yalnizca gercek baglanti.
-// Tokenlar projenin mevcut teknolojisiyle OS guvenli kasasina
-// yazilamadigi icin hicbir platformda token saklanamaz.
-// Bu nedenle hicbir platformda gercek baglanti kurulamaz.
-// ===============================================================
-
-// ----------------------------------------------------------------
-// PLATFORM ANALIZI (Resmi Dokumantasyona Gore)
-// ----------------------------------------------------------------
-//
-// 1. Facebook (Graph API v19.0)
-//    Native PKCE: Evet, PKCE destekler
-//    Client secret gereksinimi: Token exchange icin client_secret ZORUNLU DEGILDIR
-//      (public client / PKCE ile secret olmadan calisir)
-//    Windows callback: loopback IP redirect (http://127.0.0.1:PORT/)
-//      veya kayitli URI scheme (fbAPPID://)
-//    Android callback: Facebook Login SDK -> intent filter
-//    iOS callback: Facebook Login SDK -> URL scheme
-//    Gercek paylasim API: Graph API /me/feed, /photos, /videos
-//      => CORS: Graph API CORS destekler
-//      => Token turu: page access token (sayfa yonetimi icin)
-//    Gerekli yayin izinleri: pages_read_engagement, pages_manage_posts
-//    SONUC: OAuth baglantisi KURULABILIR (PKCE + secret yok)
-//           Paylasim API cagrisi YAPILABILIR (Graph API CORS acik)
-//           Token GUIVENLI SAKLANAMAZ (proje teknolojisi yetmez)
-//
-// 2. LinkedIn (v2 API)
-//    Native PKCE: Evet, PKCE destekler
-//    Client secret gereksinimi: PKCE ile secret OLMADAN token alinabilir
-//    Windows callback: http://localhost:PORT/ veya kayitli URI
-//    Android callback: intent deep link
-//    iOS callback: URL scheme
-//    Gercek paylasim API: /ugcPosts, /shares
-//      => CORS: LinkedIn API CORS izin vermiyor (dokumante)
-//      => Istemci uygulamadan paylasim API cagrisi basarisiz olur
-//    Gerekli yayin izinleri: w_member_social
-//    SONUC: OAuth baglantisi KURULABILIR (PKCE var, secret yok)
-//           Paylasim YAPILAMAZ (CORS kapali)
-//           Token GUIVENLI SAKLANAMAZ
-//
-// 3. X (Twitter, API v2)
-//    Native PKCE: Evet, OAuth 2.0 PKCE destekler
-//    Client secret gereksinimi: PKCE ile secret olmadan calisir
-//      (public client, code_challenge ile)
-//    Windows callback: http://localhost:PORT/ veya kayitli URI
-//    Android callback: app link / deep link
-//    iOS callback: universal link
-//    Gercek paylasim API: POST /2/tweets
-//      => CORS: Twitter API v2 CORS izin vermiyor
-//      => Istemci uygulamadan tweet gonderilemez
-//    Gerekli yayin izinleri: tweet.read, tweet.write
-//    SONUC: OAuth baglantisi KURULABILIR (PKCE var)
-//           Paylasim YAPILAMAZ (CORS kapali)
-//           Token GUIVENLI SAKLANAMAZ
-//
-// 4. Pinterest (API v5)
-//    Native PKCE: Evet, PKCE destekler
-//    Client secret gereksinimi: PKCE ile secret olmadan token exchange YAPILAMAZ
-//      (Pinterest client_secret ZORUNLU tutar)
-//    Windows callback: kayitli redirect URI
-//    Android callback: deep link
-//    iOS callback: URL scheme
-//    Gercek paylasim API: POST /v5/pins
-//      => CORS: Pinterest API CORS izin vermiyor
-//    Gerekli yayin izinleri: boards:read, pins:read, pins:write
-//    SONUC: OAuth baglantisi KURULAMAZ (client_secret zorunlu)
-//           Paylasim YAPILAMAZ
-//
-// 5. YouTube (Google API)
-//    Native PKCE: Evet, PKCE destekler
-//    Client secret gereksinimi: PKCE ile secret olmadan token alinabilir
-//      (desktop uygulamalari icin)
-//    Windows callback: http://127.0.0.1:PORT/ (loopback redirect)
-//    Android callback: Google Sign-In SDK
-//    iOS callback: Google Sign-In SDK / URL scheme
-//    Gercek paylasim API: POST /upload/youtube/v3/videos
-//      => CORS: Google API CORS izin verir
-//      => ANCAK: Video yuklemek icin multipart upload gerekir
-//      => Istemci uygulamadan video yukleme mumkun
-//    Gerekli yayin izinleri: youtube.upload, youtube.readonly
-//    SONUC: OAuth baglantisi KURULABILIR (PKCE var, secret yok)
-//           Paylasim YAPILABILIR (CORS acik, upload destegi var)
-//           Token GUIVENLI SAKLANAMAZ
-//
-// 6. Instagram (Basic Display / Graph API)
-//    Native PKCE: Yok (Basic Display -> Implicit Flow)
-//    Client secret gereksinimi: Graph API icin EVET, zorunlu
-//    Business hesap gerektirir
-//    SONUC: PASIF - backend gerektirir
-//
-// 7. TikTok
-//    Native PKCE: Yok
-//    Client secret gereksinimi: EVET, zorunlu
-//    SONUC: PASIF - backend gerektirir
-//
-// ----------------------------------------------------------------
-// KESIN KARAR
-// ----------------------------------------------------------------
-// Projenin mevcut teknolojisi (duz JavaScript, HTML, CSS, localStorage)
-// isletim sistemi guvenli kasa (Windows Credential Manager,
-// Android Keystore, iOS Keychain) ile etkilesime gecmez.
-// Bu nedenle hicbir platformda token guvenli sekilde saklanamaz.
-//
-// Ayrica:
-// - LinkedIn paylasim API CORS kapali
-// - Twitter paylasim API CORS kapali
-// - Pinterest client_secret zorunlu
-//
-// Geriye kalan:
-// - Facebook: baglanti kurulabilir, paylasim yapilabilir, token guvenli saklanamaz
-// - YouTube:  baglanti kurulabilir, paylasim yapilabilir, token guvenli saklanamaz
-//
-// Token guvenli saklama katmani hazir olmadigi surece hicbir platform AKTIF
-// edilemez. Asagidaki kod sadece yapilandirma bilgilerini icerir.
-// Gercek baglanti ve paylasim kodu yoktur.
-// ===============================================================
-
-// ---- PLATFORM TANIMLARI (TUMU PASIF) ----
-var ES10 = {
-    platformlar: {
-        facebook: {
-            id: 'facebook',
-            ad: 'Facebook',
-            grup: 'B',
-            baglanti: 'mumkun',       // PKCE + secret yok
-            paylasim: 'mumkun',        // Graph API CORS acik
-            tokenSaklama: 'imkansiz',  // OS guvenli kasaya erisim yok
-            durum: 'pasif',
-            durumAciklama: 'OAuth baglantisi ve paylasim API\'si calisabilir durumdadir. ' +
-                           'Token Windows Credential Manager / Android Keystore / iOS Keychain\'de ' +
-                           'saklanmalidir. Projenin mevcut teknolojisi bu kasalara erisemedigi icin ' +
-                           'ilk surumde pasiftir.'
-        },
-        youtube: {
-            id: 'youtube',
-            ad: 'YouTube',
-            grup: 'B',
-            baglanti: 'mumkun',
-            paylasim: 'mumkun',
-            tokenSaklama: 'imkansiz',
-            durum: 'pasif',
-            durumAciklama: 'OAuth baglantisi ve video yukleme API\'si calisabilir durumdadir. ' +
-                           'Token guvenli kasa gerektirir. Mevcut teknoloji ile saklanamaz.'
-        },
-        linkedin: {
-            id: 'linkedin',
-            ad: 'LinkedIn',
-            grup: 'B',
-            baglanti: 'mumkun',
-            paylasim: 'imkansiz',      // CORS kapali
-            tokenSaklama: 'imkansiz',
-            durum: 'pasif',
-            durumAciklama: 'OAuth baglantisi kurulabilir ancak paylasim API\'si CORS izni vermez. ' +
-                           'Token guvenli saklanamaz. Ilk surumde pasif.'
-        },
-        twitter: {
-            id: 'twitter',
-            ad: 'X (Twitter)',
-            grup: 'B',
-            baglanti: 'mumkun',
-            paylasim: 'imkansiz',      // CORS kapali
-            tokenSaklama: 'imkansiz',
-            durum: 'pasif',
-            durumAciklama: 'OAuth baglantisi kurulabilir ancak paylasim API\'si CORS izni vermez. ' +
-                           'Token guvenli saklanamaz. Ilk surumde pasif.'
-        },
-        pinterest: {
-            id: 'pinterest',
-            ad: 'Pinterest',
-            grup: 'B',
-            baglanti: 'imkansiz',      // client_secret zorunlu
-            paylasim: 'imkansiz',
-            tokenSaklama: 'imkansiz',
-            durum: 'pasif',
-            durumAciklama: 'Pinterest API client_secret zorunlu tutar. ' +
-                           'PKCE ile calismaz. Backend gerektirir. Ilk surumde pasif.'
-        },
-        instagram: {
-            id: 'instagram',
-            ad: 'Instagram',
-            grup: 'B',
-            baglanti: 'imkansiz',
-            paylasim: 'imkansiz',
-            tokenSaklama: 'imkansiz',
-            durum: 'pasif',
-            durumAciklama: 'Instagram Business hesap ve Facebook Graph API Client Secret gerektirir. ' +
-                           'Backend olmadan calismaz. Ilk surumde pasif.'
-        },
-        tiktok: {
-            id: 'tiktok',
-            ad: 'TikTok',
-            grup: 'B',
-            baglanti: 'imkansiz',
-            paylasim: 'imkansiz',
-            tokenSaklama: 'imkansiz',
-            durum: 'pasif',
-            durumAciklama: 'TikTok API Client Secret zorunlu tutar. ' +
-                           'Backend olmadan calismaz. Ilk surumde pasif.'
-        }
-    }
-};
-
-
-// ---- PLATFORM BILGILERINI GOSTER ----
-// Kullaniciya her platformun durumunu aciklar
-
-function es10PlatformDurum(platformId) {
-    var p = ES10.platformlar[platformId];
-    if (!p) return 'Bilinmeyen platform: ' + platformId;
-
-    var satirlar = [];
-    satirlar.push(p.ad + ' durumu: ' + p.durum.toUpperCase());
-    satirlar.push('');
-    satirlar.push(p.durumAciklama);
-
-    if (p.baglanti === 'mumkun') {
-        satirlar.push('');
-        satirlar.push('OAuth baglantisi: MUMKUN (PKCE + public client)');
-    }
-    if (p.paylasim === 'mumkun') {
-        satirlar.push('Gercek paylasim: MUMKUN (API CORS acik)');
-    }
-    if (p.paylasim === 'imkansiz' && p.baglanti === 'mumkun') {
-        satirlar.push('Gercek paylasim: IMKANSIZ (API CORS kapali - istemciden gonderilemez)');
-    }
-    if (p.tokenSaklama === 'imkansiz') {
-        satirlar.push('Token saklama: IMKANSIZ (OS guvenli kasasina erisim icin native kod gerekir)');
-    }
-
-    return satirlar.join('\n');
-}
-
-
-// ---- BAGLAN / KES FONKSIYONLARI (TUM PLATFORMLAR PASIF OLDUGU ICIN DEVRE DISI) ----
-// FAZ 8'deki orijinal ayarlarPlatformBaglan ve ayarlarPlatformKes kullanilir.
-// Bu fonksiyonlar sadece platform durumunu gosterir.
-
-window.ayarlarPlatformBaglan = function(id) {
-    var p = null;
-    for (var i = 0; i < ayarlarPlatformlar.length; i++) {
-        if (ayarlarPlatformlar[i].id === id) {
-            p = ayarlarPlatformlar[i];
-            break;
-        }
-    }
-    if (!p) return;
-
-    var platform = ES10.platformlar[id];
-    if (!platform) {
-        alert('Platform tanimli degil: ' + id);
-        return;
-    }
-
-    if (platform.durum === 'pasif') {
-        alert(es10PlatformDurum(id));
-        return;
-    }
-
-    // Platform aktif olsaydi burada OAuth baslatilirdi
-    // Ancak su an hicbir platform aktif degil
-    alert(es10PlatformDurum(id));
-};
-
-window.ayarlarPlatformKes = function(id) {
-    var p = null;
-    for (var i = 0; i < ayarlarPlatformlar.length; i++) {
-        if (ayarlarPlatformlar[i].id === id) {
-            p = ayarlarPlatformlar[i];
-            break;
-        }
-    }
-    if (!p) return;
-    if (!p.bagli) return;
-
-    // Baglanti varsa kes (FAZ 8'deki orijinal mantik)
-    // Su an hicbir platform baglanamadigi icin buraya hic gelinmez
-    p.bagli = false;
-    p.sonKontrol = '';
-    p.baglantiTarihi = '';
-    dashboardBaglantiGuncelle();
-    ayarlarSosyalListele();
-};
-
-
-// ---- GERCEK PAYLASIM ----
-// Ilk surumde hicbir platforma gercek paylasim yok.
-// FAZ 10 bu fonksiyona dokunmaz.
-
-// ---- FAZ 10 DURUM BILDIRIMI ----
-console.log('=== FAZ 10 - Sosyal Medya Hesap Baglantisi ===');
-console.log('Tum platformlar PASIF.');
-console.log('Gerekce: Tokenlar OS guvenli kasasinda saklanamaz.');
-console.log('Gerekce: Mevcut proje teknolojisi (JS/HTML/CSS) Windows Credential Manager,');
-console.log('         Android Keystore veya iOS Keychain ile etkilesime gecmez.');
-console.log('Gerekce: LinkedIn, Twitter paylasim API\'leri CORS kapali.');
-console.log('Gerekce: Pinterest, Instagram, TikTok client_secret zorunlu.');
-console.log('Platformlar:');
-console.log('  Facebook  (Aday - baglanti+paylasim mumkun, token saklanamiyor)');
-console.log('  YouTube   (Aday - baglanti+paylasim mumkun, token saklanamiyor)');
-console.log('  LinkedIn  (OAuth mumkun, paylasim API CORS kapali)');
-console.log('  X/Twitter (OAuth mumkun, paylasim API CORS kapali)');
-console.log('  Pinterest (client_secret zorunlu)');
-console.log('  Instagram (Business hesap + client_secret zorunlu)');
-console.log('  TikTok    (client_secret zorunlu)');
-console.log('');
-console.log('NOT: Baglanti ve paylasim icin native platform ara katmani (Electron/eel/.NET MAUI)');
-console.log('     ile OS guvenli kasasina erisim saglanmalidir.');
-console.log('NOT: Windows -> Windows Credential Manager (wincred API)');
-console.log('NOT: Android -> Android Keystore (KeyStore API)');
-console.log('NOT: iOS -> iOS Keychain (Security framework)');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom
