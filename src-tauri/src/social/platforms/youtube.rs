@@ -437,8 +437,8 @@ fn connect_for_channel(
     Ok(SocialAccountConnection {
         connection_id,
         platform_id: PLATFORM_ID.to_string(),
-        external_account_id: channel.id,
-        account_display_name: channel.title,
+        external_account_id: channel.id.clone(),
+        account_display_name: channel.title.clone(),
         connection_status: ConnectionStatus::Connected,
         token_exists: true,
         last_error_code: String::new(),
@@ -608,7 +608,7 @@ fn upload_to_session(
     bytes: &[u8],
     mime_type: &str,
     offset: u64,
-) -> Result<String, PutOutcome> {
+) -> Result<PutOutcome, PutOutcome> {
     let body = &bytes[(offset as usize)..];
 
     let mut req = client
@@ -640,7 +640,9 @@ fn upload_to_session(
         let id = parsed.id.ok_or(PutOutcome::Failed(SocialError::UploadFailed))?;
         return Ok(PutOutcome::Uploaded(id));
     }
-    if status == reqwest::StatusCode::RESUME_INCOMPLETE {
+    // HTTP 308 "Resume Incomplete" (YouTube, eksik yuklemeyi iletir).
+    // reqwest'teki eşdeğer sabit PERMANENT_REDIRECT'tir (308).
+    if status == reqwest::StatusCode::PERMANENT_REDIRECT {
         let range = resp
             .headers()
             .get("Range")
