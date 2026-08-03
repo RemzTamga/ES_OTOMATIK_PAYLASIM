@@ -16,7 +16,7 @@ use super::models::{
     ConnectionStatus, PlatformDefinition, SocialAccountConnection, SocialError, TokenType,
 };
 use super::platforms::youtube;
-use super::platforms::{facebook, instagram, meta, tiktok, x};
+use super::platforms::{facebook, instagram, linkedin, meta, tiktok, x};
 use super::{media_validation, metadata_store, registry};
 
 /// Metadata deposunun kök dizinini uygulama veri klasörü üzerinden hesaplar.
@@ -591,4 +591,98 @@ pub fn x_publish(
     title: String,
 ) -> Result<String, SocialError> {
     x::publish_video(&app, &connection_id, &video_path, &title)
+}
+
+// ----------------------------------------------------------------------
+// LinkedIn (Posts API / Images API / Videos API) komutları
+// ----------------------------------------------------------------------
+
+/// LinkedIn bağlantı sonucu. Kişisel profil her zaman bağlanır; yayın
+/// yapılabilir şirket sayfaları ayrı bağlantılar olarak eklenir.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LinkedinConnectResult {
+    pub connections: Vec<SocialAccountConnection>,
+}
+
+/// LinkedIn'e gerçek Native PKCE OAuth akışıyla bağlanır.
+///
+/// - Client Secret kullanılmaz; yalnız Client ID yeterlidir.
+/// - Kişisel profile ek olarak, kullanıcının `ADMINISTRATOR`, `CONTENT_ADMIN`
+///   veya `DIRECT_SPONSORED_CONTENT_POSTER` rolüne sahip olduğu şirket
+///   sayfaları keşfedilir ve ayrı bağlantı olarak döndürülür.
+#[tauri::command]
+pub fn linkedin_connect(app: AppHandle) -> Result<LinkedinConnectResult, SocialError> {
+    let connections = linkedin::connect(&app)?;
+    Ok(LinkedinConnectResult { connections })
+}
+
+/// LinkedIn bağlantı yapılandırma durumu (gizli bilgi içermez).
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LinkedinConfigStatus {
+    pub client_id_configured: bool,
+}
+
+/// LinkedIn Client ID'nin yapılandırılıp yapılandırılmadığını döndürür.
+/// Bu entegrasyonda Client Secret kavramı yoktur; secret asla istenmez/saklanmaz.
+#[tauri::command]
+pub fn linkedin_config_status() -> Result<LinkedinConfigStatus, SocialError> {
+    let has_id = linkedin::resolved_client_id().is_some();
+    Ok(LinkedinConfigStatus {
+        client_id_configured: has_id,
+    })
+}
+
+/// LinkedIn Client ID'yi güvenli depoya (Windows Credential Manager) yazar.
+/// Client ID gizli bilgi değildir; Client Secret alanı kasıtlı olarak yoktur.
+/// Boş değer kabul edilmez.
+#[tauri::command]
+pub fn linkedin_set_config(client_id: String) -> Result<LinkedinConfigStatus, SocialError> {
+    if client_id.trim().is_empty() {
+        return Err(SocialError::LinkedinNotConfigured);
+    }
+    linkedin::store_client_id(&client_id)?;
+    Ok(LinkedinConfigStatus {
+        client_id_configured: true,
+    })
+}
+
+/// Güvenli depodaki LinkedIn Client ID yapılandırmasını temizler.
+#[tauri::command]
+pub fn linkedin_clear_config() -> Result<(), SocialError> {
+    linkedin::clear_config()
+}
+
+/// LinkedIn hedefine gerçek Posts API ile yayın yapar ve gerçek post
+/// URN'sini döndürür.
+///
+/// Girdiler mevcut yayın motorunun kontrollü veri modelinden gelir; JS'ten
+/// serbest medya / platform metni kabul edilmez. `media_kind` kontrollü
+/// değerdir. Metin doğrudan `/rest/posts` ile; görsel Images API, video
+/// Videos API (parçalı yükleme + işleme yoklaması) ile yüklenip aynı Posts
+/// API'de yayınlanır. Eski UGC/Share API kullanılmaz.
+#[tauri::command]
+pub fn linkedin_publish(
+    app: AppHandle,
+    connection_id: String,
+    message: String,
+    title: String,
+    media_kind: String,
+    media_files: Vec<String>,
+) -> Result<String, SocialError> {
+    let media_kind = if media_kind.trim().is_empty() {
+        None
+    } else {
+        Some(meta::MediaKind::parse(&media_kind).ok_or(SocialError::UnsupportedPostType)?)
+    };
+
+    let input = linkedin::LinkedinPostInput {
+        connection_id,
+        message,
+        title,
+        media_kind,
+        media_files,
+    };
+    linkedin::publish(&app, &input)
 }

@@ -30,6 +30,11 @@ pub fn run() {
             social::commands::x_set_config,
             social::commands::x_clear_config,
             social::commands::x_publish,
+            social::commands::linkedin_connect,
+            social::commands::linkedin_config_status,
+            social::commands::linkedin_set_config,
+            social::commands::linkedin_clear_config,
+            social::commands::linkedin_publish,
           ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

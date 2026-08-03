@@ -165,8 +165,8 @@ function setupFileUpload(prefix) {
 }
 
 // ===== FAZ 2 - SEMBOLIK KAYDET / SIMDI PAYLAS =====
-// Kayit sirasinda secilen video dosyasinin gercek yolunu native dosya seçici
-// ile çözer (yalniz video uzantili dosya icin). Görsel/metin icin boþ döner.
+// Kayit sirasinda secilen video dosyasinin gercek yolunu native dosya seï¿½ici
+// ile ï¿½ï¿½zer (yalniz video uzantili dosya icin). Gï¿½rsel/metin icin boï¿½ dï¿½ner.
 function simulateSave(type) {
     var names = {
         'standart': 'Standart Paylasim',
@@ -182,7 +182,7 @@ function simulateSave(type) {
         gorselAdi = inputEl.files[0].name;
     }
 
-    // Video secildiyse gercek yolu native dosya seçici ile çöz (iptal edilirse boþ)
+    // Video secildiyse gercek yolu native dosya seï¿½ici ile ï¿½ï¿½z (iptal edilirse boï¿½)
     return videoDosyaYoluAl().then(function(videoYolu) {
         gecmisSMKayitEkle({
             tarihSaat: new Date().toLocaleString('tr-TR'),
@@ -213,13 +213,13 @@ function simulateSave(type) {
     });
 }
 
-// ===== GERCEK YAYIN MOTORU (Facebook / Instagram / TikTok) =====
+// ===== GERCEK YAYIN MOTORU (Facebook / Instagram / TikTok / X / LinkedIn) =====
 // Manuel "Simdi Paylas" yayin motoruna baglanan gercek yayin sevkiyatcisi.
-// Bagli Facebook/Instagram/TikTok hesaplarina gercek Tauri komutlarini
-// (facebook_publish, instagram_publish, tiktok_publish) cagirir. Sonuclar
-// gercek post id ile basarili, aksi halde kontrollu hata koduyla basarisiz
-// olarak islenir; sahte basari uretilmez. Bagli yayin destekli hesap yoksa
-// hicbir platform icin basari iddia edilmez.
+// Bagli Facebook/Instagram/TikTok/X/LinkedIn hesaplarina gercek Tauri
+// komutlarini (facebook_publish, instagram_publish, tiktok_publish, x_publish,
+// linkedin_publish) cagirir. Sonuclar gercek post id ile basarili, aksi halde
+// kontrollu hata koduyla basarisiz olarak islenir; sahte basari uretilmez.
+// Bagli yayin destekli hesap yoksa hicbir platform icin basari iddia edilmez.
 function sosyalGercekYayinGonder(icerik) {
     var sonuc = {
         platformlar: [], // { platformId, basarili, postId, hataMesaji }
@@ -240,9 +240,10 @@ function sosyalGercekYayinGonder(icerik) {
         var bagli = (list || []).filter(function(c) {
             return c.connectionStatus === 'connected';
         });
-        // Yalniz yayin destekli platformlar hedeflenir: Facebook, Instagram, TikTok.
+        // Yalniz yayin destekli platformlar hedeflenir: Facebook, Instagram,
+        // TikTok, X, LinkedIn.
         var yayinBagli = bagli.filter(function(c) {
-            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x';
+            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin';
         });
 
         if (yayinBagli.length === 0) {
@@ -255,9 +256,9 @@ function sosyalGercekYayinGonder(icerik) {
             var command;
             var args;
             if (platformId === 'tiktok') {
-                // TikTok video yayini: gerçek Content Posting API (video init +
-                // presigned upload + durum yoklamasi). Gizlilik kontrolü bir
-                // deðerle gelir; video dosya yolu icerikten alinir.
+                // TikTok video yayini: gerï¿½ek Content Posting API (video init +
+                // presigned upload + durum yoklamasi). Gizlilik kontrolï¿½ bir
+                // deï¿½erle gelir; video dosya yolu icerikten alinir.
                 command = 'tiktok_publish';
                 args = {
                     connectionId: conn.connectionId,
@@ -275,6 +276,17 @@ function sosyalGercekYayinGonder(icerik) {
                 };
             } else if (platformId === 'facebook') {
                 command = 'facebook_publish';
+                args = {
+                    connectionId: conn.connectionId,
+                    message: icerik.mesaj || '',
+                    title: icerik.baslik || '',
+                    mediaKind: icerik.mediaKind || '',
+                    mediaFiles: icerik.mediaFiles || []
+                };
+            } else if (platformId === 'linkedin') {
+                // LinkedIn yayini: gercek Posts API (metin) / Images API
+                // (gorsel) / Videos API (video). Eski UGC/Share API kullanilmaz.
+                command = 'linkedin_publish';
                 args = {
                     connectionId: conn.connectionId,
                     message: icerik.mesaj || '',
@@ -314,13 +326,13 @@ function sosyalGercekYayinGonder(icerik) {
     });
 }
 
-// Seçili video dosyasýnýn gerçek mutlak yolunu native dosya seçici (dialog)
-// üzerinden Rust'dan alýr. Tarayýcý güvenliði gereði ön yüz gerçek yola
-// eriþemediði için bu komut kullanýlýr. Video seçilmediyse veya kullanýcý
-// iptal ederse boþ dize döner (sahte ön yol üretilmez).
+// Seï¿½ili video dosyasï¿½nï¿½n gerï¿½ek mutlak yolunu native dosya seï¿½ici (dialog)
+// ï¿½zerinden Rust'dan alï¿½r. Tarayï¿½cï¿½ gï¿½venliï¿½i gereï¿½i ï¿½n yï¿½z gerï¿½ek yola
+// eriï¿½emediï¿½i iï¿½in bu komut kullanï¿½lï¿½r. Video seï¿½ilmediyse veya kullanï¿½cï¿½
+// iptal ederse boï¿½ dize dï¿½ner (sahte ï¿½n yol ï¿½retilmez).
 function videoDosyaYoluAl() {
     var p = esTauriInvoke('pick_video_file');
-    if (!p) return Promise.resolve(''); // Tauri ortamý yok: gerçek yol alýnamaz
+    if (!p) return Promise.resolve(''); // Tauri ortamï¿½ yok: gerï¿½ek yol alï¿½namaz
     return p.catch(function() { return ''; });
 }
 
@@ -350,8 +362,8 @@ function simulateNow(type) {
         seciliDosyalar = Array.from(inputEl.files).map(function(f) { return f.name; });
     }
 
-    // TikTok video için gerçek disk yolunu native dosya seçici ile çöz.
-    // Video seçildiðinde (uzantýya göre) iptal edilirse boþ dizeyle devam edilir.
+    // TikTok video iï¿½in gerï¿½ek disk yolunu native dosya seï¿½ici ile ï¿½ï¿½z.
+    // Video seï¿½ildiï¿½inde (uzantï¿½ya gï¿½re) iptal edilirse boï¿½ dizeyle devam edilir.
     var videoSecildi = seciliVideoMi(inputEl);
     return (videoSecildi ? videoDosyaYoluAl() : Promise.resolve('')).then(function(gercekYol) {
         var videoPath = gercekYol || '';
@@ -1444,7 +1456,7 @@ function bildirimDashboardOzetGuncelle() {
     var kartlar = document.querySelectorAll('#dash-sosyal-medya .dashboard-grid .dashboard-card');
     for (var i = 0; i < kartlar.length; i++) {
         var titleEl = kartlar[i].querySelector('.card-title');
-        if (titleEl && titleEl.textContent.trim() === 'Bildirim Özeti') {
+        if (titleEl && titleEl.textContent.trim() === 'Bildirim ï¿½zeti') {
             ozetEl = kartlar[i].querySelector('.card-placeholder');
             break;
         }
@@ -1455,7 +1467,7 @@ function bildirimDashboardOzetGuncelle() {
     var toplam = bildirimler.length;
     
     if (toplam === 0) {
-        ozetEl.textContent = 'Henüz bildirim bulunmuyor.';
+        ozetEl.textContent = 'Henï¿½z bildirim bulunmuyor.';
     } else {
         ozetEl.textContent = okunmamis + ' okunmamis, ' + toplam + ' toplam bildirim';
     }
@@ -1884,6 +1896,18 @@ function ayarlarPlatformListele() {
                 '<button class="btn btn-warning btn-small" onclick="ayarlarXConfigTemizle()">Temizle</button></div>';
             html += '        </div>';
         }
+        if (p.id === 'linkedin') {
+            // LinkedIn, masaÃ¼stÃ¼ Native PKCE akÄ±ÅŸÄ± kullanÄ±r; Client Secret
+            // gerekmez ve bu ekranda secret alanÄ± kasÄ±tlÄ± olarak yoktur.
+            html += '        <div class="platform-config" id="ayarlarLinkedinConfigGrubu">';
+            html += '            <div class="form-row"><label>Client ID</label>' +
+                '<input type="text" class="form-input" id="ayarlarLinkedinClientId" placeholder="LinkedIn OAuth Client ID"></div>';
+            html += '            <div class="platform-config-durum" id="ayarlarLinkedinConfigDurum"></div>';
+            html += '            <div class="platform-config-actions">' +
+                '<button class="btn btn-primary btn-small" onclick="ayarlarLinkedinConfigKaydet()">Kaydet</button>' +
+                '<button class="btn btn-warning btn-small" onclick="ayarlarLinkedinConfigTemizle()">Temizle</button></div>';
+            html += '        </div>';
+        }
         html += '    </div>';
         html += '    <div class="platform-actions">';
         if (!p.bagli) {
@@ -1899,6 +1923,7 @@ function ayarlarPlatformListele() {
 
     liste.innerHTML = html;
     ayarlarXConfigDurumYukle();
+    ayarlarLinkedinConfigDurumYukle();
 }
 
 // ===== KONTROLLU HATA KODU -> TURKCE MESAJ =====
@@ -1963,13 +1988,22 @@ function ayarlarXConfigTemizle() {
 function metaHataMesaji(code) {
     var c = String(code || '');
     if (c.indexOf('app_secret_required') !== -1) {
-        return 'Meta App Secret (uygulama gizli anahtari) henuz yapilandirilmamis. Facebook/Instagram baglantisi icin once Ayarlar > Sosyal Medya bölümünde Meta App ID ve App Secret girin ve kaydedin.';
+        return 'Meta App Secret (uygulama gizli anahtari) henuz yapilandirilmamis. Facebook/Instagram baglantisi icin once Ayarlar > Sosyal Medya bï¿½lï¿½mï¿½nde Meta App ID ve App Secret girin ve kaydedin.';
     }
     if (c.indexOf('meta_not_configured') !== -1) {
         return 'Meta App ID/App Secret yapilandirilmamis. Facebook/Instagram baglantisi icin once Meta kimliklerini girin ve kaydedin.';
     }
     if (c.indexOf('tiktok_not_configured') !== -1) {
         return 'TikTok Client Key / Client Secret yapilandirilmamis. TikTok baglantisi icin once Client Key ve Client Secret girin ve kaydedin.';
+    }
+    if (c.indexOf('linkedin_not_configured') !== -1) {
+        return 'LinkedIn Client ID yapilandirilmamis. LinkedIn baglantisi icin once Ayarlar > Sosyal Medya b\u00f6l\u00fcm\u00fcnde Client ID girin ve kaydedin. (Client Secret gerekmez; Native PKCE kullanilir.)';
+    }
+    if (c.indexOf('linkedin_identity_lookup_failed') !== -1) {
+        return 'LinkedIn kullanici kimligi alinamadi. Yetkilendirme yari kalabilir; hesabi yeniden baglamayi deneyin.';
+    }
+    if (c.indexOf('linkedin_org_not_found') !== -1) {
+        return 'Yayin yapilabilir (ADMINISTRATOR / CONTENT_ADMIN / DIRECT_SPONSORED_CONTENT_POSTER rolune sahip) yonetilen sirket sayfasi bulunamadi.';
     }
     if (c.indexOf('reauthorization_required') !== -1) {
         return 'Token yenileme app secret gerektirdigi icin yapilamadi. Do\u011fru yetkilendirme icin hesabin yeniden baglanmasi gerekir (bu surumde engellenmistir).';
@@ -2177,7 +2211,7 @@ function ayarlarPlatformBaglan(id) {
                 // Tarayici acilmaz, OAuth baslatilmaz, sahte baglanti uretilmez.
                 bildirimEkle('sosyal-medya-baglanti', 'uyari',
                     p.ad + ' icin Meta kimlikleri gerekli',
-                    'Facebook/Instagram baglantisi icin once Ayarlar > Sosyal Medya bölümünde Meta App ID ve App Secret girin ve kaydedin. ' +
+                    'Facebook/Instagram baglantisi icin once Ayarlar > Sosyal Medya bï¿½lï¿½mï¿½nde Meta App ID ve App Secret girin ve kaydedin. ' +
                     metaHataMesaji('app_secret_required'));
                 // Secenek: formu kullaniciya goster
                 var grp = document.getElementById('ayarlarMetaConfigGrubu');
@@ -2248,7 +2282,7 @@ function ayarlarPlatformBaglan(id) {
                 // Tarayici acilmaz, OAuth baslatilmaz, sahte baglanti uretilmez.
                 bildirimEkle('sosyal-medya-baglanti', 'uyari',
                     'TikTok icin Client Key / Client Secret gerekli',
-                    'TikTok baglantisi icin once Ayarlar > Sosyal Medya bölümünde TikTok Client Key ve Client Secret girin ve kaydedin.');
+                    'TikTok baglantisi icin once Ayarlar > Sosyal Medya bï¿½lï¿½mï¿½nde TikTok Client Key ve Client Secret girin ve kaydedin.');
                 var grp = document.getElementById('ayarlarTiktokConfigGrubu');
                 if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
@@ -2304,6 +2338,86 @@ function ayarlarPlatformBaglan(id) {
             bildirimEkle('sosyal-medya-baglanti', 'hata',
                 'TikTok baglantisi kurulamadi',
                 'TikTok yapilandirma durumu okunamadi.');
+        });
+        return;
+    }
+
+    // LinkedIn: gercek Native PKCE OAuth akisina baglanir (Client Secret
+    // gerekmez). Yalniz Client ID yapilandirilmis olmalidir; yapilandirilmamissa
+    // kullanici Client ID girmeye yonlendirilir, OAuth baslatilmaz.
+    if (id === 'linkedin') {
+        var liCfg = esTauriInvoke('linkedin_config_status');
+        if (!liCfg) {
+            bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                'LinkedIn baglantisi yalniz masaustunde kullanilabilir',
+                'LinkedIn hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+            return;
+        }
+        liCfg.then(function(stat) {
+            if (!stat || !stat.clientIdConfigured) {
+                bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                    'LinkedIn icin Client ID gerekli',
+                    'LinkedIn baglantisi icin once Ayarlar > Sosyal Medya b\u00f6l\u00fcm\u00fcnde LinkedIn Client ID girin ve kaydedin. (Client Secret gerekmez; Native PKCE kullanilir.)');
+                var grp = document.getElementById('ayarlarLinkedinConfigGrubu');
+                if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // Client ID hazir: gercek PKCE OAuth akisini baslat. Tarayici resmi
+            // LinkedIn yetkilendirme sayfasina acilir; callback sonrasi kisisel
+            // profil ve yayin yapilabilir sirket sayfalari baglanir.
+            var liConn = esTauriInvoke('linkedin_connect', {});
+            if (!liConn) {
+                bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                    'LinkedIn baglantisi yalniz masaustunde kullanilabilir',
+                    'LinkedIn hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+                return;
+            }
+            liConn.then(function(res) {
+                var list = (res && res.connections) || [];
+                if (list.length === 0) {
+                    bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                        'LinkedIn baglantisi kurulamadi',
+                        'LinkedIn hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
+                    return;
+                }
+                p.bagli = true;
+                p.hesapAdi = (list[0].accountDisplayName) || '';
+                p.sonKontrol = new Date().toLocaleString('tr-TR');
+                ayarlarPlatformListele();
+                dashboardBaglantiGuncelle();
+                var hedefSayisi = '1 kisisel profil';
+                var sayfaSayisi = list.length - 1;
+                if (sayfaSayisi > 0) hedefSayisi += ' + ' + sayfaSayisi + ' sirket sayfasi';
+                bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                    'LinkedIn baglantisi kuruldu',
+                    'LinkedIn hesap baglantisi basariyla kuruldu (' + hedefSayisi + ').');
+            }).catch(function(err) {
+                var raw = String((err && (err.message || err.code || err)) || '');
+                var code = String(raw);
+                var msg;
+                if (code.indexOf('linkedin_not_configured') !== -1) {
+                    msg = 'LinkedIn Client ID yapilandirilmamis. Once Client ID girin ve kaydedin.';
+                } else if (code.indexOf('oauth_cancelled') !== -1) {
+                    msg = 'LinkedIn giris ekraninda yetkilendirme iptal edildi.';
+                } else if (code.indexOf('oauth_timeout') !== -1) {
+                    msg = 'LinkedIn yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
+                } else if (code.indexOf('oauth_state_mismatch') !== -1) {
+                    msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
+                } else if (code.indexOf('permission_denied') !== -1) {
+                    msg = 'LinkedIn izin istegini reddetti. Gerekli izinler (w_member_social / w_organization_social) onaylanmamis olabilir.';
+                } else if (code.indexOf('linkedin_identity_lookup_failed') !== -1) {
+                    msg = 'LinkedIn kullanici kimligi alinamadi. Yetkilendirme yari kalabilir; tekrar deneyin.';
+                } else {
+                    msg = 'LinkedIn baglantisi basarisiz oldu: ' + raw;
+                }
+                bildirimEkle('sosyal-medya-baglanti', 'hata',
+                    'LinkedIn baglantisi kurulamadi', msg);
+            });
+        }).catch(function() {
+            bildirimEkle('sosyal-medya-baglanti', 'hata',
+                'LinkedIn baglantisi kurulamadi',
+                'LinkedIn yapilandirma durumu okunamadi.');
         });
         return;
     }
@@ -2453,8 +2567,8 @@ function ayarlarMetaConfigKaydet() {
     }
     s.then(function(stat) {
         document.getElementById('ayarlarMetaAppSecret').value = '';
-        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Meta kimlikleri güvenli biçimde kaydedildi.</span>';
-        alert('Meta App ID ve App Secret güvenli biçimde kaydedildi. (App Secret ekranda/yerelde gösterilmez.)');
+        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Meta kimlikleri gï¿½venli biï¿½imde kaydedildi.</span>';
+        alert('Meta App ID ve App Secret gï¿½venli biï¿½imde kaydedildi. (App Secret ekranda/yerelde gï¿½sterilmez.)');
         bildirimEkle('sosyal-medya-baglanti', 'basarili',
             'Meta kimlikleri kaydedildi',
             'Facebook/Instagram baglantisi icin gerekli App ID ve App Secret guvenli depoya kaydedildi.');
@@ -2547,8 +2661,8 @@ function ayarlarTiktokConfigKaydet() {
     }
     s.then(function(stat) {
         document.getElementById('ayarlarTiktokClientSecret').value = '';
-        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">TikTok kimlikleri güvenli biçimde kaydedildi.</span>';
-        alert('TikTok Client Key ve Client Secret güvenli biçimde kaydedildi. (Client Secret ekranda/yerelde gösterilmez.)');
+        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">TikTok kimlikleri gï¿½venli biï¿½imde kaydedildi.</span>';
+        alert('TikTok Client Key ve Client Secret gï¿½venli biï¿½imde kaydedildi. (Client Secret ekranda/yerelde gï¿½sterilmez.)');
         bildirimEkle('sosyal-medya-baglanti', 'basarili',
             'TikTok kimlikleri kaydedildi',
             'TikTok baglantisi icin gerekli Client Key ve Client Secret guvenli depoya kaydedildi.');
@@ -2581,6 +2695,91 @@ function ayarlarTiktokConfigTemizle() {
     }).catch(function() {
         if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
         alert('TikTok kimlikleri temizlenemedi.');
+    });
+}
+
+// ===== LINKEDIN (CLIENT ID) UYGULAMA KIMLIGI =====
+// LinkedIn baglantisi masaustu Native PKCE akisi kullanir; Client Secret
+// gerekmez ve bu nedenle secret alani/saklama kavrami yoktur. Yalniz Client
+// ID (public identifier) saklanir; bu da gizli bilgi sayilmaz.
+
+// Sayfa yuklendiginde LinkedIn yapilandirma durumunu sorgula (Tauri ortami varsa).
+function ayarlarLinkedinConfigDurumYukle() {
+    var durumEl = document.getElementById('ayarlarLinkedinConfigDurum');
+    if (!durumEl) return;
+
+    var s = esTauriInvoke('linkedin_config_status');
+    if (!s) {
+        // Tauri ortami yok: onizleme modu. Bilgi mesaji goster.
+        durumEl.textContent = 'LinkedIn Client ID yalniz masaustu uygulamada saklanabilir. (Onizleme modunda baglanti yapilamaz.)';
+        return;
+    }
+    s.then(function(stat) {
+        if (!stat) return;
+        if (stat.clientIdConfigured) {
+            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">LinkedIn Client ID yapilandirildi. (Client Secret gerekmez; Native PKCE kullanilir.)</span>';
+        } else {
+            durumEl.textContent = 'LinkedIn Client ID henuz yapilandirilmadi. LinkedIn baglantisi icin asagiya girin ve kaydedin.';
+        }
+    }).catch(function() {
+        durumEl.textContent = 'LinkedIn yapilandirma durumu okunamadi.';
+    });
+}
+
+// LinkedIn Client ID'yi guvenli depoya kaydet (Client ID public bilgidir).
+function ayarlarLinkedinConfigKaydet() {
+    var durumEl = document.getElementById('ayarlarLinkedinConfigDurum');
+    var clientId = document.getElementById('ayarlarLinkedinClientId').value.trim();
+
+    if (!clientId) {
+        alert('LinkedIn Client ID zorunludur. Bos deger kaydedilemez.');
+        if (durumEl) durumEl.textContent = 'LinkedIn Client ID girin.';
+        bildirimEkle('sistem-uyari', 'uyari',
+            'LinkedIn kimligi kaydedilemedi - Zorunlu alan eksik',
+            'LinkedIn Client ID girilmeden kaydedilemez.');
+        return;
+    }
+
+    var s = esTauriInvoke('linkedin_set_config', { clientId: clientId });
+    if (!s) {
+        alert('LinkedIn Client ID yalniz masaustu uygulamada saklanabilir.');
+        if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.';
+        return;
+    }
+    s.then(function() {
+        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">LinkedIn Client ID guvenli bicimde kaydedildi.</span>';
+        alert('LinkedIn Client ID guvenli bicimde kaydedildi. (Client Secret gerekmez.)');
+        bildirimEkle('sosyal-medya-baglanti', 'basarili',
+            'LinkedIn kimligi kaydedildi',
+            'LinkedIn baglantisi icin gerekli Client ID guvenli depoya kaydedildi.');
+    }).catch(function(err) {
+        var raw = (err && (err.message || err.code || err)) || '';
+        var msg = metaHataMesaji(String(raw));
+        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + msg;
+        alert('LinkedIn Client ID kaydedilemedi.');
+        bildirimEkle('sosyal-medya-baglanti', 'hata',
+            'LinkedIn kimligi kaydedilemedi', msg);
+    });
+}
+
+// LinkedIn Client ID'yi guvenli depodan temizle.
+function ayarlarLinkedinConfigTemizle() {
+    var durumEl = document.getElementById('ayarlarLinkedinConfigDurum');
+    var s = esTauriInvoke('linkedin_clear_config');
+    if (!s) {
+        if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.';
+        return;
+    }
+    s.then(function() {
+        document.getElementById('ayarlarLinkedinClientId').value = '';
+        if (durumEl) durumEl.textContent = 'LinkedIn Client ID temizlendi. LinkedIn baglantisi artik yapilamaz.';
+        alert('LinkedIn Client ID temizlendi.');
+        bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+            'LinkedIn kimligi temizlendi',
+            'LinkedIn baglantisinda kullanilan Client ID guvenli depodan silindi.');
+    }).catch(function() {
+        if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
+        alert('LinkedIn Client ID temizlenemedi.');
     });
 }
 

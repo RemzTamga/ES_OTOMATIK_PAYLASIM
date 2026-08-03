@@ -28,7 +28,7 @@ pub fn platform_catalog() -> Vec<PlatformDefinition> {
         PlatformDefinition {
             platform_id: "linkedin",
             display_name: "LinkedIn",
-            support_status: SupportStatus::Restricted,
+            support_status: SupportStatus::Supported,
         },
         PlatformDefinition {
             platform_id: "tiktok",

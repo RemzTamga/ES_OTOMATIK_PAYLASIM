@@ -148,6 +148,10 @@ pub enum SocialError {
     PublishFailed,
     TiktokNotConfigured,
     XNotConfigured,
+    // LinkedIn kontrollü hatalar.
+    LinkedinNotConfigured,
+    LinkedinIdentityLookupFailed,
+    LinkedinOrgNotFound,
 }
 
 impl std::fmt::Display for SocialError {
@@ -192,6 +196,9 @@ impl std::fmt::Display for SocialError {
             SocialError::PublishFailed => "publish_failed",
             SocialError::TiktokNotConfigured => "tiktok_not_configured",
             SocialError::XNotConfigured => "x_not_configured",
+            SocialError::LinkedinNotConfigured => "linkedin_not_configured",
+            SocialError::LinkedinIdentityLookupFailed => "linkedin_identity_lookup_failed",
+            SocialError::LinkedinOrgNotFound => "linkedin_org_not_found",
         };
         f.write_str(msg)
     }
