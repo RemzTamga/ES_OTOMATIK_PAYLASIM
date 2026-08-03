@@ -38,7 +38,7 @@ pub fn platform_catalog() -> Vec<PlatformDefinition> {
         PlatformDefinition {
             platform_id: "pinterest",
             display_name: "Pinterest",
-            support_status: SupportStatus::VerificationPending,
+            support_status: SupportStatus::Supported,
         },
         PlatformDefinition {
             platform_id: "threads",

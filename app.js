@@ -213,12 +213,13 @@ function simulateSave(type) {
     });
 }
 
-// ===== GERCEK YAYIN MOTORU (Facebook / Instagram / TikTok / X / LinkedIn) =====
+// ===== GERCEK YAYIN MOTORU (Facebook / Instagram / TikTok / X / LinkedIn / Pinterest) =====
 // Manuel "Simdi Paylas" yayin motoruna baglanan gercek yayin sevkiyatcisi.
-// Bagli Facebook/Instagram/TikTok/X/LinkedIn hesaplarina gercek Tauri
+// Bagli Facebook/Instagram/TikTok/X/LinkedIn/Pinterest hesaplarina gercek Tauri
 // komutlarini (facebook_publish, instagram_publish, tiktok_publish, x_publish,
-// linkedin_publish) cagirir. Sonuclar gercek post id ile basarili, aksi halde
-// kontrollu hata koduyla basarisiz olarak islenir; sahte basari uretilmez.
+// linkedin_publish, pinterest_publish) cagirir. Sonuclar gercek post id ile
+// basarili, aksi halde kontrollu hata koduyla basarisiz olarak islenir; sahte
+// basari uretilmez.
 // Bagli yayin destekli hesap yoksa hicbir platform icin basari iddia edilmez.
 function sosyalGercekYayinGonder(icerik) {
     var sonuc = {
@@ -241,9 +242,9 @@ function sosyalGercekYayinGonder(icerik) {
             return c.connectionStatus === 'connected';
         });
         // Yalniz yayin destekli platformlar hedeflenir: Facebook, Instagram,
-        // TikTok, X, LinkedIn.
+        // TikTok, X, LinkedIn, Pinterest.
         var yayinBagli = bagli.filter(function(c) {
-            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin';
+            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin' || c.platformId === 'pinterest';
         });
 
         if (yayinBagli.length === 0) {
@@ -287,6 +288,19 @@ function sosyalGercekYayinGonder(icerik) {
                 // LinkedIn yayini: gercek Posts API (metin) / Images API
                 // (gorsel) / Videos API (video). Eski UGC/Share API kullanilmaz.
                 command = 'linkedin_publish';
+                args = {
+                    connectionId: conn.connectionId,
+                    message: icerik.mesaj || '',
+                    title: icerik.baslik || '',
+                    mediaKind: icerik.mediaKind || '',
+                    mediaFiles: icerik.mediaFiles || []
+                };
+            } else if (platformId === 'pinterest') {
+                // Pinterest yayini: gercek v5 API. Gorsel image_base64 ile,
+                // coklu gorsel multiple_image_base64 ile, video ise resmi media
+                // upload akisiyla dogrudan yuklenir (herkese acik URL gerekmez).
+                // Her baglantili pano ayri bir yayin hedefidir.
+                command = 'pinterest_publish';
                 args = {
                     connectionId: conn.connectionId,
                     message: icerik.mesaj || '',
@@ -1908,6 +1922,21 @@ function ayarlarPlatformListele() {
                 '<button class="btn btn-warning btn-small" onclick="ayarlarLinkedinConfigTemizle()">Temizle</button></div>';
             html += '        </div>';
         }
+        if (p.id === 'pinterest') {
+            // Pinterest v5 API, OAuth token değişiminde Client ID + Client
+            // Secret (HTTP Basic) ister. İkisi de güvenli depoda saklanır;
+            // secret asla bu ekranda veya ön yüzde kalıcı tutulmaz.
+            html += '        <div class="platform-config" id="ayarlarPinterestConfigGrubu">';
+            html += '            <div class="form-row"><label>Client ID</label>' +
+                '<input type="text" class="form-input" id="ayarlarPinterestClientId" placeholder="Pinterest API Client ID"></div>';
+            html += '            <div class="form-row"><label>Client Secret</label>' +
+                '<input type="password" class="form-input" id="ayarlarPinterestClientSecret" placeholder="Pinterest API Client Secret"></div>';
+            html += '            <div class="platform-config-durum" id="ayarlarPinterestConfigDurum"></div>';
+            html += '            <div class="platform-config-actions">' +
+                '<button class="btn btn-primary btn-small" onclick="ayarlarPinterestConfigKaydet()">Kaydet</button>' +
+                '<button class="btn btn-warning btn-small" onclick="ayarlarPinterestConfigTemizle()">Temizle</button></div>';
+            html += '        </div>';
+        }
         html += '    </div>';
         html += '    <div class="platform-actions">';
         if (!p.bagli) {
@@ -1924,6 +1953,7 @@ function ayarlarPlatformListele() {
     liste.innerHTML = html;
     ayarlarXConfigDurumYukle();
     ayarlarLinkedinConfigDurumYukle();
+    ayarlarPinterestConfigDurumYukle();
 }
 
 // ===== KONTROLLU HATA KODU -> TURKCE MESAJ =====
@@ -2004,6 +2034,15 @@ function metaHataMesaji(code) {
     }
     if (c.indexOf('linkedin_org_not_found') !== -1) {
         return 'Yayin yapilabilir (ADMINISTRATOR / CONTENT_ADMIN / DIRECT_SPONSORED_CONTENT_POSTER rolune sahip) yonetilen sirket sayfasi bulunamadi.';
+    }
+    if (c.indexOf('pinterest_not_configured') !== -1) {
+        return 'Pinterest Client ID / Client Secret yapilandirilmamis. Pinterest baglantisi icin once Ayarlar > Sosyal Medya b\u00f6l\u00fcm\u00fcnde Client ID ve Client Secret girin ve kaydedin.';
+    }
+    if (c.indexOf('pinterest_identity_lookup_failed') !== -1) {
+        return 'Pinterest kullanici kimligi alinamadi. Yetkilendirme yari kalabilir; hesabi yeniden baglamayi deneyin.';
+    }
+    if (c.indexOf('pinterest_board_not_found') !== -1) {
+        return 'Yayin yapilacak Pinterest panosu bulunamadi. Hesapta en az bir pano olmali veya mevcut pano id gecersiz.';
     }
     if (c.indexOf('reauthorization_required') !== -1) {
         return 'Token yenileme app secret gerektirdigi icin yapilamadi. Do\u011fru yetkilendirme icin hesabin yeniden baglanmasi gerekir (bu surumde engellenmistir).';
@@ -2422,6 +2461,83 @@ function ayarlarPlatformBaglan(id) {
         return;
     }
 
+    // Pinterest: gercek v5 OAuth Authorization Code akisi (klient secret Basic
+    // auth ile token degisiminde kullanilir). Client ID + Client Secret gerekir;
+    // ikisinden biri eksikse OAuth baslatilmaz ve kullanici config'e yonlendirilir.
+    if (id === 'pinterest') {
+        var pCfg = esTauriInvoke('pinterest_config_status');
+        if (!pCfg) {
+            bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                'Pinterest baglantisi yalniz masaustunde kullanilabilir',
+                'Pinterest hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+            return;
+        }
+        pCfg.then(function(stat) {
+            if (!stat || !stat.clientIdConfigured || !stat.clientSecretConfigured) {
+                bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                    'Pinterest icin Client ID ve Client Secret gerekli',
+                    'Pinterest baglantisi icin once Ayarlar > Sosyal Medya b\u00f6l\u00fcm\u00fcnde Client ID ve Client Secret girin ve kaydedin.');
+                var grp = document.getElementById('ayarlarPinterestConfigGrubu');
+                if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // Kimlikler hazir: gercek Authorization Code akisini baslat. Tarayici
+            // resmi Pinterest yetkilendirme sayfasina acilir; callback sonrasi
+            // hesabin panolari kesfedilir ve her pano ayri bir yayin hedefi olur.
+            var pConn = esTauriInvoke('pinterest_connect', {});
+            if (!pConn) {
+                bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                    'Pinterest baglantisi yalniz masaustunde kullanilabilir',
+                    'Pinterest hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+                return;
+            }
+            pConn.then(function(res) {
+                var panolar = (res && res.connections) || [];
+                if (panolar.length === 0) {
+                    bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                        'Pinterest baglantisi kurulamadi',
+                        'Hesap baglandi ancak yayin yapilabilecek pano bulunamadi.');
+                    return;
+                }
+                p.bagli = true;
+                p.hesapAdi = (panolar[0].accountDisplayName) || '';
+                p.sonKontrol = new Date().toLocaleString('tr-TR');
+                ayarlarPlatformListele();
+                dashboardBaglantiGuncelle();
+                bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                    'Pinterest baglantisi kuruldu',
+                    'Pinterest hesap baglantisi basariyla kuruldu (' + panolar.length + ' pano yayin hedefi).');
+            }).catch(function(err) {
+                var raw = String((err && (err.message || err.code || err)) || '');
+                var code = String(raw);
+                var msg;
+                if (code.indexOf('pinterest_not_configured') !== -1) {
+                    msg = 'Pinterest Client ID / Client Secret yapilandirilmamis. Once kimlikleri girin ve kaydedin.';
+                } else if (code.indexOf('oauth_cancelled') !== -1) {
+                    msg = 'Pinterest giris ekraninda yetkilendirme iptal edildi.';
+                } else if (code.indexOf('oauth_timeout') !== -1) {
+                    msg = 'Pinterest yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
+                } else if (code.indexOf('oauth_state_mismatch') !== -1) {
+                    msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
+                } else if (code.indexOf('permission_denied') !== -1) {
+                    msg = 'Pinterest izin istegini reddetti. Gerekli izinler (boards:read, boards:write, pins:read, pins:write) onaylanmamis olabilir.';
+                } else if (code.indexOf('pinterest_identity_lookup_failed') !== -1) {
+                    msg = 'Pinterest kullanici kimligi alinamadi. Yetkilendirme yri kalabilir; tekrar deneyin.';
+                } else {
+                    msg = 'Pinterest baglantisi basarisiz oldu: ' + raw;
+                }
+                bildirimEkle('sosyal-medya-baglanti', 'hata',
+                    'Pinterest baglantisi kurulamadi', msg);
+            });
+        }).catch(function() {
+            bildirimEkle('sosyal-medya-baglanti', 'hata',
+                'Pinterest baglantisi kurulamadi',
+                'Pinterest yapilandirma durumu okunamadi.');
+        });
+        return;
+    }
+
     // planned / restricted / verification_pending / tanimsiz:
     // Baglanti henuz etkin degil. Sahte baglanti veya token olusturulmaz,
     // OAuth baslatilmaz, baglanti "kuruldu" gibi gosterilmez.
@@ -2780,6 +2896,93 @@ function ayarlarLinkedinConfigTemizle() {
     }).catch(function() {
         if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
         alert('LinkedIn Client ID temizlenemedi.');
+    });
+}
+
+// Sayfa yuklendiginde Pinterest yapilandirma durumunu sorgula (Tauri ortami varsa).
+function ayarlarPinterestConfigDurumYukle() {
+    var durumEl = document.getElementById('ayarlarPinterestConfigDurum');
+    if (!durumEl) return;
+
+    var s = esTauriInvoke('pinterest_config_status');
+    if (!s) {
+        // Tauri ortami yok: onizleme modu. Bilgi mesaji goster.
+        durumEl.textContent = 'Pinterest Client ID / Client Secret yalniz masaustu uygulamada saklanabilir. (Onizleme modunda baglanti yapilamaz.)';
+        return;
+    }
+    s.then(function(stat) {
+        if (!stat) return;
+        if (stat.clientIdConfigured && stat.clientSecretConfigured) {
+            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Pinterest Client ID ve Client Secret yapilandirildi. (Client Secret yalniz guvenli depoda saklanir.)</span>';
+        } else if (stat.clientIdConfigured) {
+            durumEl.innerHTML = '<span style="color:#b45309;font-weight:600;">Pinterest Client ID yapilandirildi, Client Secret henuz girilmedi.</span>';
+        } else {
+            durumEl.textContent = 'Pinterest Client ID ve Client Secret henuz yapilandirilmadi. Pinterest baglantisi icin asagiya girin ve kaydedin.';
+        }
+    }).catch(function() {
+        durumEl.textContent = 'Pinterest yapilandirma durumu okunamadi.';
+    });
+}
+
+// Pinterest Client ID ve Client Secret'i guvenli depoya (Windows Credential
+// Manager) kaydet. Secret asla kaynak dosyaya veya kalici frontend'e yazilmaz.
+function ayarlarPinterestConfigKaydet() {
+    var durumEl = document.getElementById('ayarlarPinterestConfigDurum');
+    var clientId = document.getElementById('ayarlarPinterestClientId').value.trim();
+    var clientSecret = document.getElementById('ayarlarPinterestClientSecret').value.trim();
+
+    if (!clientId || !clientSecret) {
+        alert('Pinterest Client ID ve Client Secret zorunludur. Bos deger kaydedilemez.');
+        if (durumEl) durumEl.textContent = 'Pinterest Client ID ve Client Secret girin.';
+        bildirimEkle('sistem-uyari', 'uyari',
+            'Pinterest kimlikleri kaydedilemedi - Zorunlu alan eksik',
+            'Pinterest Client ID ve Client Secret girilmeden kaydedilemez.');
+        return;
+    }
+
+    var s = esTauriInvoke('pinterest_set_config', { clientId: clientId, clientSecret: clientSecret });
+    if (!s) {
+        alert('Pinterest Client ID / Client Secret yalniz masaustu uygulamada saklanabilir.');
+        if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.';
+        return;
+    }
+    s.then(function() {
+        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Pinterest Client ID ve Client Secret guvenli bicimde kaydedildi.</span>';
+        document.getElementById('ayarlarPinterestClientId').value = '';
+        document.getElementById('ayarlarPinterestClientSecret').value = '';
+        alert('Pinterest Client ID ve Client Secret guvenli bicimde kaydedildi.');
+        bildirimEkle('sosyal-medya-baglanti', 'basarili',
+            'Pinterest kimlikleri kaydedildi',
+            'Pinterest baglantisi icin gerekli Client ID ve Client Secret guvenli depoya kaydedildi.');
+    }).catch(function(err) {
+        var raw = (err && (err.message || err.code || err)) || '';
+        var msg = metaHataMesaji(String(raw));
+        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + msg;
+        alert('Pinterest kimlikleri kaydedilemedi.');
+        bildirimEkle('sosyal-medya-baglanti', 'hata',
+            'Pinterest kimlikleri kaydedilemedi', msg);
+    });
+}
+
+// Pinterest Client ID ve Client Secret'i guvenli depodan temizle.
+function ayarlarPinterestConfigTemizle() {
+    var durumEl = document.getElementById('ayarlarPinterestConfigDurum');
+    var s = esTauriInvoke('pinterest_clear_config');
+    if (!s) {
+        if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.';
+        return;
+    }
+    s.then(function() {
+        document.getElementById('ayarlarPinterestClientId').value = '';
+        document.getElementById('ayarlarPinterestClientSecret').value = '';
+        if (durumEl) durumEl.textContent = 'Pinterest kimlikleri temizlendi. Pinterest baglantisi artik yapilamaz.';
+        alert('Pinterest kimlikleri temizlendi.');
+        bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+            'Pinterest kimlikleri temizlendi',
+            'Pinterest baglantisinda kullanilan Client ID ve Client Secret guvenli depodan silindi.');
+    }).catch(function() {
+        if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
+        alert('Pinterest kimlikleri temizlenemedi.');
     });
 }
 

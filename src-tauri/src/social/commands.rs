@@ -16,7 +16,7 @@ use super::models::{
     ConnectionStatus, PlatformDefinition, SocialAccountConnection, SocialError, TokenType,
 };
 use super::platforms::youtube;
-use super::platforms::{facebook, instagram, linkedin, meta, tiktok, x};
+use super::platforms::{facebook, instagram, linkedin, meta, pinterest, tiktok, x};
 use super::{media_validation, metadata_store, registry};
 
 /// Metadata deposunun kök dizinini uygulama veri klasörü üzerinden hesaplar.
@@ -685,4 +685,102 @@ pub fn linkedin_publish(
         media_files,
     };
     linkedin::publish(&app, &input)
+}
+
+// ----------------------------------------------------------------------
+// Pinterest (API v5) komutları
+// ----------------------------------------------------------------------
+
+/// Pinterest bağlantı sonucu. Her pano ayrı bir hedef bağlantı olarak eklenir.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PinterestConnectResult {
+    pub connections: Vec<SocialAccountConnection>,
+}
+
+/// Pinterest'e gerçek OAuth akışıyla bağlanır.
+///
+/// - Client ID + Client Secret güvenli depoda (veya derleme zamanında) hazır
+///   olmalıdır; ikisinden biri eksikse `pinterest_not_configured` döner.
+/// - Bağlantıda hesabın panoları keşfedilir ve her pano ayrı bir hedef
+///   bağlantı olarak döndürülür (dış hesap kimliği = pano id).
+#[tauri::command]
+pub fn pinterest_connect(app: AppHandle) -> Result<PinterestConnectResult, SocialError> {
+    let connections = pinterest::connect(&app)?;
+    Ok(PinterestConnectResult { connections })
+}
+
+/// Pinterest bağlantı yapılandırma durumu (gizli bilgi içermez).
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PinterestConfigStatus {
+    pub client_id_configured: bool,
+    pub client_secret_configured: bool,
+}
+
+/// Pinterest Client ID / Client Secret'in güvenli depoda yapılandırılıp
+/// yapılandırılmadığını döndürür. Ham secret asla döndürülmez.
+#[tauri::command]
+pub fn pinterest_config_status() -> Result<PinterestConfigStatus, SocialError> {
+    let (has_id, has_secret) = pinterest::config_status()?;
+    Ok(PinterestConfigStatus {
+        client_id_configured: has_id,
+        client_secret_configured: has_secret,
+    })
+}
+
+/// Pinterest Client ID ve Client Secret'ı güvenli depoya (Windows Credential
+/// Manager) yazar. Değerler kaynağa gömülmez; yalnız şifreli depoda saklanır.
+/// Boş değer kabul edilmez.
+#[tauri::command]
+pub fn pinterest_set_config(
+    client_id: String,
+    client_secret: String,
+) -> Result<PinterestConfigStatus, SocialError> {
+    if client_id.trim().is_empty() || client_secret.trim().is_empty() {
+        return Err(SocialError::PinterestNotConfigured);
+    }
+    pinterest::store_client_id(&client_id)?;
+    pinterest::store_client_secret(&client_secret)?;
+    Ok(PinterestConfigStatus {
+        client_id_configured: true,
+        client_secret_configured: true,
+    })
+}
+
+/// Güvenli depodaki Pinterest yapılandırmasını (Client ID / Client Secret) temizler.
+#[tauri::command]
+pub fn pinterest_clear_config() -> Result<(), SocialError> {
+    pinterest::clear_config()
+}
+
+/// Pinterest panosuna gerçek v5 API ile pin oluşturur ve gerçek pin id döndürür.
+///
+/// Girdiler mevcut yayın motorunun kontrollü veri modelinden gelir; JS'ten
+/// serbest medya kabul edilmez. `media_kind` kontrollü değerdir. Yerel JPG/PNG
+/// `image_base64` ile, çoklu görsel `multiple_image_base64` ile, video ise
+/// resmî media upload akışıyla doğrudan yüklenir; herkese açık URL gerekmez.
+#[tauri::command]
+pub fn pinterest_publish(
+    app: AppHandle,
+    connection_id: String,
+    message: String,
+    title: String,
+    media_kind: String,
+    media_files: Vec<String>,
+) -> Result<String, SocialError> {
+    let media_kind = if media_kind.trim().is_empty() {
+        None
+    } else {
+        Some(meta::MediaKind::parse(&media_kind).ok_or(SocialError::UnsupportedPostType)?)
+    };
+
+    let input = pinterest::PinterestPostInput {
+        connection_id,
+        message,
+        title,
+        media_kind,
+        media_files,
+    };
+    pinterest::publish(&app, &input)
 }
