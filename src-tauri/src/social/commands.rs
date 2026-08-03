@@ -60,6 +60,59 @@ pub fn pick_video_file(app: AppHandle) -> Result<String, SocialError> {
     Ok(abs.to_string_lossy().into_owned())
 }
 
+/// Kullanıcının native dosya seçici ile seçtiği görsel ve/veya video
+/// dosyalarının gerçek mutlak yollarını döndürür.
+///
+/// Tarayıcı/webview güvenliği gereği ön yüz, kullanıcının seçtiği dosyaların
+/// gerçek disk yoluna erişemez; gerçek Facebook/Instagram/LinkedIn/Pinterest
+/// media yayını için dosyaların diskteki mutlak yollarına ihtiyaç duyduğumuz
+/// için bu komut native bir dosya seçici açar ve seçilen geçerli medya
+/// dosyalarının (görsel + video) mutlak yollarını döndürür.
+///
+/// - Kullanıcı dosya seçmez/iptal ederse boş liste döner; sahte isim üretilmez.
+/// - Yalnızca bilinen görsel ve video uzantıları kabul edilir; tanınmayan bir
+///   dosya seçilirse `invalid_media_file` kontrollü hatası döner.
+/// - Her dosya, diskten okunarak uzantıya ek olarak içerik imzasıyla da
+///   doğrulanır (yalnız uzantıya güvenilmez).
+#[tauri::command]
+pub fn pick_media_files(app: AppHandle) -> Result<Vec<String>, SocialError> {
+    let picked = app
+        .dialog()
+        .file()
+        .add_filter(
+            "Medya dosyalari (gorsel / video)",
+            &[
+                "jpg", "jpeg", "png", "webp", "gif", "bmp", "mp4", "mov", "avi", "mkv", "webm",
+                "m4v", "3gp", "mpg", "mpeg", "ogv", "ts", "wmv", "flv",
+            ],
+        )
+        .blocking_pick_files();
+
+    let Some(files) = picked else {
+        return Ok(Vec::new()); // kullanıcı iptal etti; sahte isim üretilmez
+    };
+
+    let mut paths = Vec::with_capacity(files.len());
+    for file in files {
+        let abs = file.into_path().map_err(|_| SocialError::InvalidMediaFile)?;
+        let path = abs.to_string_lossy().into_owned();
+        let lower = path.to_ascii_lowercase();
+        let is_video = [
+            "mp4", "mov", "avi", "mkv", "webm", "m4v", "3gp", "mpg", "mpeg", "ogv", "ts", "wmv",
+            "flv",
+        ]
+        .iter()
+        .any(|ext| lower.ends_with(&format!(".{}", ext)));
+        if is_video {
+            media_validation::verify_video_file(&path)?;
+        } else {
+            media_validation::verify_image_or_photo_file(&path)?;
+        }
+        paths.push(path);
+    }
+    Ok(paths)
+}
+
 /// Platform kataloğunu ve destek durumlarını döndürür.
 /// Gizli bilgi veya token döndürmez.
 #[tauri::command]
