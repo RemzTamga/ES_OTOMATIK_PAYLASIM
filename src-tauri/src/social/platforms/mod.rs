@@ -5,6 +5,17 @@
 //! ve yükleme kuralları platform alt modüllerinde tutulur; ortak `commands.rs`
 //! içine dağıtılmaz.
 //!
-//! Şu an yalnız YouTube entegrasyonu bulunur; yeni platformlar bu dizine eklenir.
+//! - YouTube ayrı bir platform motorudur (`youtube`).
+//! - Facebook ve Instagram, ortak Meta çekirdeğini (`meta`) paylaşır; iki ayrı
+//!   OAuth motoru oluşturulmaz. `meta` tek API sürümünü, OAuth akışını, token
+//!   işlemlerini ve Sayfa / Instagram hesabı keşfini merkezileştirir.
+//!   Facebook (`facebook`) ve Instagram (`instagram`) yalnız kendi içerik ve
+//!   yayın kurallarını içerir.
 
+pub mod meta;
 pub mod youtube;
+
+pub mod facebook;
+pub mod instagram;
+pub mod tiktok;
+pub mod x;

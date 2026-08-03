@@ -29,6 +29,15 @@ jobs:
         run: npm install @tauri-apps/cli
 
       - name: Build Tauri (Windows)
+        env:
+          # Gerçek YouTube OAuth client id, yalnız build ortamına aktarılır.
+          # Rust tarafında `option_env!` ile derleme anında uygulamaya gömülür.
+          ES_OPS_YOUTUBE_CLIENT_ID: ${{ secrets.ES_OPS_YOUTUBE_CLIENT_ID }}
+          # Gerçek Meta App ID (Facebook / Instagram ortak motoru için).
+          # Yalnız derleme anında `option_env!` ile uygulamaya gömülür.
+          # DİKKAT: App Secret asla gömülmez/aktarılmaz; Meta kod→token değişimi
+          # secret gerektirdiğinden bağlantı `app_secret_required` durumunda kalır.
+          ES_OPS_META_APP_ID: ${{ secrets.ES_OPS_META_APP_ID }}
         run: npx tauri build
 
       - name: Upload installer artifact

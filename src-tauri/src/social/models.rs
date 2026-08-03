@@ -130,6 +130,24 @@ pub enum SocialError {
     UploadSessionFailed,
     UploadFailed,
     ApiError,
+    // Meta / Facebook / Instagram kontrollü hatalar.
+    MetaNotConfigured,
+    AppSecretRequired,
+    PermissionDenied,
+    AppReviewRequired,
+    NoManagedPage,
+    PageNotFound,
+    InstagramAccountNotFound,
+    InstagramProfessionalAccountRequired,
+    TokenMissing,
+    ReauthorizationRequired,
+    InvalidMediaFile,
+    MediaUrlUnavailable,
+    MediaContainerFailed,
+    MediaProcessingTimeout,
+    PublishFailed,
+    TiktokNotConfigured,
+    XNotConfigured,
 }
 
 impl std::fmt::Display for SocialError {
@@ -157,6 +175,23 @@ impl std::fmt::Display for SocialError {
             SocialError::UploadSessionFailed => "upload_session_failed",
             SocialError::UploadFailed => "upload_failed",
             SocialError::ApiError => "api_error",
+            SocialError::MetaNotConfigured => "meta_not_configured",
+            SocialError::AppSecretRequired => "app_secret_required",
+            SocialError::PermissionDenied => "permission_denied",
+            SocialError::AppReviewRequired => "app_review_required",
+            SocialError::NoManagedPage => "no_managed_page",
+            SocialError::PageNotFound => "page_not_found",
+            SocialError::InstagramAccountNotFound => "instagram_account_not_found",
+            SocialError::InstagramProfessionalAccountRequired => "instagram_professional_account_required",
+            SocialError::TokenMissing => "token_missing",
+            SocialError::ReauthorizationRequired => "reauthorization_required",
+            SocialError::InvalidMediaFile => "invalid_media_file",
+            SocialError::MediaUrlUnavailable => "media_url_unavailable",
+            SocialError::MediaContainerFailed => "media_container_failed",
+            SocialError::MediaProcessingTimeout => "media_processing_timeout",
+            SocialError::PublishFailed => "publish_failed",
+            SocialError::TiktokNotConfigured => "tiktok_not_configured",
+            SocialError::XNotConfigured => "x_not_configured",
         };
         f.write_str(msg)
     }

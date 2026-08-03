@@ -13,7 +13,7 @@ pub fn platform_catalog() -> Vec<PlatformDefinition> {
         PlatformDefinition {
             platform_id: "x",
             display_name: "X",
-            support_status: SupportStatus::Planned,
+            support_status: SupportStatus::Supported,
         },
         PlatformDefinition {
             platform_id: "facebook",
@@ -33,7 +33,7 @@ pub fn platform_catalog() -> Vec<PlatformDefinition> {
         PlatformDefinition {
             platform_id: "tiktok",
             display_name: "TikTok",
-            support_status: SupportStatus::Restricted,
+            support_status: SupportStatus::Supported,
         },
         PlatformDefinition {
             platform_id: "pinterest",

@@ -661,7 +661,16 @@ fn upload_to_session(
 
 fn parse_range_end(range: &str) -> Option<u64> {
     let after_equal = range.split('=').nth(1)?.to_string();
-    let end_part = after_equal.split('-').nth(1)?;
+    // Sadece `bytes=baslangic-bitis` (suffix olmayan) biçimi kabul edilir.
+    // `bytes=-N` sonek aralığıdır ve mutlak bir bitiş konumu taşımaz; bu durumda
+    // sürdürülecek (resume) bitiş baytı yok sayılır.
+    let mut parts = after_equal.splitn(2, '-');
+    let start_part = parts.next()?;
+    let end_part = parts.next()?;
+    if start_part.trim().is_empty() {
+        // Sonek aralığı (`bytes=-5`): ayrıştırılabilir bir bitiş baytı yok.
+        return None;
+    }
     end_part.split('/').next()?.trim().parse().ok()
 }
 

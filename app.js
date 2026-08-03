@@ -1,4 +1,4 @@
-Ôªø// ===== SAYFA GECISLERI =====
+// ===== SAYFA GECISLERI =====
 function navigateTo(page) {
     document.querySelectorAll('.sidebar-menu a').forEach(function(el) {
         el.classList.remove('active');
@@ -165,6 +165,8 @@ function setupFileUpload(prefix) {
 }
 
 // ===== FAZ 2 - SEMBOLIK KAYDET / SIMDI PAYLAS =====
+// Kayit sirasinda secilen video dosyasinin gercek yolunu native dosya seÁici
+// ile Áˆzer (yalniz video uzantili dosya icin). Gˆrsel/metin icin bo˛ dˆner.
 function simulateSave(type) {
     var names = {
         'standart': 'Standart Paylasim',
@@ -172,32 +174,161 @@ function simulateSave(type) {
         'detayli': 'Detayli Paylasim'
     };
     var siraNo = String(Math.floor(Math.random() * 899) + 100);
-    gecmisSMKayitEkle({
-        tarihSaat: new Date().toLocaleString('tr-TR'),
-        tur: names[type],
-        siraNumarasi: type === 'kampanya' || type === 'detayli' ? '001' : siraNo,
-        baslik: names[type] + ' kaydi',
-        gorselAdi: 'Gorsel dosyasi (simule)',
-        platform: 'Instagram, Facebook, LinkedIn, X, TikTok, Pinterest, YouTube',
-        sablon: 'Standart',
-        platformCikti: 'Platforma ozel duzenleme (simule)',
-        durum: 'bekliyor',
-        icerik: names[type] + ' icerigi kaydedildi ve otomatik yayin sirasina eklendi.',
-        baglanti: '',
-        hataNedeni: ''
-    });
-    if (type === 'standart') {
-        otomatikStandartEkle(names[type] + ' kaydi', siraNo, 'Gorsel (simule)');
-        alert(names[type] + ' kaydedildi. Sira numarasi: ' + siraNo + '. Otomatik yayin sirasina eklendi ve mevcut sira numarasi ile dongude kalacak.');
-    } else if (type === 'kampanya') {
-        var bugun = new Date();
-        var bitis = new Date(bugun);
-        bitis.setDate(bitis.getDate() + 30);
-        otomatikKampanyaEkle(names[type] + ' kaydi', bugun.toISOString().split('T')[0], bitis.toISOString().split('T')[0], 'Gorsel (simule)');
-        alert(names[type] + ' kaydedildi. Kampanya baslangic ve bitis tarihleri arasinda otomatik yayinlanacak. Standart Paylasim dongusune dahil edilmez.');
-    } else {
-        alert(names[type] + ' kaydedildi. Sira numarasi alindi. Standart Paylasim dongusune dahil edilmez.');
+
+    // Secilen girilen medyayi oku (yalniz ad + boyut; icerik frontend'de tutulmaz)
+    var inputEl = document.getElementById(type + 'FileInput');
+    var gorselAdi = 'Medya (simule)';
+    if (inputEl && inputEl.files && inputEl.files.length > 0) {
+        gorselAdi = inputEl.files[0].name;
     }
+
+    // Video secildiyse gercek yolu native dosya seÁici ile Áˆz (iptal edilirse bo˛)
+    return videoDosyaYoluAl().then(function(videoYolu) {
+        gecmisSMKayitEkle({
+            tarihSaat: new Date().toLocaleString('tr-TR'),
+            tur: names[type],
+            siraNumarasi: type === 'kampanya' || type === 'detayli' ? '001' : siraNo,
+            baslik: names[type] + ' kaydi',
+            gorselAdi: gorselAdi,
+            platform: 'Instagram, Facebook, LinkedIn, X, TikTok, Pinterest, YouTube',
+            sablon: 'Standart',
+            platformCikti: 'Platforma ozel duzenleme (simule)',
+            durum: 'bekliyor',
+            icerik: names[type] + ' icerigi kaydedildi ve otomatik yayin sirasina eklendi.',
+            baglanti: '',
+            hataNedeni: ''
+        });
+        if (type === 'standart') {
+            otomatikStandartEkle(names[type] + ' kaydi', siraNo, gorselAdi, videoYolu || '');
+            alert(names[type] + ' kaydedildi. Sira numarasi: ' + siraNo + '. Otomatik yayin sirasina eklendi ve mevcut sira numarasi ile dongude kalacak.');
+        } else if (type === 'kampanya') {
+            var bugun = new Date();
+            var bitis = new Date(bugun);
+            bitis.setDate(bitis.getDate() + 30);
+            otomatikKampanyaEkle(names[type] + ' kaydi', bugun.toISOString().split('T')[0], bitis.toISOString().split('T')[0], gorselAdi, videoYolu || '');
+            alert(names[type] + ' kaydedildi. Kampanya baslangic ve bitis tarihleri arasinda otomatik yayinlanacak. Standart Paylasim dongusune dahil edilmez.');
+        } else {
+            alert(names[type] + ' kaydedildi. Sira numarasi alindi. Standart Paylasim dongusune dahil edilmez.');
+        }
+    });
+}
+
+// ===== GERCEK YAYIN MOTORU (Facebook / Instagram / TikTok) =====
+// Manuel "Simdi Paylas" yayin motoruna baglanan gercek yayin sevkiyatcisi.
+// Bagli Facebook/Instagram/TikTok hesaplarina gercek Tauri komutlarini
+// (facebook_publish, instagram_publish, tiktok_publish) cagirir. Sonuclar
+// gercek post id ile basarili, aksi halde kontrollu hata koduyla basarisiz
+// olarak islenir; sahte basari uretilmez. Bagli yayin destekli hesap yoksa
+// hicbir platform icin basari iddia edilmez.
+function sosyalGercekYayinGonder(icerik) {
+    var sonuc = {
+        platformlar: [], // { platformId, basarili, postId, hataMesaji }
+        toplamBasarili: 0,
+        toplamBasarisiz: 0,
+        bagliHesapYok: false
+    };
+
+    // Bagli hesaplari gercek deposundan al (token'lar frontend'e gelmez).
+    var p = esTauriInvoke('social_account_connections');
+    if (!p) {
+        // Tauri ortami yok: gercek yayin yapilamaz; sahte basari uretilmez.
+        sonuc.bagliHesapYok = true;
+        return Promise.resolve(sonuc);
+    }
+
+    return p.then(function(list) {
+        var bagli = (list || []).filter(function(c) {
+            return c.connectionStatus === 'connected';
+        });
+        // Yalniz yayin destekli platformlar hedeflenir: Facebook, Instagram, TikTok.
+        var yayinBagli = bagli.filter(function(c) {
+            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x';
+        });
+
+        if (yayinBagli.length === 0) {
+            sonuc.bagliHesapYok = true;
+            return sonuc;
+        }
+
+        var istekler = yayinBagli.map(function(conn) {
+            var platformId = conn.platformId;
+            var command;
+            var args;
+            if (platformId === 'tiktok') {
+                // TikTok video yayini: gerÁek Content Posting API (video init +
+                // presigned upload + durum yoklamasi). Gizlilik kontrol¸ bir
+                // deerle gelir; video dosya yolu icerikten alinir.
+                command = 'tiktok_publish';
+                args = {
+                    connectionId: conn.connectionId,
+                    videoPath: icerik.videoPath || '',
+                    title: icerik.baslik || icerik.mesaj || '',
+                    privacyLevel: icerik.privacyLevel || 'SELF_ONLY'
+                };
+            } else if (platformId === 'x') {
+                // X (Twitter) yayini: gercek API (media upload + tweet.create).
+                command = 'x_publish';
+                args = {
+                    connectionId: conn.connectionId,
+                    videoPath: icerik.videoPath || '',
+                    title: icerik.baslik || icerik.mesaj || ''
+                };
+            } else if (platformId === 'facebook') {
+                command = 'facebook_publish';
+                args = {
+                    connectionId: conn.connectionId,
+                    message: icerik.mesaj || '',
+                    title: icerik.baslik || '',
+                    mediaKind: icerik.mediaKind || '',
+                    mediaFiles: icerik.mediaFiles || []
+                };
+            } else {
+                command = 'instagram_publish';
+                args = {
+                    connectionId: conn.connectionId,
+                    caption: icerik.mesaj || '',
+                    mediaKind: icerik.mediaKind || '',
+                    mediaUrls: icerik.mediaUrls || [],
+                    postKind: 'feed'
+                };
+            }
+            return esTauriInvoke(command, args).then(function(id) {
+                var asilId = (typeof id === 'string' && id) ? id : '';
+                return { platformId: platformId, basarili: true, postId: asilId };
+            }).catch(function(err) {
+                var raw = (err && (err.message || err.code || err)) || '';
+                return { platformId: platformId, basarili: false, hataMesaji: metaHataMesaji(String(raw)) };
+            });
+        });
+
+        return Promise.all(istekler).then(function(parca) {
+            parca.forEach(function(r) {
+                if (r.basarili) { sonuc.toplamBasarili++; } else { sonuc.toplamBasarisiz++; }
+                sonuc.platformlar.push(r);
+            });
+            return sonuc;
+        });
+    }).catch(function() {
+        sonuc.bagliHesapYok = true;
+        return sonuc;
+    });
+}
+
+// SeÁili video dosyas˝n˝n gerÁek mutlak yolunu native dosya seÁici (dialog)
+// ¸zerinden Rust'dan al˝r. Taray˝c˝ g¸venlii gerei ˆn y¸z gerÁek yola
+// eri˛emedii iÁin bu komut kullan˝l˝r. Video seÁilmediyse veya kullan˝c˝
+// iptal ederse bo˛ dize dˆner (sahte ˆn yol ¸retilmez).
+function videoDosyaYoluAl() {
+    var p = esTauriInvoke('pick_video_file');
+    if (!p) return Promise.resolve(''); // Tauri ortam˝ yok: gerÁek yol al˝namaz
+    return p.catch(function() { return ''; });
+}
+
+// Secilen dosyalarin video olup olmadigini uzantidan anlar.
+function seciliVideoMi(inputEl) {
+    if (!inputEl || !inputEl.files || inputEl.files.length === 0) return false;
+    var name = inputEl.files[0].name.toLowerCase();
+    return /\.(mp4|mov|avi|mkv|webm|m4v|flv|3gp|mpeg|mpg|ogv|ts|wmv)$/.test(name);
 }
 
 function simulateNow(type) {
@@ -208,27 +339,93 @@ function simulateNow(type) {
         'duyuru': 'Duyuru ve Ilanlar'
     };
     var siraNo = (type === 'duyuru') ? '' : String(Math.floor(Math.random() * 899) + 100);
-    gecmisSMKayitEkle({
-        tarihSaat: new Date().toLocaleString('tr-TR'),
-        tur: names[type] + ' (Manuel)',
-        siraNumarasi: siraNo,
-        baslik: names[type] + ' manuel yayini',
-        gorselAdi: 'Gorsel dosyasi (simule)',
-        platform: 'Instagram, Facebook, LinkedIn, X, TikTok, Pinterest, YouTube',
-        sablon: 'Standart',
-        platformCikti: 'Platforma ozel duzenleme (simule)',
-        durum: 'basarili',
-        icerik: names[type] + ' icerigi manuel olarak aninda yayinlandi.',
-        baglanti: 'Manuel yayin. Gercek baglanti teknik sartnamede tanimlanacaktir.',
-        hataNedeni: ''
-    });
-    if (type === 'standart') {
-        alert(names[type] + ' tum bagli sosyal medya hesaplarinda aninda yayinlandi. Standart Paylasim otomatik donguden cikarilmadi, sirasinda kalmaya devam ediyor.');
-    } else if (type === 'kampanya') {
-        alert(names[type] + ' tum bagli sosyal medya hesaplarinda aninda yayinlandi. Kampanya bitis tarihine kadar otomatik dongude kalmaya devam ediyor.');
-    } else {
-        alert(names[type] + ' tum bagli sosyal medya hesaplarinda aninda yayinlandi.');
+
+    // Secilen medya dosyalarini topla (yalnizca ad; icerik bilgisi frontend'de
+    // tutulmaz, Rust tarafi gercek dosya yolunu diskten mulkiyetinde tutar).
+    var inputEl = document.getElementById(type + 'FileInput');
+    var seciliDosyalar = [];
+    var medyaVar = false;
+    if (inputEl && inputEl.files && inputEl.files.length > 0) {
+        medyaVar = true;
+        seciliDosyalar = Array.from(inputEl.files).map(function(f) { return f.name; });
     }
+
+    // TikTok video iÁin gerÁek disk yolunu native dosya seÁici ile Áˆz.
+    // Video seÁildiinde (uzant˝ya gˆre) iptal edilirse bo˛ dizeyle devam edilir.
+    var videoSecildi = seciliVideoMi(inputEl);
+    return (videoSecildi ? videoDosyaYoluAl() : Promise.resolve('')).then(function(gercekYol) {
+        var videoPath = gercekYol || '';
+
+        var postKapsami = {
+            mesaj: names[type] + ' icerigi (manuel yayin)',
+            baslik: names[type],
+            medyaVar: medyaVar,
+            mediaKind: medyaVar ? 'image' : '',
+            mediaFiles: seciliDosyalar,
+            mediaUrls: [],
+            videoPath: videoPath,
+            privacyLevel: 'SELF_ONLY'
+        };
+
+        // Gercek Facebook/Instagram/TikTok yayinlarini baslat; bagli hesap yoksa
+        // ya da yayin basarisizsa sahte basari uretilmez (Yayin Gecmisi'ne yansitilir).
+        return sosyalGercekYayinGonder(postKapsami).then(function(bilgi) {
+        if (bilgi.platformlar.length === 0) {
+            gecmisSMKayitEkle({
+                tarihSaat: new Date().toLocaleString('tr-TR'),
+                tur: names[type] + ' (Manuel)',
+                siraNumarasi: siraNo,
+                baslik: names[type] + ' manuel yayini',
+                gorselAdi: medyaVar ? ('Gorsel dosyasi (' + seciliDosyalar.length + ')') : 'Medya yok',
+                platform: 'Facebook, Instagram, TikTok (bagli hesap yok)',
+                sablon: 'Standart',
+                platformCikti: 'Gercek yayin yapilamadi (bagli hesap yok)',
+                durum: 'basarisiz',
+                icerik: names[type] + ' icerigi yayinlanamadi: bagli Facebook/Instagram/TikTok hesabi bulunamadi.',
+                baglanti: '',
+                hataNedeni: 'Bagli Facebook/Instagram/TikTok hesabi bulunmadi. Gercek yayin yapilamadi.'
+            });
+            alert(names[type] + ' yayinlanamadi. Bagli Facebook, Instagram veya TikTok hesabi bulunmadi; sahte basari uretilmedi.');
+            return;
+        }
+
+        bilgi.platformlar.forEach(function(r) {
+            gecmisSMKayitEkle({
+                tarihSaat: new Date().toLocaleString('tr-TR'),
+                tur: names[type] + ' (Manuel)',
+                siraNumarasi: siraNo,
+                baslik: r.platformId.toUpperCase() + ' manuel yayini',
+                gorselAdi: medyaVar ? ('Gorsel (' + seciliDosyalar.length + ')') : 'Medya yok',
+                platform: r.platformId,
+                sablon: 'Standart',
+                platformCikti: r.basarili ? ('Yayin ID: ' + (r.postId || 'basarili')) : 'Hedef platform yayini kabul etmedi',
+                durum: r.basarili ? 'basarili' : 'basarisiz',
+                icerik: names[type] + ' manuel yayini ' + (r.basarili ? 'basarili.' : 'basarisiz.'),
+                baglanti: r.basarili ? ('Gercek yayin ID: ' + (r.postId || '-')) : '',
+                hataNedeni: r.basarili ? '' : (r.hataMesaji || 'Yayin basarisiz.')
+            });
+            if (r.basarili) {
+                bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                    r.platformId + ' yayini basarili',
+                    r.platformId + ' manuel yayin gerceklestirildi (ID: ' + (r.postId || '-') + ').');
+            } else {
+                bildirimEkle('yayin-hatasi', 'hata',
+                    r.platformId + ' yayini basarisiz',
+                    r.hataMesaji || 'Yayin gerceklestirilemedi.');
+            }
+        });
+
+        var ozet;
+        if (bilgi.toplamBasarili > 0 && bilgi.toplamBasarisiz === 0) {
+            ozet = names[type] + ' bagli Facebook, Instagram ve TikTok hesaplarinda basariyla yayinlandi.';
+        } else if (bilgi.toplamBasarili > 0) {
+            ozet = names[type] + ' kismen yayinlandi (' + bilgi.toplamBasarili + ' basarili, ' + bilgi.toplamBasarisiz + ' basarisiz).';
+        } else {
+            ozet = names[type] + ' bagli Facebook, Instagram ve TikTok hesaplarina yayinlanamadi (' + bilgi.toplamBasarisiz + ' basarisiz).';
+        }
+        alert(ozet);
+        });
+    });
 }
 
 // ===== FAZ 3 - SOSYAL MEDYA / WEB SITESI SEKME DEGISIMI =====
@@ -573,7 +770,7 @@ function medyaDosyalariListele() {
 
     var html = '<div style="display:flex;flex-wrap:wrap;gap:12px;">';
     dosyalar.forEach(function(d, i) {
-        html += '<div style="width:120px;padding:12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;text-align:center;"><div style="font-size:2rem;margin-bottom:6px;">ƒü≈∏‚Äì¬º√Ø¬∏¬è</div><div style="font-size:0.72rem;color:#374151;word-break:break-all;">' + d.ad + '</div><div style="font-size:0.65rem;color:#9ca3af;margin-top:4px;">' + d.tarih + '</div><div style="margin-top:6px;"><span class="file-remove" onclick="medyaDosyaSil(' + i + ')">Sil</span></div></div>';
+        html += '<div style="width:120px;padding:12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;text-align:center;"><div style="font-size:2rem;margin-bottom:6px;">üñºÔ∏è</div><div style="font-size:0.72rem;color:#374151;word-break:break-all;">' + d.ad + '</div><div style="font-size:0.65rem;color:#9ca3af;margin-top:4px;">' + d.tarih + '</div><div style="margin-top:6px;"><span class="file-remove" onclick="medyaDosyaSil(' + i + ')">Sil</span></div></div>';
     });
     html += '</div>';
     alan.innerHTML = html;
@@ -1007,8 +1204,6 @@ function otomatikSimuleEt() {
         return;
     }
 
-    // Bagli hesap kontrolu (simule - bagli hesap yok)
-    // Entegrasyon olmadigi icin basarisiz kaydedilir, kotadan dusulmez
     var simdi = new Date().toLocaleString('tr-TR');
     var yapilanKayit = null;
     var kayitTuru = '';
@@ -1039,54 +1234,187 @@ function otomatikSimuleEt() {
         }
     }
 
-    // Yayin Gecmisi FAZ 5'e kaydet - entegrasyon yok, basarisiz
-    if (yapilanKayit) {
+    if (!yapilanKayit) {
+        alert('Yayinlanacak uygun kayit bulunamadi. (Siradaki standart paylasim yok, aktif kampanya yok)');
+        otomatikDurumuGuncelle();
+        return;
+    }
+
+    var videoYolu = yapilanKayit.videoPath || '';
+    var gorselAdi = yapilanKayit.gorselAdi || 'Gorsel (simule)';
+
+    // Gercek yayin icin kayitta gercek video dosya yolu gerekir. Yoksa video
+    // girisi yapilmamis demektir; gercek TikTok yayini yapilamaz ve sahte
+    // basari uretilmez. Kotadan dusulmez.
+    if (!videoYolu) {
         gecmisSMKayitEkle({
             tarihSaat: simdi,
             tur: kayitTuru,
             siraNumarasi: siraNo,
             baslik: yapilanKayit.baslik || '(baslik yok)',
-            gorselAdi: yapilanKayit.gorselAdi || 'Gorsel (simule)',
-            platform: 'Instagram, Facebook, LinkedIn, X, TikTok, Pinterest, YouTube',
+            gorselAdi: gorselAdi,
+            platform: 'TikTok (gercek yayin)',
             sablon: 'Standart',
-            platformCikti: 'Platforma ozel duzenleme (entegrasyon yok)',
+            platformCikti: 'Video dosya yolu yok',
             durum: 'basarisiz',
-            icerik: 'Otomatik yayin denemesi. Paylasim turu: ' + kayitTuru + '.',
+            icerik: 'Otomatik TikTok yayini yapilamadi: kayitta video dosya yolu yok.',
             baglanti: '',
-            hataNedeni: 'Sosyal medya entegrasyonu bulunmadigi icin yayinlanamadi. Gercek entegrasyon kuruldugunda otomatik yayinlar calisacaktir.',
+            hataNedeni: 'Bu kayit icin gercek video dosya yolu girilmemis. Otomatik TikTok yayini icin video secilmelidir. Kotadan dusulmedi.',
             otomatik: true
         });
-
-        // Kotadan dusulmez - entegrasyon yok
-        alert('Otomatik yayin simule edildi ancak sosyal medya entegrasyonu bulunmadigi icin yayinlanamadi. Basarisiz kayit Yayin Gecmisi\'ne eklendi. Gunluk kotadan dusulmedi. (Kota: ' + otomatikSistem.bugunKullanilan + '/' + otomatikSistem.gunlukKota + ')');
-    } else {
-        alert('Yayinlanacak uygun kayit bulunamadi. (Siradaki standart paylasim yok, aktif kampanya yok)');
+        alert('Otomatik yayin yapilamadi: bu kayit icin gercek video dosya yolu bulunmuyor. Basarisiz kayit eklendi, kotadan dusulmedi.');
+        otomatikDurumuGuncelle();
+        return;
     }
 
-    otomatikDurumuGuncelle();
-}
+    // Bagli hesaplari gercek deposundan al; yalnizca bagli bir TikTok hesabi
+    // varsa gercek Content Posting API yayini yapilir (sahte basari uretilmez).
+    var bagliP = esTauriInvoke('social_account_connections');
+    if (!bagliP) {
+        gecmisSMKayitEkle({
+            tarihSaat: simdi,
+            tur: kayitTuru,
+            siraNumarasi: siraNo,
+            baslik: yapilanKayit.baslik || '(baslik yok)',
+            gorselAdi: gorselAdi,
+            platform: 'TikTok (gercek yayin)',
+            sablon: 'Standart',
+            platformCikti: 'Bagli TikTok okunamadi',
+            durum: 'basarisiz',
+            icerik: 'Otomatik TikTok yayini yapilamadi: bagli hesap listesi okunamadi.',
+            baglanti: '',
+            hataNedeni: 'Masaustu (Tauri) ortaminda bagli hesaplar okunamadi. Kotadan dusulmedi.',
+            otomatik: true
+        });
+        alert('Otomatik yayin yapilamadi: bagli hesaplar okunamadi. Kotadan dusulmedi.');
+        otomatikDurumuGuncelle();
+        return;
+    }
 
+    bagliP.then(function(list) {
+        var tt = null;
+        (list || []).forEach(function(c) {
+            if (!tt && c.platformId === 'tiktok' && c.connectionStatus === 'connected') {
+                tt = c;
+            }
+        });
+
+        if (!tt) {
+            gecmisSMKayitEkle({
+                tarihSaat: simdi,
+                tur: kayitTuru,
+                siraNumarasi: siraNo,
+                baslik: yapilanKayit.baslik || '(baslik yok)',
+                gorselAdi: gorselAdi,
+                platform: 'TikTok',
+                sablon: 'Standart',
+                platformCikti: 'Bagli TikTok yok',
+                durum: 'basarisiz',
+                icerik: 'Otomatik TikTok yayini yapilamadi: bagli TikTok hesabi yok.',
+                baglanti: '',
+                hataNedeni: 'Bagli bir TikTok hesabi bulunamadi. Kotadan dusulmedi.',
+                otomatik: true
+            });
+            alert('Otomatik yayin yapilamadi: bagli TikTok hesabi yok. Kotadan dusulmedi.');
+            otomatikDurumuGuncelle();
+            return;
+        }
+
+        // Gercek Content Posting API ile yayinla (video init + presigned upload + yoklama).
+        esTauriInvoke('tiktok_publish', {
+            connectionId: tt.connectionId,
+            videoPath: videoYolu,
+            title: yapilanKayit.baslik || 'Otomatik paylasim',
+            privacyLevel: 'SELF_ONLY'
+        }).then(function(id) {
+            var asilId = (typeof id === 'string' && id) ? id : '';
+            otomatikSistem.bugunKullanilan++;
+            otomatikKotaKaydet();
+            gecmisSMKayitEkle({
+                tarihSaat: simdi,
+                tur: kayitTuru,
+                siraNumarasi: siraNo,
+                baslik: yapilanKayit.baslik || '(baslik yok)',
+                gorselAdi: gorselAdi,
+                platform: 'TikTok',
+                sablon: 'Standart',
+                platformCikti: 'Gercek yayin ID: ' + (asilId || 'basarili'),
+                durum: 'basarili',
+                icerik: 'Otomatik TikTok yayini basarili.',
+                baglanti: asilId ? ('Yayin ID: ' + asilId) : 'Yayin basarili',
+                hataNedeni: '',
+                otomatik: true
+            });
+            bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                'Otomatik TikTok yayini basarili',
+                'Otomatik yayin gerceklestirildi (ID: ' + (asilId || '-') + '). Kota: ' + otomatikSistem.bugunKullanilan + '/' + otomatikSistem.gunlukKota);
+            alert('Otomatik TikTok yayini basarili. (ID: ' + (asilId || '-') + ') Kota: ' + otomatikSistem.bugunKullanilan + '/' + otomatikSistem.gunlukKota);
+            otomatikDurumuGuncelle();
+        }).catch(function(err) {
+            var raw = (err && (err.message || err.code || err)) || '';
+            var msg = metaHataMesaji(String(raw));
+            gecmisSMKayitEkle({
+                tarihSaat: simdi,
+                tur: kayitTuru,
+                siraNumarasi: siraNo,
+                baslik: yapilanKayit.baslik || '(baslik yok)',
+                gorselAdi: gorselAdi,
+                platform: 'TikTok',
+                sablon: 'Standart',
+                platformCikti: 'Hedef TikTok kabul etmedi',
+                durum: 'basarisiz',
+                icerik: 'Otomatik TikTok yayini basarisiz.',
+                baglanti: '',
+                hataNedeni: msg,
+                otomatik: true
+            });
+            bildirimEkle('yayin-hatasi', 'hata', 'Otomatik TikTok yayini basarisiz', msg);
+            alert('Otomatik TikTok yayini basarisiz. Kotadan dusulmedi. (' + msg + ')');
+            otomatikDurumuGuncelle();
+        });
+    }).catch(function() {
+        gecmisSMKayitEkle({
+            tarihSaat: simdi,
+            tur: kayitTuru,
+            siraNumarasi: siraNo,
+            baslik: yapilanKayit.baslik || '(baslik yok)',
+            gorselAdi: gorselAdi,
+            platform: 'TikTok',
+            sablon: 'Standart',
+            platformCikti: 'Bagli hesaplar okunamadi',
+            durum: 'basarisiz',
+            icerik: 'Otomatik TikTok yayini yapilamadi: bagli hesaplar okunamadi.',
+            baglanti: '',
+            hataNedeni: 'Bagli hesap listesi cagrilirken hata olustu. Kotadan dusulmedi.',
+            otomatik: true
+        });
+        alert('Otomatik yayin yapilamadi: bagli hesaplar okunamadi. Kotadan dusulmedi.');
+        otomatikDurumuGuncelle();
+    });
+}
 // Standart paylasim kaydedildiginde otomatik siraya ekle
-function otomatikStandartEkle(baslik, siraNo, gorselAdi) {
+function otomatikStandartEkle(baslik, siraNo, gorselAdi, videoYolu) {
     otomatikSistem.standartKayitlar.push({
         siraNo: siraNo,
         baslik: baslik,
         tur: 'Standart Paylasim',
         tarih: new Date().toISOString(),
-        gorselAdi: gorselAdi || 'Gorsel (simule)'
+        gorselAdi: gorselAdi || 'Gorsel (simule)',
+        videoPath: videoYolu || ''
     });
     otomatikDurumuGuncelle();
 }
 
 // Kampanya kaydedildiginde
-function otomatikKampanyaEkle(baslik, baslangic, bitis, gorselAdi) {
+function otomatikKampanyaEkle(baslik, baslangic, bitis, gorselAdi, videoYolu) {
     otomatikSistem.kampanyaKayitlar.push({
         baslik: baslik,
         baslangic: baslangic,
         bitis: bitis,
         tur: 'Kampanya',
         tarih: new Date().toISOString(),
-        gorselAdi: gorselAdi || 'Gorsel (simule)'
+        gorselAdi: gorselAdi || 'Gorsel (simule)',
+        videoPath: videoYolu || ''
     });
     otomatikDurumuGuncelle();
 }
@@ -1111,12 +1439,12 @@ var bildirimTurleri = ['uyari', 'hata', 'bilgi', 'basarili'];
 
 // Dashboard bildirim ozetini guncelle
 function bildirimDashboardOzetGuncelle() {
-    // Bildirim Ozeti kartini bul - dashboard-grid icinde "Bildirim √É‚Äìzeti" baslikli karti bul
+    // Bildirim Ozeti kartini bul - dashboard-grid icinde "Bildirim √ñzeti" baslikli karti bul
     var ozetEl = null;
     var kartlar = document.querySelectorAll('#dash-sosyal-medya .dashboard-grid .dashboard-card');
     for (var i = 0; i < kartlar.length; i++) {
         var titleEl = kartlar[i].querySelector('.card-title');
-        if (titleEl && titleEl.textContent.trim() === 'Bildirim √ñzeti') {
+        if (titleEl && titleEl.textContent.trim() === 'Bildirim ÷zeti') {
             ozetEl = kartlar[i].querySelector('.card-placeholder');
             break;
         }
@@ -1127,7 +1455,7 @@ function bildirimDashboardOzetGuncelle() {
     var toplam = bildirimler.length;
     
     if (toplam === 0) {
-        ozetEl.textContent = 'Hen√ºz bildirim bulunmuyor.';
+        ozetEl.textContent = 'Hen¸z bildirim bulunmuyor.';
     } else {
         ozetEl.textContent = okunmamis + ' okunmamis, ' + toplam + ' toplam bildirim';
     }
@@ -1286,18 +1614,9 @@ function bildirimTumunuOkunduYap() {
 }
 
 // Mevcut sistem olaylarindan bildirim olusturma
-// simulateNow - Sosyal medya baglantisi yok uyarisi
-(function() {
-    var originalSimulateNow = simulateNow;
-    simulateNow = function(type) {
-        originalSimulateNow(type);
-        // Bagli hesap bildirimi
-        bildirimEkle('sosyal-medya-baglanti', 'uyari',
-            'Sosyal medya baglantisi bulunmuyor',
-            'Hicbir sosyal medya hesabi bagli degil. Yayinlar simule ediliyor, gercek platformlara gonderilmiyor.'
-        );
-    };
-})();
+// simulateNow - baglanti durumunu gercek sonuca gore yansitiyor
+// (gercek yayin sonuclari simulateNow icindeki per-platform islemiyle gecmise
+// islenir ve bildirimler orada olusturulur; burada ek sahte bildirim uretilmez).
 
 // simulateSave bildirim
 (function() {
@@ -1345,38 +1664,6 @@ function bildirimTumunuOkunduYap() {
     };
 })();
 
-// Otomatik yayin sonucu bildirimleri
-(function() {
-    var originalSimule = otomatikSimuleEt;
-
-    otomatikSimuleEt = function() {
-        var oncekiKota = otomatikSistem.bugunKullanilan;
-        var yayinlanabilirKayitVardi =
-            otomatikSistem.aktif &&
-            oncekiKota < otomatikSistem.gunlukKota &&
-            (otomatikSistem.standartKayitlar.length > 0 || otomatikAktifKampanyaVar());
-
-        originalSimule();
-
-        if (yayinlanabilirKayitVardi) {
-            bildirimEkle('yayin-hatasi', 'hata',
-                'Otomatik yayin basarisiz',
-                'Entegrasyon bulunmadigi icin otomatik yayin yapilamadi. Tarih: ' +
-                new Date().toLocaleString('tr-TR')
-            );
-        }
-
-        if (
-            otomatikSistem.bugunKullanilan >= otomatikSistem.gunlukKota &&
-            oncekiKota < otomatikSistem.gunlukKota
-        ) {
-            bildirimEkle('sistem-uyari', 'uyari',
-                'Gunluk otomatik kota doldu',
-                'Bugunku otomatik paylasim kotasi (5) dolmustur. Yeni otomatik yayin yarin yapilacak.'
-            );
-        }
-    };
-})();
 
 // Ilk yuklemede bildirim sayaci
 document.addEventListener('DOMContentLoaded', function() {
@@ -1585,6 +1872,18 @@ function ayarlarPlatformListele() {
         if (sonKontrolText) {
             html += '        <span class="platform-son-kontrol">' + sonKontrolText + '</span>';
         }
+        if (p.id === 'x') {
+            html += '        <div class="platform-config" id="ayarlarXConfigGrubu">';
+            html += '            <div class="form-row"><label>Consumer Key</label>' +
+                '<input type="text" class="form-input" id="ayarlarXClientKey" placeholder="X API Consumer Key"></div>';
+            html += '            <div class="form-row"><label>Consumer Secret</label>' +
+                '<input type="password" class="form-input" id="ayarlarXClientSecret" placeholder="X API Consumer Secret"></div>';
+            html += '            <div class="platform-config-durum" id="ayarlarXConfigDurum"></div>';
+            html += '            <div class="platform-config-actions">' +
+                '<button class="btn btn-primary btn-small" onclick="ayarlarXConfigKaydet()">Kaydet</button>' +
+                '<button class="btn btn-warning btn-small" onclick="ayarlarXConfigTemizle()">Temizle</button></div>';
+            html += '        </div>';
+        }
         html += '    </div>';
         html += '    <div class="platform-actions">';
         if (!p.bagli) {
@@ -1599,6 +1898,137 @@ function ayarlarPlatformListele() {
     });
 
     liste.innerHTML = html;
+    ayarlarXConfigDurumYukle();
+}
+
+// ===== KONTROLLU HATA KODU -> TURKCE MESAJ =====
+// Rust tarafindan dondurulen kisa teknik kodlari, gizli bilgi (token/kod)
+// icermeyen anlasilir Turkce bildirime esler. Bilinmeyen kod genel bir mesaja
+// duser; asla ham teknik cevap veya token gosterilmez.
+// X Consumer Key / Consumer Secret yapilandirma durumunu yukler.
+function ayarlarXConfigDurumYukle() {
+    var durumEl = document.getElementById('ayarlarXConfigDurum');
+    if (!durumEl) return;
+    var s = esTauriInvoke('x_config_status');
+    if (!s) { durumEl.textContent = 'Onizleme modunda baglanti yapilamaz.'; return; }
+    s.then(function(stat) {
+        if (!stat) return;
+        if (stat.consumerKeyConfigured && stat.consumerSecretConfigured) {
+            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Consumer Key ve Consumer Secret yapilandirildi.</span>';
+        } else if (stat.consumerKeyConfigured) {
+            durumEl.innerHTML = '<span style="color:#f59e0b;font-weight:600;">Consumer Key var. Consumer Secret HENUZ yok.</span>';
+        } else {
+            durumEl.textContent = 'Consumer Key ve Consumer Secret henuz yapilandirilmadi.';
+        }
+    }).catch(function() { durumEl.textContent = 'X yapilandirma durumu okunamadi.'; });
+}
+
+// X Consumer Key / Secret'i guvenli depoya kaydeder (Tauri).
+function ayarlarXConfigKaydet() {
+    var durumEl = document.getElementById('ayarlarXConfigDurum');
+    var ck = document.getElementById('ayarlarXClientKey').value.trim();
+    var cs = document.getElementById('ayarlarXClientSecret').value.trim();
+    if (!ck || !cs) {
+        alert('X Consumer Key ve Consumer Secret zorunludur.');
+        if (durumEl) durumEl.textContent = 'Consumer Key ve Consumer Secret girin.';
+        return;
+    }
+    var s = esTauriInvoke('x_set_config', { consumerKey: ck, consumerSecret: cs });
+    if (!s) { if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.'; return; }
+    s.then(function() {
+        document.getElementById('ayarlarXClientSecret').value = '';
+        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">X kimlikleri guvenli sekilde kaydedildi.</span>';
+        alert('X Consumer Key ve Consumer Secret guvenli sekilde kaydedildi. (Consumer Secret ekranda/yerelde gosterilmez.)');
+        bildirimEkle('sosyal-medya-baglanti', 'basarili', 'X kimlikleri kaydedildi', 'X baglantisi icin gerekli Consumer Key ve Consumer Secret guvenli depoya kaydedildi.');
+    }).catch(function(err) {
+        var raw = (err && (err.message || err.code || err)) || '';
+        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + raw;
+        alert('X kimlikleri kaydedilemedi.');
+    });
+}
+
+// X Consumer Key / Secret'i guvenli depodan temizler (Tauri).
+function ayarlarXConfigTemizle() {
+    var durumEl = document.getElementById('ayarlarXConfigDurum');
+    var s = esTauriInvoke('x_clear_config');
+    if (!s) { if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.'; return; }
+    s.then(function() {
+        document.getElementById('ayarlarXClientKey').value = '';
+        document.getElementById('ayarlarXClientSecret').value = '';
+        if (durumEl) durumEl.textContent = 'X kimlikleri temizlendi.';
+        alert('X kimlikleri temizlendi.');
+    }).catch(function() { if (durumEl) durumEl.textContent = 'Temizleme basarisiz.'; });
+}
+
+function metaHataMesaji(code) {
+    var c = String(code || '');
+    if (c.indexOf('app_secret_required') !== -1) {
+        return 'Meta App Secret (uygulama gizli anahtari) henuz yapilandirilmamis. Facebook/Instagram baglantisi icin once Ayarlar > Sosyal Medya bˆl¸m¸nde Meta App ID ve App Secret girin ve kaydedin.';
+    }
+    if (c.indexOf('meta_not_configured') !== -1) {
+        return 'Meta App ID/App Secret yapilandirilmamis. Facebook/Instagram baglantisi icin once Meta kimliklerini girin ve kaydedin.';
+    }
+    if (c.indexOf('tiktok_not_configured') !== -1) {
+        return 'TikTok Client Key / Client Secret yapilandirilmamis. TikTok baglantisi icin once Client Key ve Client Secret girin ve kaydedin.';
+    }
+    if (c.indexOf('reauthorization_required') !== -1) {
+        return 'Token yenileme app secret gerektirdigi icin yapilamadi. Do\u011fru yetkilendirme icin hesabin yeniden baglanmasi gerekir (bu surumde engellenmistir).';
+    }
+    if (c.indexOf('media_url_unavailable') !== -1) {
+        return 'Instagram, icerigi herkese acik bir medya adresinden yayinlamayi gerektirir. Bu sunucusuz masaustu mimaride medya barindirma / herkese acik URL hizmeti bulunmadigi icin Instagram yayini yapilamaz; sahte basari uretilmez.';
+    }
+    if (c.indexOf('permission_denied') !== -1) {
+        return 'Platform izin reddetti. Uygulama gerekli izinlere sahip degil (App Review / izin yapilandirmasi gerekebilir).';
+    }
+    if (c.indexOf('app_review_required') !== -1) {
+        return 'Bu islem icin Meta App Review onayi gerekiyor. Uygulama henuz inceleme onayina sahip degil.';
+    }
+    if (c.indexOf('instagram_professional_account_required') !== -1) {
+        return 'Instagram yayini icin Isletme veya Yazar (profesyonel) hesap baglantisi gerekir. Kisisel profil veya profesyonel hesaba bagli olmayan hedefle yayin yapilamaz.';
+    }
+    if (c.indexOf('no_managed_page') !== -1) {
+        return 'Bu hesaba bagli yonetilen bir Facebook Sayfasi bulunamadi. Yayin icin bir Sayfa gerekir.';
+    }
+    if (c.indexOf('page_not_found') !== -1) {
+        return 'Hedef Facebook Sayfasi bulunamadi.';
+    }
+    if (c.indexOf('instagram_account_not_found') !== -1) {
+        return 'Hedef platformda bagli bir Instagram hesabi bulunamadi.';
+    }
+    if (c.indexOf('token_expired') !== -1) {
+        return 'Baglanti tokeninin suresi dolmus. Yeniden baglanmaniz gerekir.';
+    }
+    if (c.indexOf('token_missing') !== -1) {
+        return 'Baglanti tokeni bulunamadi. Hesap bagli degil veya token silinmis.';
+    }
+    if (c.indexOf('invalid_media_file') !== -1) {
+        return 'Secilen medya dosyasi gecersiz (bicim veya sihirli imza uyusmazligi). Yayin yapilmadi, sahte basari gosterilmedi.';
+    }
+    if (c.indexOf('unsupported_post_type') !== -1) {
+        return 'Bu icerik turu hedef platformda desteklenmiyor (ornegin medyasiz/metin duyurusu sosyal medyaya gonderilmez).';
+    }
+    if (c.indexOf('invalid_connection') !== -1) {
+        return 'Gecersiz baglanti. Hesap bagli degil veya baglantisi kopmus.';
+    }
+    if (c.indexOf('publish_failed') !== -1 || c.indexOf('api_error') !== -1 || c.indexOf('operation_failed') !== -1) {
+        return 'Yayin islemi sirasinda bir hata olustu. Lutfen daha sonra tekrar deneyin.';
+    }
+    if (c.indexOf('media_container_failed') !== -1) {
+        return 'Instagram medya container olusturulamadi.';
+    }
+    if (c.indexOf('media_processing_timeout') !== -1) {
+        return 'Medya isleme suresi asimina ugradi (TikTok yayin durumu yoklanirken zaman asimi).';
+    }
+    if (c.indexOf('invalid_video_file') !== -1 || c.indexOf('file_not_found') !== -1) {
+        return 'TikTok video yayini icin gecerli bir video dosyasi gerekir. Secilen dosya bulunamadi veya gecersiz bir video (sihirli imza) iceriyor.';
+    }
+    if (c.indexOf('upload_session_failed') !== -1) {
+        return 'TikTok video yayin oturumu baslatilamadi. Uygulamanin video.publish izni ve gecerli bir baglanti oldugundan emin olun.';
+    }
+    if (c.indexOf('upload_failed') !== -1) {
+        return 'TikTok video dosyasi presigned adrese yuklenemedi. Baglanti veya dosya boyutu sorunu olabilir.';
+    }
+    return 'Islem gerceklestirilemedi. Lutfen daha sonra tekrar deneyin.';
 }
 
 function ayarlarPlatformBaglan(id) {
@@ -1614,6 +2044,68 @@ function ayarlarPlatformBaglan(id) {
         bildirimEkle('sosyal-medya-baglanti', 'uyari',
             p.ad + ' desteklenmiyor',
             p.ad + ' bu platform mevcut sunucusuz mimaride desteklenmemektedir.');
+        return;
+    }
+
+    // X: gercek OAuth 1.0a akisi Rust (`x_connect`) tarafindan calistirilir.
+    if (id === 'x') {
+        var xCfg = esTauriInvoke('x_config_status');
+        if (!xCfg) {
+            bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                'X baglantisi yalniz masaustunde kullanilabilir',
+                'X hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+            return;
+        }
+        xCfg.then(function(stat) {
+            var keyOk = stat && stat.consumerKeyConfigured;
+            var secretOk = stat && stat.consumerSecretConfigured;
+            if (!keyOk || !secretOk) {
+                bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                    'X icin Consumer Key / Consumer Secret gerekli',
+                    'X baglantisi icin once Ayarlar kisminda X Consumer Key ve Consumer Secret girin ve kaydedin.');
+                var grp = document.getElementById('ayarlarXConfigGrubu');
+                if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            var xConn = esTauriInvoke('x_connect', {});
+            if (!xConn) {
+                bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                    'X baglantisi yalniz masaustunde kullanilabilir',
+                    'X hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+                return;
+            }
+            xConn.then(function(res) {
+                var durum = res && res.connection ? res.connection.connectionStatus : null;
+                if (durum === 'connected') {
+                    p.bagli = true;
+                    p.hesapAdi = res.connection.accountDisplayName || '';
+                    p.sonKontrol = new Date().toLocaleString('tr-TR');
+                    ayarlarPlatformListele();
+                    dashboardBaglantiGuncelle();
+                    bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                        'X baglantisi kuruldu',
+                        'X hesap baglantisi basariyla kuruldu.');
+                } else {
+                    bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                        'X baglantisi kurulamadi',
+                        'X hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
+                }
+            }).catch(function(err) {
+                var raw = String((err && (err.message || err.code || err)) || '');
+                var msg;
+                if (raw.indexOf('x_not_configured') !== -1) {
+                    msg = 'X Consumer Key / Consumer Secret yapilandirilmamis. Once bu kimlikleri girin ve kaydedin.';
+                } else if (raw.indexOf('oauth_cancelled') !== -1) {
+                    msg = 'X giris ekraninda yetkilendirme iptal edildi.';
+                } else if (raw.indexOf('oauth_timeout') !== -1) {
+                    msg = 'X yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
+                } else {
+                    msg = 'X baglantisi basarisiz oldu: ' + raw;
+                }
+                bildirimEkle('sosyal-medya-baglanti', 'hata',
+                    'X baglantisi kurulamadi', msg);
+            });
+        });
         return;
     }
 
@@ -1659,6 +2151,159 @@ function ayarlarPlatformBaglan(id) {
             }
             bildirimEkle('sosyal-medya-baglanti', 'hata',
                 'YouTube baglantisi kurulamadi', msg);
+        });
+        return;
+    }
+
+    // Facebook ve Instagram: gercek Meta OAuth akisina baglanir.
+    // Baglanti Facebook/Instagram resmi giris sayfasina yonlendirilerek kurulur.
+    // On kosul: Meta App ID + App Secret'in guvenli depoda yapilandirilmis olmasi.
+    // Yapilandirilmamissa kullanici bu iki kimligi girmeye yonlendirilir; OAuth
+    // baslatilmaz ve baglanti "kuruldu" gibi gosterilmez.
+    if (id === 'facebook' || id === 'instagram') {
+        // Yapilandirma durumunu once sorgula.
+        var cfgP = esTauriInvoke('meta_config_status');
+        if (!cfgP) {
+            bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                p.ad + ' baglantisi yalniz masaustunde kullanilabilir',
+                p.ad + ' hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+            return;
+        }
+        cfgP.then(function(stat) {
+            var secretVar = stat && stat.appSecretConfigured;
+            var idVar = stat && stat.appIdConfigured;
+            if (!secretVar || !idVar) {
+                // App ID / Secret yok: kullaniciyi yapilandirmaya yonlendir.
+                // Tarayici acilmaz, OAuth baslatilmaz, sahte baglanti uretilmez.
+                bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                    p.ad + ' icin Meta kimlikleri gerekli',
+                    'Facebook/Instagram baglantisi icin once Ayarlar > Sosyal Medya bˆl¸m¸nde Meta App ID ve App Secret girin ve kaydedin. ' +
+                    metaHataMesaji('app_secret_required'));
+                // Secenek: formu kullaniciya goster
+                var grp = document.getElementById('ayarlarMetaConfigGrubu');
+                if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // Kimlikler hazir: gercek OAuth akisini baslat. Tarayici resmi
+            // Facebook yetkilendirme sayfasina acilir; kullanici kendi hesabiyla
+            // izin verir; callback sonrasi Sayfa/Instagram hesabi baglanir.
+            var metaCmd = (id === 'facebook') ? 'facebook_connect' : 'instagram_connect';
+            var conn2 = esTauriInvoke(metaCmd, {});
+            if (!conn2) {
+                bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                    p.ad + ' baglantisi yalniz masaustunde kullanilabilir',
+                    p.ad + ' hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+                return;
+            }
+            conn2.then(function(res) {
+            var durum = res && res.connection ? res.connection.connectionStatus : null;
+            if (durum === 'connected') {
+                p.bagli = true;
+                p.hesapAdi = (res.connection.accountDisplayName) || '';
+                p.sonKontrol = new Date().toLocaleString('tr-TR');
+                ayarlarPlatformListele();
+                dashboardBaglantiGuncelle();
+                bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                    p.ad + ' baglantisi kuruldu',
+                    p.ad + ' hesap baglantisi basariyla kuruldu.');
+            } else if (durum === 'reauthorization_required' || durum === 'token_expired') {
+                bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                    p.ad + ' yetkilendirme gerekli',
+                    metaHataMesaji('reauthorization_required'));
+            } else {
+                bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                    p.ad + ' baglantisi kurulamadi',
+                    p.ad + ' hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
+            }
+        }).catch(function(err) {
+            var raw = (err && (err.message || err.code || err)) || '';
+            var code = String(raw);
+            if (code.indexOf('recursive') !== -1) { /* yut */ }
+            bildirimEkle('sosyal-medya-baglanti', 'hata',
+                p.ad + ' baglantisi kurulamadi',
+                metaHataMesaji(code));
+        });
+        return;
+        });
+    }
+
+    // TikTok: gercek TikTok Content Posting API OAuth akisina baglanir.
+    // En az bir client_key + client_secret yapilandirilmis olmalidir.
+    // Yapilandirilmamissa kullanici bu kimlikleri girmeye yonlendirilir; OAuth
+    // baslatilmaz ve baglanti "kuruldu" gibi gosterilmez.
+    if (id === 'tiktok') {
+        var ttCfg = esTauriInvoke('tiktok_config_status');
+        if (!ttCfg) {
+            bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                'TikTok baglantisi yalniz masaustunde kullanilabilir',
+                'TikTok hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+            return;
+        }
+        ttCfg.then(function(stat) {
+            var keyVar = stat && stat.clientKeyConfigured;
+            var secretVar = stat && stat.clientSecretConfigured;
+            if (!keyVar || !secretVar) {
+                // Client Key / Secret yok: kullaniciyi yapilandirmaya yonlendir.
+                // Tarayici acilmaz, OAuth baslatilmaz, sahte baglanti uretilmez.
+                bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                    'TikTok icin Client Key / Client Secret gerekli',
+                    'TikTok baglantisi icin once Ayarlar > Sosyal Medya bˆl¸m¸nde TikTok Client Key ve Client Secret girin ve kaydedin.');
+                var grp = document.getElementById('ayarlarTiktokConfigGrubu');
+                if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // Kimlikler hazir: gercek OAuth akisini baslat. Tarayici resmi
+            // TikTok yetkilendirme sayfasina acilir; kullanici hesabiyla izin
+            // verir; callback sonrasi bagli TikTok kullanici baglanir.
+            var ttConn = esTauriInvoke('tiktok_connect', {});
+            if (!ttConn) {
+                bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+                    'TikTok baglantisi yalniz masaustunde kullanilabilir',
+                    'TikTok hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
+                return;
+            }
+            ttConn.then(function(res) {
+                var durum = res && res.connection ? res.connection.connectionStatus : null;
+                if (durum === 'connected') {
+                    p.bagli = true;
+                    p.hesapAdi = res.connection.accountDisplayName || '';
+                    p.sonKontrol = new Date().toLocaleString('tr-TR');
+                    ayarlarPlatformListele();
+                    dashboardBaglantiGuncelle();
+                    bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                        'TikTok baglantisi kuruldu',
+                        'TikTok hesap baglantisi basariyla kuruldu.');
+                } else {
+                    bildirimEkle('sosyal-medya-baglanti', 'uyari',
+                        'TikTok baglantisi kurulamadi',
+                        'TikTok hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
+                }
+            }).catch(function(err) {
+                var raw = (err && (err.message || err.code || err)) || '';
+                var code = String(raw);
+                var msg;
+                if (code.indexOf('tiktok_not_configured') !== -1) {
+                    msg = 'TikTok Client Key / Client Secret yapilandirilmamis. Once bu kimlikleri girin ve kaydedin.';
+                } else if (code.indexOf('oauth_cancelled') !== -1) {
+                    msg = 'TikTok giris ekraninda yetkilendirme iptal edildi.';
+                } else if (code.indexOf('oauth_timeout') !== -1) {
+                    msg = 'TikTok giris oturumu zaman asimina ugradi. Yeniden deneyin.';
+                } else if (code.indexOf('oauth_state_mismatch') !== -1) {
+                    msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
+                } else if (code.indexOf('permission_denied') !== -1) {
+                    msg = 'TikTok izin istegini reddetti. Gerekli kapsamlar (video.publish) onaylanmamis olabilir.';
+                } else {
+                    msg = 'TikTok baglanti islemi basarisiz oldu. Lutfen tekrar deneyin.';
+                }
+                bildirimEkle('sosyal-medya-baglanti', 'hata',
+                    'TikTok baglantisi kurulamadi', msg);
+            });
+        }).catch(function() {
+            bildirimEkle('sosyal-medya-baglanti', 'hata',
+                'TikTok baglantisi kurulamadi',
+                'TikTok yapilandirma durumu okunamadi.');
         });
         return;
     }
@@ -1748,6 +2393,194 @@ function ayarlarPlatformKes(id) {
         bildirimEkle('sosyal-medya-baglanti', 'hata',
             'Baglanti islemi gerceklestirilemedi',
             'Baglantili hesap listesi okunamadi. Lutfen tekrar deneyin.');
+    });
+}
+
+// ===== META (FACEBOOK / INSTAGRAM) UYGULAMA KIMLIKLERI =====
+// Facebook/Instagram baglantisi Meta App ID + App Secret gerektirir. Bu
+// kimlikler kullanici tarafindan ayarlar ekraninda girilir ve Rust tarafinda
+// Windows Credential Manager'a guvenli sekilde saklanir (kaynak koduna
+// gomulmez). Bu fonksiyonlar yapilandirmanin durumunu yukler, kaydeder ve
+// temizler.
+
+// Sayfa yuklendiginde Meta yapilandirma durumunu sorgula (Tauri ortami varsa).
+function ayarlarMetaConfigDurumYukle() {
+    var grubu = document.getElementById('ayarlarMetaConfigGrubu');
+    if (!grubu) return;
+    var durumEl = document.getElementById('ayarlarMetaConfigDurum');
+    var appIdInput = document.getElementById('ayarlarMetaAppId');
+    if (!durumEl) return;
+
+    var s = esTauriInvoke('meta_config_status');
+    if (!s) {
+        // Tauri ortami yok: onizleme modu. Bilgi mesaji goster.
+        durumEl.textContent = 'Meta kimlikleri yalniz masaustu uygulamada saklanabilir. (Onizleme modunda baglanti yapilamaz.)';
+        return;
+    }
+    s.then(function(stat) {
+        if (!stat) return;
+        if (stat.appIdConfigured) {
+            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Meta App ID yapilandirildi. App Secret ' +
+                (stat.appSecretConfigured ? 'yapilandirildi.' : 'HENUZ yapilandirilmadi.') + '</span>';
+        } else {
+            durumEl.textContent = 'Meta App ID ve App Secret henuz yapilandirilmadi. Facebook/Instagram baglantisi icin asagiya girin ve kaydedin.';
+        }
+    }).catch(function() {
+        durumEl.textContent = 'Meta yapilandirma durumu okunamadi.';
+    });
+}
+
+// Meta App ID / App Secret'i guvenli depoya kaydet.
+function ayarlarMetaConfigKaydet() {
+    var durumEl = document.getElementById('ayarlarMetaConfigDurum');
+    var appId = document.getElementById('ayarlarMetaAppId').value.trim();
+    var appSecret = document.getElementById('ayarlarMetaAppSecret').value.trim();
+
+    if (!appId || !appSecret) {
+        alert('Meta App ID ve App Secret zorunludur. Bos deger kaydedilemez.');
+        if (durumEl) durumEl.textContent = 'Meta App ID ve App Secret girin.';
+        bildirimEkle('sistem-uyari', 'uyari',
+            'Meta kimlikleri kaydedilemedi - Zorunlu alan eksik',
+            'Meta App ID ve App Secret girilmeden kaydedilemez.');
+        return;
+    }
+
+    var s = esTauriInvoke('meta_set_config', { appId: appId, appSecret: appSecret });
+    if (!s) {
+        alert('Meta kimlikleri yalniz masaustu uygulamada saklanabilir.');
+        if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.';
+        return;
+    }
+    s.then(function(stat) {
+        document.getElementById('ayarlarMetaAppSecret').value = '';
+        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Meta kimlikleri g¸venli biÁimde kaydedildi.</span>';
+        alert('Meta App ID ve App Secret g¸venli biÁimde kaydedildi. (App Secret ekranda/yerelde gˆsterilmez.)');
+        bildirimEkle('sosyal-medya-baglanti', 'basarili',
+            'Meta kimlikleri kaydedildi',
+            'Facebook/Instagram baglantisi icin gerekli App ID ve App Secret guvenli depoya kaydedildi.');
+    }).catch(function(err) {
+        var raw = (err && (err.message || err.code || err)) || '';
+        var msg = metaHataMesaji(String(raw));
+        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + msg;
+        alert('Meta kimlikleri kaydedilemedi.');
+        bildirimEkle('sosyal-medya-baglanti', 'hata',
+            'Meta kimlikleri kaydedilemedi', msg);
+    });
+}
+
+// Meta App ID / App Secret'i guvenli depodan temizle.
+function ayarlarMetaConfigTemizle() {
+    var durumEl = document.getElementById('ayarlarMetaConfigDurum');
+    var s = esTauriInvoke('meta_clear_config');
+    if (!s) {
+        if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.';
+        return;
+    }
+    s.then(function() {
+        document.getElementById('ayarlarMetaAppId').value = '';
+        document.getElementById('ayarlarMetaAppSecret').value = '';
+        if (durumEl) durumEl.textContent = 'Meta kimlikleri temizlendi. Facebook/Instagram baglantisi artik yapilamaz.';
+        alert('Meta kimlikleri temizlendi.');
+        bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+            'Meta kimlikleri temizlendi',
+            'Facebook/Instagram baglantisinda kullanilan App ID ve App Secret guvenli depodan silindi.');
+    }).catch(function() {
+        if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
+        alert('Meta kimlikleri temizlenemedi.');
+    });
+}
+
+// ===== TIKTOK (CLIENT KEY / CLIENT SECRET) UYGULAMA KIMLIKLERI =====
+// TikTok baglantisi Client Key + Client Secret gerektirir. Bu kimlikler
+// kullanici tarafindan ayarlar ekraninda girilir ve Rust tarafinda Windows
+// Credential Manager'a guvenli sekilde saklanir (kaynak koduna gomulmez; ham
+// secret asla on yuze dondurulmez). Bu fonksiyonlar yapilandirmanin durumunu
+// yukler, kaydeder ve temizler.
+
+// Sayfa yuklendiginde TikTok yapilandirma durumunu sorgula (Tauri ortami varsa).
+function ayarlarTiktokConfigDurumYukle() {
+    var grubu = document.getElementById('ayarlarTiktokConfigGrubu');
+    if (!grubu) return;
+    var durumEl = document.getElementById('ayarlarTiktokConfigDurum');
+    if (!durumEl) return;
+
+    var s = esTauriInvoke('tiktok_config_status');
+    if (!s) {
+        // Tauri ortami yok: onizleme modu. Bilgi mesaji goster.
+        durumEl.textContent = 'TikTok kimlikleri yalniz masaustu uygulamada saklanabilir. (Onizleme modunda baglanti yapilamaz.)';
+        return;
+    }
+    s.then(function(stat) {
+        if (!stat) return;
+        if (stat.clientKeyConfigured && stat.clientSecretConfigured) {
+            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">TikTok Client Key ve Client Secret yapilandirildi.</span>';
+        } else if (stat.clientKeyConfigured) {
+            durumEl.innerHTML = '<span style="color:#f59e0b;font-weight:600;">TikTok Client Key yapilandirildi. Client Secret HENUZ yapilandirilmadi.</span>';
+        } else {
+            durumEl.textContent = 'TikTok Client Key ve Client Secret henuz yapilandirilmadi. TikTok baglantisi icin asagiya girin ve kaydedin.';
+        }
+    }).catch(function() {
+        durumEl.textContent = 'TikTok yapilandirma durumu okunamadi.';
+    });
+}
+
+// TikTok Client Key / Client Secret'i guvenli depoya kaydet.
+function ayarlarTiktokConfigKaydet() {
+    var durumEl = document.getElementById('ayarlarTiktokConfigDurum');
+    var clientKey = document.getElementById('ayarlarTiktokClientKey').value.trim();
+    var clientSecret = document.getElementById('ayarlarTiktokClientSecret').value.trim();
+
+    if (!clientKey || !clientSecret) {
+        alert('TikTok Client Key ve Client Secret zorunludur. Bos deger kaydedilemez.');
+        if (durumEl) durumEl.textContent = 'TikTok Client Key ve Client Secret girin.';
+        bildirimEkle('sistem-uyari', 'uyari',
+            'TikTok kimlikleri kaydedilemedi - Zorunlu alan eksik',
+            'TikTok Client Key ve Client Secret girilmeden kaydedilemez.');
+        return;
+    }
+
+    var s = esTauriInvoke('tiktok_set_config', { clientKey: clientKey, clientSecret: clientSecret });
+    if (!s) {
+        alert('TikTok kimlikleri yalniz masaustu uygulamada saklanabilir.');
+        if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.';
+        return;
+    }
+    s.then(function(stat) {
+        document.getElementById('ayarlarTiktokClientSecret').value = '';
+        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">TikTok kimlikleri g¸venli biÁimde kaydedildi.</span>';
+        alert('TikTok Client Key ve Client Secret g¸venli biÁimde kaydedildi. (Client Secret ekranda/yerelde gˆsterilmez.)');
+        bildirimEkle('sosyal-medya-baglanti', 'basarili',
+            'TikTok kimlikleri kaydedildi',
+            'TikTok baglantisi icin gerekli Client Key ve Client Secret guvenli depoya kaydedildi.');
+    }).catch(function(err) {
+        var raw = (err && (err.message || err.code || err)) || '';
+        var msg = metaHataMesaji(String(raw));
+        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + msg;
+        alert('TikTok kimlikleri kaydedilemedi.');
+        bildirimEkle('sosyal-medya-baglanti', 'hata',
+            'TikTok kimlikleri kaydedilemedi', msg);
+    });
+}
+
+// TikTok Client Key / Client Secret'i guvenli depodan temizle.
+function ayarlarTiktokConfigTemizle() {
+    var durumEl = document.getElementById('ayarlarTiktokConfigDurum');
+    var s = esTauriInvoke('tiktok_clear_config');
+    if (!s) {
+        if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.';
+        return;
+    }
+    s.then(function() {
+        document.getElementById('ayarlarTiktokClientKey').value = '';
+        document.getElementById('ayarlarTiktokClientSecret').value = '';
+        if (durumEl) durumEl.textContent = 'TikTok kimlikleri temizlendi. TikTok baglantisi artik yapilamaz.';
+        alert('TikTok kimlikleri temizlendi.');
+        bildirimEkle('sosyal-medya-baglanti', 'bilgi',
+            'TikTok kimlikleri temizlendi',
+            'TikTok baglantisinda kullanilan Client Key ve Client Secret guvenli depodan silindi.');
+    }).catch(function() {
+        if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
+        alert('TikTok kimlikleri temizlenemedi.');
     });
 }
 
@@ -1945,6 +2778,8 @@ document.addEventListener('DOMContentLoaded', function() {
     ayarlarGenelGeriYukle();
     sosyalKatalogYukle();
     sosyalBaglantiDurumlariYukle(); // YouTube dahil gercek baglanti durumunu yukle
+    ayarlarMetaConfigDurumYukle(); // Facebook/Instagram Meta kimlik durumunu yukle
+    ayarlarTiktokConfigDurumYukle(); // TikTok Client Key / Client Secret durumunu yukle
     dashboardBaglantiGuncelle();
 });
 

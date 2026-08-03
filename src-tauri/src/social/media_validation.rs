@@ -80,6 +80,64 @@ pub fn verify_video_file(path: &str) -> Result<(), SocialError> {
     Ok(())
 }
 
+/// Bilinen görsel dosya uzantıları.
+const IMAGE_EXTENSIONS: &[&str] = &["jpg", "jpeg", "png", "webp", "gif", "bmp"];
+
+/// Görsel dosya uzantılarının başlık (magic) imzaları.
+fn has_image_magic(bytes: &[u8]) -> bool {
+    if bytes.len() < 12 {
+        return false;
+    }
+    // JPEG: FF D8 FF
+    if bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF {
+        return true;
+    }
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    if &bytes[0..8] == [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] {
+        return true;
+    }
+    // WEBP: RIFF....WEBP
+    if &bytes[0..4] == b"RIFF" && &bytes[8..12] == b"WEBP" {
+        return true;
+    }
+    // GIF: GIF87a / GIF89a
+    if &bytes[0..4] == b"GIF8" {
+        return true;
+    }
+    // BMP: BM
+    if bytes[0] == b'B' && bytes[1] == b'M' {
+        return true;
+    }
+    false
+}
+
+/// Verilen dosyanın gerçek, okunabilir ve tanınan bir görsel dosyası olup
+/// olmadığını doğrular. Yalnız uzantıya güvenilmez; başlık imzası beklenir.
+pub fn verify_image_or_photo_file(path: &str) -> Result<(), SocialError> {
+    let meta = std::fs::metadata(path).map_err(|_| SocialError::FileNotFound)?;
+    if !meta.is_file() {
+        return Err(SocialError::FileNotFound);
+    }
+
+    let lower = path.to_ascii_lowercase();
+    let known_ext = IMAGE_EXTENSIONS.iter().any(|ext| lower.ends_with(&format!(".{}", ext)));
+    if !known_ext {
+        return Err(SocialError::InvalidMediaFile);
+    }
+
+    use std::io::Read;
+    let mut file = std::fs::File::open(path).map_err(|_| SocialError::FileNotFound)?;
+    let mut buf = [0u8; 12];
+    let read = file.read_exact(&mut buf);
+    let _ = read;
+
+    if !has_image_magic(&buf) {
+        return Err(SocialError::InvalidMediaFile);
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -119,5 +177,29 @@ mod tests {
         let mut data = [0u8; 12];
         data[0..4].copy_from_slice(&[0x89, 0x50, 0x4E, 0x47]);
         assert!(!has_video_magic(&data));
+    }
+
+    #[test]
+    fn image_magic_detects_jpeg_png_webp() {
+        let mut jpeg = [0u8; 12];
+        jpeg[0] = 0xFF; jpeg[1] = 0xD8; jpeg[2] = 0xFF;
+        assert!(has_image_magic(&jpeg));
+
+        let mut png = [0u8; 12];
+        png[0..8].copy_from_slice(&[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+        assert!(has_image_magic(&png));
+
+        let mut webp = [0u8; 12];
+        webp[0..4].copy_from_slice(b"RIFF");
+        webp[8..12].copy_from_slice(b"WEBP");
+        assert!(has_image_magic(&webp));
+    }
+
+    #[test]
+    fn image_magic_rejects_video_and_plain() {
+        let mut mp4 = [0u8; 12];
+        mp4[4..8].copy_from_slice(b"ftyp");
+        assert!(!has_image_magic(&mp4));
+        assert!(!has_image_magic(&[0u8; 12]));
     }
 }

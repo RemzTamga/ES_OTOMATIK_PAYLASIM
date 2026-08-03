@@ -1,0 +1,887 @@
+//! Ortak Meta (Facebook / Instagram) entegrasyonunun çekirdeği.
+//!
+//! Bu modül Meta Graph API sürümünü, ortak OAuth akışını, loopback callback
+//! yönetimini, token işlemlerini, Facebook Sayfalarının ve Sayfalara bağlı
+//! Instagram profesyonel hesaplarının keşfini tek merkezde tutar. Facebook ve
+//! Instagram platform modülleri (`facebook.rs`, `instagram.rs`) yalnız kendi
+//! içerik ve yayın kurallarını içerir; buradaki ortak altyapıyı tekrar kurmaz.
+//!
+//! Amaç: "Meta uygulama kimliği" ve "API sürümü" tek kaynaktan gelir. OAuth,
+//! state ve token işlemleri ortaktır; iki ayrı OAuth motoru oluşturulmaz.
+//!
+//! GÜVENLİK NOTU (uygulanabilirlik kapısı):
+//! Meta'nın resmî `authorization_code` değişimi `client_secret` (App Secret)
+//! gerektirir. Bu projenin güvenlik kuralı, app secret'ın binary'ye / kaynağa /
+//! loga / repoya gömülmesini yasaklar. App secret güvenli biçimde
+//! kullanılamadığı için kod→token değişimi `AppSecretRequired` ile döner ve
+//! bağlantı `reauthorization_required` olarak işaretlenir. Benzer biçimde token
+//! yenileme de app secret gerektirdiğinden güvenli değildir ve aynı sonucu üretir.
+//! Bu, sahte bağlantı değil; Meta'nın sunucusuz masaüstü mimaride gizli secret
+//! kullanmadan tamamlanamayan gerçek bir mimari engelinin dürüst raporlanmasıdır.
+
+use std::io::{Read, Write};
+use std::net::TcpListener;
+use std::time::Duration;
+
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use base64::Engine as _;
+use rand::RngCore;
+use tauri::{AppHandle, Manager};
+use tauri_plugin_shell::ShellExt;
+
+use super::super::credential_store;
+use super::super::metadata_store;
+use super::super::models::{
+    ConnectionRecord, ConnectionStatus, SocialAccountConnection, SocialError, TokenType,
+};
+
+/// Facebook platform kimliği (mevcut katalogdaki değer).
+pub const FACEBOOK_PLATFORM_ID: &str = "facebook";
+/// Instagram platform kimliği (mevcut katalogdaki değer).
+pub const INSTAGRAM_PLATFORM_ID: &str = "instagram";
+
+/// Tek merkezde tanımlanan güncel Meta Graph API sürümü.
+pub const META_GRAPH_VERSION: &str = "v23.0";
+
+/// Meta OAuth yetkilendirme uç adresi.
+const AUTHORIZE_ENDPOINT: &str = "https://www.facebook.com/dialog/oauth";
+/// Facebook Graph API kök adresi + sürüm.
+const GRAPH_ENDPOINT: &str = "https://graph.facebook.com/v23.0";
+
+/// OAuth callback'inin kaç saniye beklenileceği.
+const OAUTH_TIMEOUT_SECS: u64 = 300;
+
+/// Meta App ID, derleme zamanında güvenli biçimde gömülür.
+/// Değer tanımlı değilse `None` döner; derleme bu yüzden başarısız olmaz.
+pub fn meta_app_id() -> Option<&'static str> {
+    option_env!("ES_OPS_META_APP_ID")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+}
+
+/// Meta App Secret kasıtlı olarak hiçbir zaman uygulamaya gömülmez.
+/// Bu fonksiyon yalnızca "secret yok" gerçeğini döndürür; secret değerini içermez.
+pub fn meta_app_secret() -> Option<&'static str> {
+    option_env!("ES_OPS_META_APP_SECRET")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .filter(|_| {
+            // Güvenlik kuralı: app secret binary'ye gömülemez.
+            // Bu koşullu ifade, ortam değişkeni tanımlı olsa bile uygulamanın
+            // secret'ı yok saydığını garanti eder (dosyaya/loga/binary'ye sızmasın).
+            // Boşlanır: `std::env::var("ES_OPS_META_APP_SECRET")` kullanılmaz.
+            return false;
+        })
+}
+
+// ---- Güvenli rastgele üretim (OAuth state) ----
+
+/// Kriptografik olarak güvenli rastgele bayt üretir.
+fn random_bytes(len: usize) -> Result<Vec<u8>, SocialError> {
+    let mut buf = vec![0u8; len];
+    rand::rngs::OsRng
+        .try_fill_bytes(&mut buf)
+        .map_err(|_| SocialError::OperationFailed)?;
+    Ok(buf)
+}
+
+/// OAuth `state` değeri üretir (URL-safe, tahmin edilemez).
+pub fn generate_state() -> Result<String, SocialError> {
+    let bytes = random_bytes(32)?;
+    Ok(URL_SAFE_NO_PAD.encode(bytes))
+}
+
+// ---- Loopback callback ----
+
+/// `127.0.0.1` üzerinde dinamik (serbest) bir portta dinleyici açar.
+pub fn bind_loopback() -> Result<TcpListener, SocialError> {
+    TcpListener::bind(("127.0.0.1", 0)).map_err(|_| SocialError::OauthTimeout)
+}
+
+/// Loopback gelen isteğindeki `code` ve `state` değerlerini ayrıştırır.
+pub fn parse_callback_query(query: &str) -> (Option<String>, Option<String>) {
+    let mut code = None;
+    let mut state = None;
+    for pair in query.split('&') {
+        if let Some(eq) = pair.find('=') {
+            let k = &pair[..eq];
+            let v = &pair[eq + 1..];
+            match k {
+                "code" => code = Some(v.to_string()),
+                "state" => state = Some(v.to_string()),
+                _ => {}
+            }
+        }
+    }
+    (code, state)
+}
+
+/// Callback dinlenecek kadar bekler ve `(code, state)` döndürür.
+pub fn wait_for_callback(listener: &TcpListener) -> Result<(String, String), SocialError> {
+    listener
+        .set_nonblocking(true)
+        .map_err(|_| SocialError::OauthTimeout)?;
+
+    let deadline = std::time::Instant::now() + Duration::from_secs(OAUTH_TIMEOUT_SECS);
+
+    loop {
+        if std::time::Instant::now() > deadline {
+            return Err(SocialError::OauthTimeout);
+        }
+
+        match listener.accept() {
+            Ok((mut stream, _addr)) => {
+                let mut total = Vec::new();
+                let mut buf = [0u8; 4096];
+                for _ in 0..128 {
+                    match stream.read(&mut buf) {
+                        Ok(0) => break,
+                        Ok(n) => {
+                            total.extend_from_slice(&buf[..n]);
+                            if total.windows(4).any(|w| w == b"\r\n\r\n") {
+                                break;
+                            }
+                            if total.len() >= 8192 {
+                                break;
+                            }
+                        }
+                        Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                            std::thread::sleep(Duration::from_millis(50));
+                            if std::time::Instant::now() > deadline {
+                                return Err(SocialError::OauthTimeout);
+                            }
+                            continue;
+                        }
+                        Err(_) => break,
+                    }
+                }
+
+                let request_text = String::from_utf8_lossy(&total);
+                let path_and_query = request_text
+                    .lines()
+                    .next()
+                    .and_then(|l| l.split_whitespace().nth(1))
+                    .unwrap_or("/");
+
+                let response_body =
+                    "<html><body><h3>ES OPS</h3><p>Baglanti tamamlandi. Bu pencereyi kapatabilirsiniz.</p></body></html>";
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                    response_body.len(),
+                    response_body
+                );
+                let _ = stream.write_all(response.as_bytes());
+                let _ = stream.flush();
+
+                let query = path_and_query
+                    .split_once('?')
+                    .map(|(_, q)| q)
+                    .unwrap_or("");
+
+                if query.contains("error=") {
+                    return Err(SocialError::OauthCancelled);
+                }
+                let (code, state) = parse_callback_query(query);
+                let code = code.ok_or(SocialError::OauthExchangeFailed)?;
+                let state = state.ok_or(SocialError::OauthStateMismatch)?;
+                return Ok((code, state));
+            }
+            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                std::thread::sleep(Duration::from_millis(100));
+            }
+            Err(_) => {
+                std::thread::sleep(Duration::from_millis(100));
+            }
+        }
+    }
+}
+
+// ---- HTTP istemci ----
+
+/// Ortak Meta HTTP istemcisi. Uygun tek bloklama istemcisidir.
+pub fn http_client() -> Result<reqwest::blocking::Client, SocialError> {
+    reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(120))
+        .build()
+        .map_err(|_| SocialError::ApiError)
+}
+
+/// Tarayıcıyı resmî Tauri shell mekanizmasıyla açar.
+pub fn open_browser(app: &AppHandle, url: &str) -> Result<(), SocialError> {
+    app.shell()
+        .open(url, None)
+        .map_err(|_| SocialError::OperationFailed)
+}
+
+// ---- Auth URL ----
+
+/// Meta OAuth yetkilendirme URL'sini oluşturur. `response_type=code` kullanılır.
+pub fn build_authorize_url(
+    app_id: &str,
+    redirect_uri: &str,
+    scope: &str,
+    state: &str,
+) -> String {
+    format!(
+        "{AUTHORIZE_ENDPOINT}?client_id={app_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}&state={state}"
+    )
+}
+
+// ---- Token işlemleri ----
+
+/// Yetkilendirme kodunu gerçek Meta token endpoint'inde değiştirir.
+///
+/// Meta'nın resmî akışı bu adımda `client_secret` (App Secret) ister.
+/// Bu proje app secret'ı binary'ye gömmeyi güvenlik kuralı olarak yasakladığından
+/// değişim tamamlanamaz ve `AppSecretRequired` döner. Bu, sahte başarı değil;
+/// gerçek bir güvenlik kısıtının kontrol edilmiş sonucudur.
+pub fn exchange_code(
+    _app_id: &str,
+    _redirect_uri: &str,
+    _code: &str,
+) -> Result<String, SocialError> {
+    // App secret olmadan Meta kod değişimi resmî olarak desteklenmez.
+    Err(SocialError::AppSecretRequired)
+}
+
+/// Uzun ömürlü / sayfa tokenı yenileme işlemi.
+///
+/// Meta token uzatma/uzun ömürlüleştirme de app secret gerektirir. Secret
+/// güvenli biçimde kullanılamadığından bağlantı `ReauthorizationRequired` ile
+/// döner; kullanıcı yeniden yetkilendirme yapmalıdır.
+pub fn refresh_user_token() -> Result<String, SocialError> {
+    Err(SocialError::ReauthorizationRequired)
+}
+
+// ---------------------------------------------------------------------------
+// Kullanıcı tarafından yapılandırılabilir gerçek Meta bağlantısı
+// ---------------------------------------------------------------------------
+//
+// Gerçek Facebook/Instagram OAuth bağlantısı, Meta geliştirici uygulamasına
+// ait App ID ve App Secret gerektirir. Bu kimlikler kaynağa gömülmez; kullanıcı
+// bunları ayarlar ekranından girer ve Windows Credential Manager (credential_store)
+// üzerinden güvenli biçimde saklanır. Böylece "kaynağa secret gömme" güvenlik
+// kuralı korunur; kullanıcı kendi kimliklerini girebilir ve gerçek bağlantı kurulur.
+//
+// App ID ve App Secret için ayrı token türleri kullanılır ve aynı ortak
+// bağlantı anahtarına yazılır. Bu kayıtlar hiçbir sosyal hesaba ait değildir:
+// yalnızca uygulama seviyesinde Meta kimlikleri barındıran yapılandırma kaydıdır.
+
+/// Meta uygulama yapılandırması için kullanılan ortak (bağlantıya özgü olmayan) anahtardır.
+const META_CONFIG_CONN: &str = "_meta_app_config";
+
+/// Meta App ID'yi güvenli depoya yazar (kaynağa gömülmez).
+pub fn store_app_id(app_id: &str) -> Result<(), SocialError> {
+    if app_id.trim().is_empty() {
+        return Err(SocialError::MetaNotConfigured);
+    }
+    credential_store::store_token("meta", META_CONFIG_CONN, TokenType::RefreshToken, app_id.trim())
+}
+
+/// Meta App Secret'ı güvenli depoya yazar (kaynağa gömülmez).
+pub fn store_app_secret(app_secret: &str) -> Result<(), SocialError> {
+    if app_secret.trim().is_empty() {
+        return Err(SocialError::AppSecretRequired);
+    }
+    credential_store::store_token("meta", META_CONFIG_CONN, TokenType::AccessToken, app_secret.trim())
+}
+
+/// Güvenli depodan Meta App ID'yi okur.
+pub fn read_app_id() -> Result<Option<String>, SocialError> {
+    credential_store::get_token("meta", META_CONFIG_CONN, TokenType::RefreshToken)
+}
+
+/// Güvenli depodan Meta App Secret'ı okur.
+/// Ham secret, JavaScript'e asla döndürülmez; yalnız Rust içinde kullanılır.
+pub fn read_app_secret() -> Result<Option<String>, SocialError> {
+    credential_store::get_token("meta", META_CONFIG_CONN, TokenType::AccessToken)
+}
+
+/// Kullanım sırasında çözülecek App ID. Önce derleme zamanı `ES_OPS_META_APP_ID`,
+/// varsa onu, yoksa güvenli depodaki kullanıcı kaydını kullanır.
+pub fn resolved_app_id() -> Option<String> {
+    meta_app_id()
+        .map(|s| s.to_string())
+        .or_else(|| read_app_id().ok().flatten())
+}
+
+/// Kullanım sırasında çözülecek App Secret. Yalnız güvenli depodan okunur.
+pub fn resolved_app_secret() -> Option<String> {
+    read_app_secret().ok().flatten()
+}
+
+/// Meta kutulu erişim token endpoint'i (yetkilendirme kodu değişim adresi).
+const GRAPH_TOKEN_ENDPOINT: &str = "https://graph.facebook.com/v23.0/oauth/access_token";
+
+/// Gerçek yetkilendirme kodu değişimi (App Secret ile).
+///
+/// Meta'nın resmî `authorization_code` değişimi `client_secret` (App Secret)
+/// ister. Bu fonksiyon, güvenli biçimde saklanmış App Secret ile gerçek token
+/// endpoint'ine POST atar ve access_token döndürür. App Secret yoksa kontrollü
+/// `AppSecretRequired` döner; sahte token üretilmez.
+pub fn exchange_code_real(
+    app_id: &str,
+    redirect_uri: &str,
+    code: &str,
+    app_secret: &str,
+) -> Result<String, SocialError> {
+    if app_secret.is_empty() {
+        return Err(SocialError::AppSecretRequired);
+    }
+    let client = http_client()?;
+    let params = [
+        ("client_id", app_id),
+        ("client_secret", app_secret),
+        ("redirect_uri", redirect_uri),
+        ("code", code),
+        ("grant_type", "authorization_code"),
+    ];
+    let resp = client
+        .post(GRAPH_TOKEN_ENDPOINT)
+        .form(&params)
+        .send()
+        .map_err(|_| SocialError::OauthExchangeFailed)?;
+
+    let status = resp.status();
+    let body = resp.text().unwrap_or_default();
+    if !status.is_success() {
+        return Err(SocialError::OauthExchangeFailed);
+    }
+
+    #[derive(serde::Deserialize)]
+    struct TokenResp {
+        access_token: Option<String>,
+    }
+    let parsed: TokenResp =
+        serde_json::from_str(&body).map_err(|_| SocialError::OauthExchangeFailed)?;
+    let token = parsed.access_token.filter(|t| !t.is_empty());
+    token.ok_or(SocialError::OauthExchangeFailed)
+}
+
+/// Gerçek uzun ömürlü token uzatma (App Secret ile).
+///
+/// Meta kullanıcı tokenını uzun ömürlü yapmak `client_secret` ister. Secret
+/// güvenli biçimde sağlanırsa gerçek istek yapılır; aksi halde `AppSecretRequired`
+/// döner. Yalnızca modül içi kullanım içindir.
+#[allow(dead_code)]
+pub fn extend_user_token_real(
+    app_id: &str,
+    app_secret: &str,
+    short_lived_access_token: &str,
+) -> Result<String, SocialError> {
+    if app_secret.is_empty() {
+        return Err(SocialError::AppSecretRequired);
+    }
+    let client = http_client()?;
+    let params = [
+        ("grant_type", "fb_exchange_token"),
+        ("client_id", app_id),
+        ("client_secret", app_secret),
+        ("fb_exchange_token", short_lived_access_token),
+    ];
+    let resp = client
+        .post(GRAPH_TOKEN_ENDPOINT)
+        .form(&params)
+        .send()
+        .map_err(|_| SocialError::TokenRefreshFailed)?;
+    let status = resp.status();
+    let body = resp.text().unwrap_or_default();
+    if !status.is_success() {
+        return Err(SocialError::TokenRefreshFailed);
+    }
+    #[derive(serde::Deserialize)]
+    struct TokenResp {
+        access_token: Option<String>,
+    }
+    let parsed: TokenResp =
+        serde_json::from_str(&body).map_err(|_| SocialError::TokenRefreshFailed)?;
+    let token = parsed.access_token.filter(|t| !t.is_empty());
+    token.ok_or(SocialError::TokenRefreshFailed)
+}
+
+/// Kod değişimi için App Secret gerekip gerekmediğini denetler.
+/// Gerçek bağlantı, kullanıcı App Secret'ı sakladıysa mümkündür.
+pub fn app_secret_ready() -> bool {
+    read_app_secret().map(|s| s.is_some()).unwrap_or(false)
+}
+
+// ---- Facebook Sayfaları keşfi ----
+
+/// Kullanıcının yönettiği Facebook Sayfalarını döndürür.
+///
+/// Sayfa tokenları, kullanıcı tokenının `/me/accounts` adresine `page_token`
+/// alanı istenerek elde edilir. Bu, gerçek Graph API keşfidir. Erişim yoksa
+/// `PermissionDenied` döner.
+pub fn fetch_managed_pages(
+    user_token: &str,
+) -> Result<Vec<FacebookPageTarget>, SocialError> {
+    let client = http_client()?;
+    let url = format!(
+        "{GRAPH_ENDPOINT}/me/accounts?fields=id,name,access_token&access_token={}",
+        user_token
+    );
+    let resp = client
+        .get(&url)
+        .send()
+        .map_err(|_| SocialError::ApiError)?;
+
+    let status = resp.status();
+    let body = resp.text().unwrap_or_default();
+
+    if status == reqwest::StatusCode::UNAUTHORIZED
+        || status == reqwest::StatusCode::FORBIDDEN
+    {
+        return Err(SocialError::PermissionDenied);
+    }
+
+    let parsed: PagesResponse = match serde_json::from_str(&body) {
+        Ok(p) => p,
+        Err(_) => return Err(SocialError::ApiError),
+    };
+
+    let mut pages = Vec::new();
+    for item in parsed.data.unwrap_or_default() {
+        if let (Some(id), Some(name)) = (item.id, item.name) {
+            pages.push(FacebookPageTarget {
+                page_id: id,
+                page_name: name,
+                page_access_token: item.access_token.unwrap_or_default(),
+            });
+        }
+    }
+    if pages.is_empty() {
+        return Err(SocialError::NoManagedPage);
+    }
+    Ok(pages)
+}
+
+/// Bir Facebook Sayfasına bağlı Instagram profesyonel hesabını bulur.
+/// Sayfada Instagram Business/Creator hesabı bağlı değilse
+/// `InstagramAccountNotFound` döner (Facebook bağlantısını geçersiz yapmaz;
+/// yalnızca Instagram hedefi üretilmez).
+pub fn fetch_linked_instagram(
+    page_id: &str,
+    page_access_token: &str,
+) -> Result<InstagramAccountTarget, SocialError> {
+    let client = http_client()?;
+    let url = format!(
+        "{GRAPH_ENDPOINT}/{page_id}?fields=instagram_business_account{{id,username,profile_picture_url,name}}&access_token={}",
+        page_access_token
+    );
+    let resp = client
+        .get(&url)
+        .send()
+        .map_err(|_| SocialError::ApiError)?;
+
+    let status = resp.status();
+    let body = resp.text().unwrap_or_default();
+
+    if status == reqwest::StatusCode::UNAUTHORIZED
+        || status == reqwest::StatusCode::FORBIDDEN
+    {
+        return Err(SocialError::PermissionDenied);
+    }
+
+    let parsed: PageDetailsResponse = match serde_json::from_str(&body) {
+        Ok(p) => p,
+        Err(_) => return Err(SocialError::ApiError),
+    };
+
+    match parsed.instagram_business_account {
+        Some(ig) => {
+            let id = ig.id.unwrap_or_default();
+            if id.is_empty() {
+                return Err(SocialError::InstagramAccountNotFound);
+            }
+            let username = ig.username.unwrap_or_default();
+            let name = ig.name.unwrap_or_else(|| username.clone());
+            Ok(InstagramAccountTarget {
+                instagram_id: id,
+                account_name: if name.is_empty() { username } else { name },
+            })
+        }
+        None => Err(SocialError::InstagramAccountNotFound),
+    }
+}
+
+// ---- Bağlantı kaydı kurma ----
+
+fn data_dir(app: &AppHandle) -> Result<std::path::PathBuf, SocialError> {
+    app.path()
+        .app_data_dir()
+        .map_err(|_| SocialError::ConnectionStoreError)
+}
+
+fn now_rfc3339() -> String {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let days = now / 86400;
+    let seconds = now % 86400;
+    format!("{}d+{}s", days, seconds)
+}
+
+fn generate_connection_id(platform: &str) -> Result<String, SocialError> {
+    let bytes = random_bytes(16)?;
+    Ok(format!("{}_{}", platform, URL_SAFE_NO_PAD.encode(bytes)))
+}
+
+/// Facebook Sayfası için ayrı bir bağlantı kaydı ve token yazar.
+///
+/// Düzen:
+/// - Aynı Sayfa ikinci kez eklenmez.
+/// - Tokenlar başarıyla yazılmadan `connected` yapılmaz.
+/// - Metadata yazımı başarısız olursa yarım token kayıtları temizlenir.
+/// - Token yazımı başarısız olursa bağlantı kaydı oluşturulmaz.
+pub fn connect_facebook_page(
+    app: &AppHandle,
+    page: &FacebookPageTarget,
+) -> Result<SocialAccountConnection, SocialError> {
+    let dir = data_dir(app)?;
+    let records = metadata_store::list_connections(&dir)?;
+    let existing = records.iter().find(|r| {
+        r.platform_id == FACEBOOK_PLATFORM_ID && r.external_account_id == page.page_id
+    });
+
+    let connection_id = match existing {
+        Some(r) => r.connection_id.clone(),
+        None => generate_connection_id("facebook")?,
+    };
+
+    if credential_store::store_token(
+        FACEBOOK_PLATFORM_ID,
+        &connection_id,
+        TokenType::AccessToken,
+        &page.page_access_token,
+    )
+    .is_err()
+    {
+        // Token yazılamadı: bağlantı kaydı oluşturulmaz.
+        return Err(SocialError::CredentialStoreError);
+    }
+
+    let record = ConnectionRecord {
+        connection_id: connection_id.clone(),
+        platform_id: FACEBOOK_PLATFORM_ID.to_string(),
+        external_account_id: page.page_id.clone(),
+        account_display_name: page.page_name.clone(),
+        connection_status: ConnectionStatus::Connected,
+        last_error_code: String::new(),
+        last_operation_at: now_rfc3339(),
+    };
+
+    if metadata_store::upsert_connection(&dir, record).is_err() {
+        let _ = credential_store::delete_all_tokens(FACEBOOK_PLATFORM_ID, &connection_id);
+        return Err(SocialError::ConnectionStoreError);
+    }
+
+    Ok(SocialAccountConnection {
+        connection_id,
+        platform_id: FACEBOOK_PLATFORM_ID.to_string(),
+        external_account_id: page.page_id.clone(),
+        account_display_name: page.page_name.clone(),
+        connection_status: ConnectionStatus::Connected,
+        token_exists: true,
+        last_error_code: String::new(),
+        last_operation_at: now_rfc3339(),
+    })
+}
+
+/// Instagram profesyonel hesabı için ayrı bir bağlantı kaydı kurar.
+///
+/// Instagram yayını için Sayfanın `page_access_token`'ı kullanılır; bu token
+/// Instagram hesabıyla ilişkilendirildiği için `connection_id` başına
+/// Instagram platform kimliğiyle saklanır. Aynı hesap ikinci kez eklenmez.
+pub fn connect_instagram_account(
+    app: &AppHandle,
+    _page_id: &str,
+    instagram: &InstagramAccountTarget,
+    page_access_token: &str,
+) -> Result<SocialAccountConnection, SocialError> {
+    let dir = data_dir(app)?;
+    let records = metadata_store::list_connections(&dir)?;
+    let existing = records.iter().find(|r| {
+        r.platform_id == INSTAGRAM_PLATFORM_ID && r.external_account_id == instagram.instagram_id
+    });
+
+    let connection_id = match existing {
+        Some(r) => r.connection_id.clone(),
+        None => generate_connection_id("instagram")?,
+    };
+
+    // Instagram erişimi için Sayfanın tokenı kullanılır.
+    if credential_store::store_token(
+        INSTAGRAM_PLATFORM_ID,
+        &connection_id,
+        TokenType::AccessToken,
+        page_access_token,
+    )
+    .is_err()
+    {
+        return Err(SocialError::CredentialStoreError);
+    }
+
+    let record = ConnectionRecord {
+        connection_id: connection_id.clone(),
+        platform_id: INSTAGRAM_PLATFORM_ID.to_string(),
+        external_account_id: instagram.instagram_id.clone(),
+        account_display_name: instagram.account_name.clone(),
+        connection_status: ConnectionStatus::Connected,
+        last_error_code: String::new(),
+        last_operation_at: now_rfc3339(),
+    };
+
+    if metadata_store::upsert_connection(&dir, record).is_err() {
+        let _ = credential_store::delete_all_tokens(INSTAGRAM_PLATFORM_ID, &connection_id);
+        return Err(SocialError::ConnectionStoreError);
+    }
+
+    Ok(SocialAccountConnection {
+        connection_id,
+        platform_id: INSTAGRAM_PLATFORM_ID.to_string(),
+        external_account_id: instagram.instagram_id.clone(),
+        account_display_name: instagram.account_name.clone(),
+        connection_status: ConnectionStatus::Connected,
+        token_exists: true,
+        last_error_code: String::new(),
+        last_operation_at: now_rfc3339(),
+    })
+}
+
+// ---- Serde yapıları ----
+
+#[derive(serde::Deserialize)]
+struct PagesResponse {
+    data: Option<Vec<PageItem>>,
+}
+
+#[derive(serde::Deserialize)]
+struct PageItem {
+    id: Option<String>,
+    name: Option<String>,
+    access_token: Option<String>,
+}
+
+#[derive(serde::Deserialize)]
+struct PageDetailsResponse {
+    #[serde(rename = "instagram_business_account")]
+    instagram_business_account: Option<InstagramBusiness>,
+}
+
+#[derive(serde::Deserialize)]
+struct InstagramBusiness {
+    id: Option<String>,
+    username: Option<String>,
+    name: Option<String>,
+    profile_picture_url: Option<String>,
+}
+
+/// Facebook Sayfa hedefi (gizli olmayan bilgi).
+pub struct FacebookPageTarget {
+    pub page_id: String,
+    pub page_name: String,
+    pub page_access_token: String,
+}
+
+/// Instagram profesyonel hesap hedefi (gizli olmayan bilgi).
+pub struct InstagramAccountTarget {
+    pub instagram_id: String,
+    pub account_name: String,
+}
+
+// ---- Kontrollü paylaşım / içerik türleri ----
+
+/// Mevcut projenin kontrollü paylaşım türleri. JavaScript'ten serbest metin
+/// gelmez; yalnız bu değerler kabul edilir.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PostKind {
+    Standard,
+    Campaign,
+    Detailed,
+    Announcement,
+}
+
+impl PostKind {
+    /// Kontrollü değerlerden birini ayrıştırır; tanınmayan değer `None` döner.
+    pub fn parse(value: &str) -> Option<PostKind> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "standard" => Some(PostKind::Standard),
+            "kampanya" | "campaign" => Some(PostKind::Campaign),
+            "detayli" | "detailed" => Some(PostKind::Detailed),
+            "duyuru" | "announcement" => Some(PostKind::Announcement),
+            "ilan" => Some(PostKind::Announcement),
+            _ => None,
+        }
+    }
+
+    /// Duyuru/ilan türü olup olmadığı. Instagram, medyasız duyuru/ilanı hedef
+    /// almaz; bu ayrım hedef seçiminde kullanılır.
+    pub fn is_announcement(&self) -> bool {
+        matches!(self, PostKind::Announcement)
+    }
+}
+
+/// Yayınlanacak medyanın kontrollü içerik türü.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MediaKind {
+    Text,
+    Photo,
+    Video,
+    Carousel,
+}
+
+impl MediaKind {
+    /// Kontrollü değerlerden birini ayrıştırır; tanınmayan değer `None` döner.
+    pub fn parse(value: &str) -> Option<MediaKind> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "text" | "metin" => Some(MediaKind::Text),
+            "photo" | "image" | "gorsel" => Some(MediaKind::Photo),
+            "video" | "reels" => Some(MediaKind::Video),
+            "carousel" | "multiphoto" => Some(MediaKind::Carousel),
+            _ => None,
+        }
+    }
+
+    /// Gerçek bir medya içeriği olup olmadığı (metin değilse).
+    pub fn has_media(&self) -> bool {
+        !matches!(self, MediaKind::Text)
+    }
+}
+
+/// Instagram için hedef uygunluğu. Yalnız gerçek medya içeren içerik hedef olabilir;
+/// medyasız (yalnız metin) yayın Instagram'a gönderilmez.
+pub fn instagram_is_eligible(media: MediaKind) -> bool {
+    match media {
+        MediaKind::Text => false,
+        MediaKind::Photo | MediaKind::Video | MediaKind::Carousel => true,
+    }
+}
+
+/// Facebook için hedef uygunluğu. Mevcut proje modeline göre metin, tek görsel
+/// ve video Facebook'un resmî desteklediği akışlara uygundur.
+pub fn facebook_is_eligible(media: MediaKind) -> bool {
+    match media {
+        MediaKind::Text | MediaKind::Photo | MediaKind::Video => true,
+        // Mevcut proje paylaşım modeline göre çoklu görsel (carousel) henüz
+        // Facebook hedefi olarak kabul edilmez.
+        MediaKind::Carousel => false,
+    }
+}
+
+// ---- Testler ----
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn api_version_is_single_source() {
+        // API sürümü tek merkezde tanımlı ve resmî sürümle uyumlu.
+        assert!(META_GRAPH_VERSION.starts_with('v'));
+        assert!(META_GRAPH_VERSION
+            .trim_start_matches('v')
+            .split('.')
+            .all(|p| p.parse::<u32>().is_ok()));
+    }
+
+    #[test]
+    fn app_secret_is_never_returned() {
+        // Güvenlik: app secret hiçbir durumda uygulamaya sızmaz.
+        assert!(meta_app_secret().is_none());
+    }
+
+    #[test]
+    fn state_is_urlsafe() {
+        let s = generate_state().unwrap();
+        assert!(!s.is_empty());
+        assert!(s
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'));
+    }
+
+    #[test]
+    fn parse_callback_query_extracts_code_and_state() {
+        let (code, state) = parse_callback_query("code=abc123&state=xyz");
+        assert_eq!(code.as_deref(), Some("abc123"));
+        assert_eq!(state.as_deref(), Some("xyz"));
+    }
+
+    #[test]
+    fn parse_callback_query_handles_missing_parts() {
+        let (code, state) = parse_callback_query("foo=bar");
+        assert!(code.is_none());
+        assert!(state.is_none());
+    }
+
+    #[test]
+    fn exchange_returns_app_secret_required() {
+        // App secret gömülmediği için kod değişimi gerçekleştirilemez ve
+        // kontrollü hata koduna döner (sahte başarı üretilmez).
+        let err = exchange_code("appid", "http://127.0.0.1:9999/", "code").unwrap_err();
+        assert_eq!(err, SocialError::AppSecretRequired);
+    }
+
+    #[test]
+    fn refresh_returns_reauthorization_required() {
+        let err = refresh_user_token().unwrap_err();
+        assert_eq!(err, SocialError::ReauthorizationRequired);
+    }
+
+    #[test]
+    fn authorize_url_includes_scopes_and_state() {
+        let url = build_authorize_url(
+            "123",
+            "http://127.0.0.1:8080/",
+            "pages_show_list,pages_manage_posts",
+            "st",
+        );
+        assert!(url.contains("client_id=123"));
+        assert!(url.contains("response_type=code"));
+        assert!(url.contains("scope=pages_show_list"));
+        assert!(url.contains("state=st"));
+    }
+
+    #[test]
+    fn post_kind_parse_is_controlled() {
+        assert_eq!(PostKind::parse("standard"), Some(PostKind::Standard));
+        assert_eq!(PostKind::parse("kampanya"), Some(PostKind::Campaign));
+        assert_eq!(PostKind::parse("duyuru"), Some(PostKind::Announcement));
+        assert_eq!(PostKind::parse("ilan"), Some(PostKind::Announcement));
+        assert_eq!(PostKind::parse("rastgele-metin"), None);
+    }
+
+    #[test]
+    fn media_kind_parse_is_controlled() {
+        assert_eq!(MediaKind::parse("text"), Some(MediaKind::Text));
+        assert_eq!(MediaKind::parse("gorsel"), Some(MediaKind::Photo));
+        assert_eq!(MediaKind::parse("video"), Some(MediaKind::Video));
+        assert_eq!(MediaKind::parse("carousel"), Some(MediaKind::Carousel));
+        assert_eq!(MediaKind::parse("bilinmeyen"), None);
+    }
+
+    #[test]
+    fn instagram_requires_real_media() {
+        // Medyasız (yalnız metin) içerik Instagram hedefi olamaz.
+        assert!(!instagram_is_eligible(MediaKind::Text));
+        assert!(instagram_is_eligible(MediaKind::Photo));
+        assert!(instagram_is_eligible(MediaKind::Video));
+        assert!(instagram_is_eligible(MediaKind::Carousel));
+    }
+
+    #[test]
+    fn instagram_rejects_text_only_announcement() {
+        // Duyuru/ilan türü yalnız metinse Instagram hedef dışıdır.
+        let kind = PostKind::parse("duyuru").unwrap();
+        assert!(kind.is_announcement());
+        assert!(!instagram_is_eligible(MediaKind::Text));
+    }
+
+    #[test]
+    fn facebook_supports_text_photo_video() {
+        assert!(facebook_is_eligible(MediaKind::Text));
+        assert!(facebook_is_eligible(MediaKind::Photo));
+        assert!(facebook_is_eligible(MediaKind::Video));
+        assert!(!facebook_is_eligible(MediaKind::Carousel));
+    }
+}
