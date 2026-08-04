@@ -1,2 +1,43 @@
-{  "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/dev/crates/tauri-config-schema/schema.json",  "productName": "ES OPS",  "version": "1.0.0",  "identifier": "com.es.ops",  "build": {    "frontendDist": "../frontend",    "devUrl": "http://localhost:1420",    "beforeDevCommand": "",    "beforeBuildCommand": "powershell -NoProfile -File scripts/copy-frontend.ps1"  },  "app": {
-  "withGlobalTauri": true,    "windows": [      {        "title": "ES OPS - Otomatik Paylasim Sistemi",        "width": 1280,        "height": 800,        "resizable": true,        "fullscreen": false      }    ],    "security": {      "csp": null    }  },  "plugins": {    "shell": {      "open": true    }  }}
+{
+    "$schema":  "https://raw.githubusercontent.com/nicedoc/tauri/dev/crates/tauri-config-schema/schema.json",
+    "productName":  "ES OPS",
+    "version":  "1.0.0",
+    "identifier":  "com.es.ops",
+    "build":  {
+                  "frontendDist":  "../frontend",
+                  "devUrl":  "http://localhost:1420",
+                  "beforeDevCommand":  "",
+                  "beforeBuildCommand":  "powershell -NoProfile -File scripts/copy-frontend.ps1"
+              },
+    "app":  {
+                "withGlobalTauri":  true,
+                "windows":  [
+                                {
+                                    "title":  "ES OPS - Otomatik Paylasim Sistemi",
+                                    "width":  1280,
+                                    "height":  800,
+                                    "resizable":  true,
+                                    "fullscreen":  false
+                                }
+                            ],
+                "security":  {
+                                 "csp":  null
+                             }
+            },
+    "plugins":  {
+                    "shell":  {
+                                  "open":  true
+                              }
+                },
+    "bundle":  {
+                   "active":  true,
+                   "targets":  [
+                                   "msi",
+                                   "nsis"
+                               ],
+                   "icon":  [
+                                "icons/icon.ico",
+                                "icons/icon.png"
+                            ]
+               }
+}
