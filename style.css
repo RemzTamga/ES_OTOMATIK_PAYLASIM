@@ -1403,6 +1403,35 @@ html, body {
 .ayarlar-platform-kart .platform-actions {
     flex-shrink: 0;
 }
+.ayarlar-platform-kart .platform-config {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    width: 100%;
+}
+.ayarlar-platform-kart .platform-config-durum {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: #6b7280;
+}
+.ayarlar-platform-kart .platform-config-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+}
+.ayarlar-platform-kart .platform-config-not {
+    margin-top: 8px;
+    font-size: 0.72rem;
+    color: #9ca3af;
+    line-height: 1.4;
+}
+.ayarlar-platform-kart .platform-hesap-bilgi {
+    font-size: 0.82rem;
+    color: #059669;
+    font-weight: 600;
+}
 
 /* Toggle switch */
 .ayarlar-toggle-label {

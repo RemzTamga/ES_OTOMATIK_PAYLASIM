@@ -317,8 +317,11 @@ fn run_meta_connect_flow(
     app: &AppHandle,
     pin_instagram: bool,
 ) -> Result<SocialAccountConnection, SocialError> {
-    let app_id = meta::resolved_app_id().ok_or(SocialError::MetaNotConfigured)?;
-    let app_secret = meta::resolved_app_secret().ok_or(SocialError::AppSecretRequired)?;
+    // Ortak yapılandırma kapısı: App ID / App Secret eksikse akış, tarayıcı
+    // açılmadan önce tek bir kontrollü hata koduyla durur (sahte bağlantı
+    // üretilmez). Facebook ve Instagram bu kapıyı paylaşır.
+    let (app_id, app_secret) =
+        meta::assert_connect_ready(meta::resolved_app_id(), meta::resolved_app_secret())?;
 
     let listener = meta::bind_loopback()?;
     let port = listener

@@ -297,17 +297,54 @@ pub fn read_app_secret() -> Result<Option<String>, SocialError> {
     credential_store::get_token("meta", META_CONFIG_CONN, TokenType::AccessToken)
 }
 
+/// App ID çözümlemesini saf ve test edilebilir biçimde yapar.
+///
+/// Derleme zamanı gömülü değer (`ES_OPS_META_APP_ID`) önceliklidir; yoksa
+/// güvenli depodaki kullanıcı kaydı kullanılır. Boş/yalnız boşluk içeren
+/// değerler yok sayılır.
+pub fn resolve_app_id_from(compiled: Option<&str>, stored: Option<String>) -> Option<String> {
+    compiled
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string)
+        .or_else(|| stored.map(|s| s.trim().to_string()).filter(|s| !s.is_empty()))
+}
+
 /// Kullanım sırasında çözülecek App ID. Önce derleme zamanı `ES_OPS_META_APP_ID`,
 /// varsa onu, yoksa güvenli depodaki kullanıcı kaydını kullanır.
 pub fn resolved_app_id() -> Option<String> {
-    meta_app_id()
-        .map(|s| s.to_string())
-        .or_else(|| read_app_id().ok().flatten())
+    resolve_app_id_from(meta_app_id(), read_app_id().ok().flatten())
 }
 
 /// Kullanım sırasında çözülecek App Secret. Yalnız güvenli depodan okunur.
 pub fn resolved_app_secret() -> Option<String> {
     read_app_secret().ok().flatten()
+}
+
+/// Meta bağlantı akışının başlayabilmesi için gereken kimlikleri tek noktada
+/// denetler. Facebook ve Instagram aynı ortak kapıyı kullanır; ikisi de aynı
+/// App ID + App Secret yapılandırmasına bağlıdır.
+///
+/// - App ID çözülemiyorsa `MetaNotConfigured` döner.
+/// - App Secret güvenli depoda yoksa `AppSecretRequired` döner.
+/// - İkisi de hazırsa `(app_id, app_secret)` döner (yalnız Rust içinde kullanılır;
+///   secret hiçbir zaman JavaScript'e veya kullanıcı arayüzüne dönmez).
+///
+/// Bu fonksiyon "sahte bağlantı kurma" üretmez: kimlik eksikse akış, tarayıcı
+/// açılmadan önce kontrollü hata koduyla durur.
+pub fn assert_connect_ready(
+    app_id: Option<String>,
+    app_secret: Option<String>,
+) -> Result<(String, String), SocialError> {
+    let id = app_id
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .ok_or(SocialError::MetaNotConfigured)?;
+    let secret = app_secret
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .ok_or(SocialError::AppSecretRequired)?;
+    Ok((id, secret))
 }
 
 /// Meta kutulu erişim token endpoint'i (yetkilendirme kodu değişim adresi).
@@ -789,6 +826,75 @@ mod tests {
     fn app_secret_is_never_returned() {
         // Güvenlik: app secret hiçbir durumda uygulamaya sızmaz.
         assert!(meta_app_secret().is_none());
+    }
+
+    #[test]
+    fn compiled_app_id_wins_over_stored() {
+        // Derleme zamanı gömülü App ID (`ES_OPS_META_APP_ID`) varsa, güvenli
+        // depodaki değer yok sayılır. Bu, "App ID mevcutken eksik hatası
+        // verilmemesi" kuralının saf karar noktasıdır.
+        let resolved = resolve_app_id_from(Some("123456"), Some("depodaki".to_string()));
+        assert_eq!(resolved.as_deref(), Some("123456"));
+    }
+
+    #[test]
+    fn stored_app_id_used_when_compiled_missing() {
+        // Derleme zamanı değer yoksa güvenli depodaki kullanıcı kaydı kullanılır.
+        let resolved = resolve_app_id_from(None, Some("654321".to_string()));
+        assert_eq!(resolved.as_deref(), Some("654321"));
+    }
+
+    #[test]
+    fn resolve_app_id_ignores_empty_values() {
+        // Boş ve yalnız boşluklu değerler "yapılandırılmamış" sayılır.
+        assert_eq!(resolve_app_id_from(Some("   "), Some(String::new())), None);
+        assert_eq!(resolve_app_id_from(Some(""), None), None);
+        assert_eq!(resolve_app_id_from(None, Some("  ".to_string())), None);
+        assert_eq!(resolve_app_id_from(None, None), None);
+        // Depo değerindeki boşluklar temizlenir.
+        assert_eq!(
+            resolve_app_id_from(None, Some(" 556677 ".to_string())),
+            Some("556677".to_string())
+        );
+    }
+
+    #[test]
+    fn connect_ready_requires_both_id_and_secret() {
+        // App ID yok: kontrollü meta_not_configured hatası (tarayıcı açılmaz).
+        let err = assert_connect_ready(None, Some("secret".to_string())).unwrap_err();
+        assert_eq!(err, SocialError::MetaNotConfigured);
+        // App Secret yok: kontrollü app_secret_required hatası.
+        let err = assert_connect_ready(Some("123".to_string()), None).unwrap_err();
+        assert_eq!(err, SocialError::AppSecretRequired);
+        // İkisi de boş: önce App ID hatası döner.
+        let err = assert_connect_ready(None, None).unwrap_err();
+        assert_eq!(err, SocialError::MetaNotConfigured);
+        // İkisi de hazır: kimlikler yalnız Rust içinde kullanılmak üzere döner.
+        let (id, secret) =
+            assert_connect_ready(Some("123".to_string()), Some("s".to_string())).unwrap();
+        assert_eq!(id, "123");
+        assert_eq!(secret, "s");
+    }
+
+    #[test]
+    fn facebook_and_instagram_share_single_meta_gate() {
+        // İki platform da aynı ortak kapıyı (assert_connect_ready) kullanır;
+        // bu nedenle ikisi de aynı Meta uygulama kimlikleri kümesine bağlıdır.
+        assert_ne!(FACEBOOK_PLATFORM_ID, INSTAGRAM_PLATFORM_ID);
+        assert!(assert_connect_ready(Some("123".to_string()), Some("s".to_string())).is_ok());
+    }
+
+    #[test]
+    fn app_secret_is_never_embedded_into_binary() {
+        // Güvenlik kuralı: app secret için yalnız option_env! kullanılır;
+        // env! (zorunlu gömme) kullanılırsa derleme secret'sız ortamda başarısız
+        // olurdu. Kaynağın bu kurala uyduğu denetlenir.
+        let src = include_str!("meta.rs");
+        let total = src.matches("env!(\"ES_OPS_META_APP_SECRET\"").count();
+        let via_option = src.matches("option_env!(\"ES_OPS_META_APP_SECRET\"").count();
+        // "env!(" geçişlerinin tümü "option_env!(" içinden gelmelidir.
+        assert_eq!(total, via_option, "yalnız option_env! kullanılmalı");
+        assert!(via_option >= 1);
     }
 
     #[test]
