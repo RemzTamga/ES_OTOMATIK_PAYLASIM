@@ -736,8 +736,95 @@
                     </div>
                 </div>
 <div class="page-content" id="page-yardim">
-                    <div class="empty-page"><div class="empty-icon">❓</div><h2>Yardım</h2><p>Bu modül FAZ 10'da geliştirilecektir.</p></div>
-                </div>
+    <div class="yardim-container">
+        <div class="yardim-header">
+            <h2>Yardım</h2>
+            <p class="paylasim-desc">ES OPS'i adım adım kullanmak için kısa açıklamalar. Hızlı çözüm için aşağıdaki başlıklara göz atın.</p>
+        </div>
+
+        <div class="yardim-bolum">
+            <h3>📥 İlk Kurulum</h3>
+            <ol class="yardim-liste">
+                <li>ES OPS'i bilgisayarınıza kurun ve programı açın.</li>
+                <li>İlk açılışta 15 günlük deneme sürümü başlar.</li>
+                <li>Deneme süresince tüm özellikleri kullanabilirsiniz.</li>
+                <li>Sosyal medya hesaplarınızı bağlamadan önce <strong>Ayarlar</strong> sayfasını kontrol edin.</li>
+            </ol>
+        </div>
+
+        <div class="yardim-bolum">
+            <h3>🔑 Lisans Aktivasyonu</h3>
+            <ol class="yardim-liste">
+                <li>Satın alma sonrası <strong>license.lic</strong> adlı lisans dosyasını alırsınız.</li>
+                <li><strong>Lisans</strong> sayfasına gidin ve dosyayı yükleyin.</li>
+                <li>Lisansınız imza ve bu bilgisayara göre otomatik doğrulanır.</li>
+                <li>Başarılıyorsa ekranda <strong>Lisanslı Sürüm</strong> yazısı görünür.</li>
+                <li>Lisans yalnızca doğrulandığı bilgisayarda çalışır; makine kodu otomatik üretilir.</li>
+            </ol>
+        </div>
+
+        <div class="yardim-bolum">
+            <h3>📲 Sosyal Medya Hesabı Bağlama</h3>
+            <ol class="yardim-liste">
+                <li><strong>Ayarlar &rsaquo; Sosyal Medya Hesapları</strong> bölümüne gidin.</li>
+                <li>Bağlamak istediğiniz platformda <strong>Bağlan</strong> butonuna basın.</li>
+                <li>Tarayıcıda açılan sayfada hesabınıza giriş yapıp izin verin.</li>
+                <li>Programın bir penceresi o anda açık kalmalıdır.</li>
+                <li>Bağlantı tamamlandığında ilgili platform yeşil <strong>Bağlı</strong> olarak görünür.</li>
+                <li>Bazı platformlar (X, TikTok, LinkedIn, Pinterest) için önce istemci kimlik bilgileri Ayarlar'da kaydedilmelidir.</li>
+            </ol>
+        </div>
+
+        <div class="yardim-bolum">
+            <h3>🌐 Web Sitesi Bağlantısı</h3>
+            <ol class="yardim-liste">
+                <li><strong>Ayarlar &rsaquo; Web Sitesi Bağlantısı</strong> bölümüne gidin.</li>
+                <li>Web adresi, API adresi ve <strong>bir kimlik doğrulama yöntemi</strong> girin.</li>
+                <li>Test ve yayın uç noktalarını doldurun.</li>
+                <li><strong>Bağlantıyı Test Et</strong> ile bağlantıyı deneyin; sonuç size bildirilir.</li>
+                <li>API anahtarınız Windows Kimlik Bilgi Yöneticisi'nde güvenle saklanır; program tarafından gösterilmez veya kaydedilmez.</li>
+            </ol>
+        </div>
+
+        <div class="yardim-bolum">
+            <h3>🚀 Manuel, Otomatik ve Planlı Yayın</h3>
+            <ul class="yardim-liste">
+                <li><strong>Şimdi Paylaş:</strong> İçeriği hemen yayınlar (manuel).</li>
+                <li><strong>Otomatik Yayın:</strong> Sıraya eklenen içerikler belirlenen düzende kendiliğinden yayınlanır.</li>
+                <li><strong>Planlı Yayın:</strong> Belirlediğiniz tarih ve saatte yayınlanır.</li>
+                <li>Paylaşım sonuçları <strong>Yayın Geçmişi</strong> ve <strong>Raporlar</strong> sayfalarında izlenir.</li>
+                <li>Bir paylaşım başarısız olursa neden "sahte başarı" gösterilmez; hata mesajı size iletilir.</li>
+            </ul>
+        </div>
+
+        <div class="yardim-bolum">
+            <h3>⚠️ Sık Karşılaşılan Hata Mesajları</h3>
+            <table class="yardim-tablo">
+                <tr><th>Mesaj</th><th>Ne yapmalıyım?</th></tr>
+                <tr><td>YouTube kimlikleri eksik</td><td>Video yayını için YouTube hesabını Ayarlar'dan bağlayın.</td></tr>
+                <tr><td>X Consumer Key/Secret gerekli</td><td>Ayarlar'dan X istemci kimliklerini kaydedin.</td></tr>
+                <tr><td>Bağlantı testi başarısız</td><td>Web adresi, API adresi ve uç noktalarını kontrol edin; internet bağlantınızı deneyin.</td></tr>
+                <tr><td>Lisans doğrulanamadı</td><td>license.lic dosyasının bu bilgisayar için üretildiğinden emin olun; satıcınızla iletişime geçin.</td></tr>
+                <tr><td>Dosya yayınlanamadı</td><td>Dosyanın desteklenen formatta ve boyutta olduğunu kontrol edin.</td></tr>
+            </table>
+        </div>
+
+        <div class="yardim-bolum">
+            <h3>🛠️ Destek İçin Log Alma</h3>
+            <p class="paylasim-desc">Bir sorun bildirirken log dosyaları çok işe yarar. Loglar, token veya parola gibi gizli bilgileri İÇERMEZ; yalnız hata kayıtlarını taşır.</p>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="yardimLogKlasoruAc()">Log Klasörünü Aç</button>
+                <button class="btn btn-primary" onclick="yardimLoglariAktar()">Log Konumunu Göster</button>
+            </div>
+            <p class="form-hint" style="margin-top:10px;">Log klasörü programın veri klasöründe bulunur. Destek ekibi istediğinde <strong>es-ops.log</strong> dosyasını paylaşmanız yeterlidir.</p>
+        </div>
+
+        <div class="yardim-bolum">
+            <h3>ℹ️ Sürüm</h3>
+            <p class="paylasim-desc">ES OPS 1.0.0 &mdash; Otomatik Paylaşım Sistemi.<br>Dashboard, sosyal medya platformları, otomatik/planlı yayın motoru, web sitesi yayını ve ES Merkez lisans entegrasyonu aktiftir.</p>
+        </div>
+    </div>
+</div>
             </div>
         </div>
     </div>

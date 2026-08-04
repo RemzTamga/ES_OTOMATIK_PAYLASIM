@@ -1536,3 +1536,54 @@ html, body {
         width: 100%;
     }
 }
+
+/* ===== YARDIM EKRANI ===== */
+.yardim-container {
+    max-width: 860px;
+    padding: 4px 0 24px;
+}
+.yardim-header {
+    margin-bottom: 18px;
+}
+.yardim-header h2 {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+.yardim-bolum {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+}
+.yardim-bolum h3 {
+    font-size: 0.98rem;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+}
+.yardim-liste {
+    padding-left: 20px;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: #4b5563;
+}
+.yardim-liste li {
+    margin-bottom: 4px;
+}
+.yardim-tablo {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+.yardim-tablo th,
+.yardim-tablo td {
+    border: 1px solid #e5e7eb;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+.yardim-tablo th {
+    background: #f9fafb;
+    color: #1a1a2e;
+    font-weight: 600;
+}

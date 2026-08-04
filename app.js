@@ -1,3 +1,156 @@
+// ===== GLOBAL HATA YAKALAMA VE LOG SISTEMI =====
+// Beklenmeyen JavaScript hatalari sessizce gecistirilmez; uygulamanin veri
+// klasorundeki log dosyasina yazilir ve kullaniciya kisaca bildirilir.
+// Uygulama mumkunse calismaya devam eder; sahte basari uretilmez.
+var esLogSonUyariZamani = 0;
+
+// Hassas bilgileri loglara yazilmadan once maskeler:
+// token, parola, API anahtari, Client Secret, lisans kodu.
+function esLogGizle(text) {
+    var s = String(text == null ? '' : text);
+
+    // 1) Bilinen alan adlari + deger: token/secret/password/api_key/license vb.
+    var hassasAnahtarlar = [
+        'api_key', 'apikey', 'api key', 'client_secret', 'client secret',
+        'consumer_secret', 'consumer key', 'access_token', 'refresh_token',
+        'authorization', 'password', 'passwd', 'pwd', 'token', 'secret',
+        'license_key', 'license_code', 'license code', 'lisans_kodu', 'license',
+        'client_id', 'app_secret', 'app_id'
+    ];
+    var i;
+    for (i = 0; i < hassasAnahtarlar.length; i++) {
+        var key = hassasAnahtarlar[i];
+        // key = deger | key: deger | "key":"deger" | key deger
+        var re = new RegExp('(^|[^a-zA-Z0-9_])' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            + '\\s*(=|:)?\\s*("[^"]*"|\'[^\']*\'|[^\\s,;}]+)', 'gi');
+        s = s.replace(re, function(match, pre, sep, val) {
+            // Deger zaten gizli ise dokunma
+            if (String(val).indexOf('[GIZLI]') !== -1) return match;
+            return pre + key + (sep || '') + ' [GIZLI]';
+        });
+    }
+
+    // 2) JWT / uzun token benzeri bloklar (20+ karakter ve gercek anahtar
+    //    gorunumunde: buyuk harf, rakam, '-' veya '.' icerir).
+    //    Yalnizca alt cizgili kucuk harfli diziler (ornegin youtube_not_configured
+    //    gibi hata kodlari) maskelenmez.
+    s = s.replace(/(?:[A-Za-z0-9_\-.]{20,})/g, function(blok) {
+        if (/^[a-z_]+$/.test(blok)) return blok;
+        return '[GIZLI]';
+    });
+
+    // 3) Bearer <token> kalibi
+    s = s.replace(/([Bb]earer\s*=\s*|[Bb]earer\s+)[^\s,;}]+/g, '$1[GIZLI]');
+
+    return s;
+}
+
+// Log kaydini uygulamanin log dosyasina yazar (Tauri ortaminda) ve
+// gelistirici konsoluna da dusurur. Onizleme (Tauri disi) modunda yalniz
+// konsola yazilir; hata uretilmez.
+function esLogYaz(level, mesaj) {
+    var temiz = esLogGizle(mesaj);
+    try {
+        if (level === 'error') {
+            console.error('[ES OPS] ' + temiz);
+        } else {
+            console.log('[ES OPS] ' + temiz);
+        }
+    } catch (e) {}
+    // Platform baglantilari icin kullanilan bilinmeyenlerin buraya
+    // gonderilmesi hata uretmemeli; yalniz gercek Tauri ortaminda yazar.
+    if (window.__TAURI__ && window.__TAURI__.core) {
+        try {
+            var lvl = level || 'INFO';
+            var sonuc = window.__TAURI__.core.invoke('log_append', {
+                level: lvl,
+                message: temiz
+            });
+            if (sonuc && typeof sonuc.catch === 'function') {
+                sonuc.catch(function() {});
+            }
+        } catch (e) {}
+    }
+}
+
+// Kullaniciya kisa ve anlasilir bir hata bildirimi gosterir.
+// Sik tekrar eden hatalarda sayfa eksi tonlari onlemek icin esik kullanilir.
+function esLogKullaniciUyar(mesaj) {
+    var simdi = Date.now();
+    if (simdi - esLogSonUyariZamani < 8000) return;
+    esLogSonUyariZamani = simdi;
+
+    try {
+        var onceki = document.getElementById('esOpsHataToast');
+        if (onceki) onceki.remove();
+
+        var toast = document.createElement('div');
+        toast.id = 'esOpsHataToast';
+        toast.style.cssText = 'position:fixed;top:14px;right:14px;z-index:99999;max-width:380px;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);padding:14px 16px;font-size:0.85rem;border-left:4px solid #ef4444;';
+        toast.innerHTML = '<div style="font-weight:700;color:#ef4444;margin-bottom:4px;">Beklenmeyen bir hata oluştu</div>' +
+            '<div style="color:#4b5563;line-height:1.5;">Uygulama çalışmaya devam ediyor. Hata kaydı log dosyasına yazıldı. Detay için <strong>Yardım &rsaquo; Destek &rsaquo; Loglar</strong> bölümünü kullanın.</div>';
+        document.body.appendChild(toast);
+        setTimeout(function() {
+            var el = document.getElementById('esOpsHataToast');
+            if (el) el.remove();
+        }, 9000);
+    } catch (e) {}
+}
+
+// window.onerror: yakalanmamis istisnalar buraya duser.
+window.onerror = function(mesaj, kaynak, satir, sutun, hata) {
+    var detay = String(mesaj || 'Bilinmeyen hata');
+    if (kaynak) detay += ' (' + kaynak + ':' + satir + ')';
+    if (hata && hata.stack) detay = detay + '\n' + hata.stack;
+    esLogYaz('error', detay);
+    esLogKullaniciUyar(detay);
+    // true donmek varsayilan davranisi (console'a dusme) engellemez; burada
+    // hata uygulamaya yayilmaya devam eder, ancak loglanir.
+    return true;
+};
+
+// Uzak yakalanmamis Promise hatalari (unhandledrejection) buraya duser.
+window.addEventListener('unhandledrejection', function(e) {
+    var nedeni = e && e.reason;
+    var detay = nedeni && nedeni.stack ? nedeni.stack : (String(nedeni || 'Bilinmeyen promise hatasi'));
+    esLogYaz('error', 'unhandledrejection: ' + detay);
+    esLogKullaniciUyar(detay);
+});
+
+// ===== YARDIM EKRANI: LOG ISLEMLERI =====
+// Log klasorunun adresini kullaniciya gosterir ve uygulama ici ortamda
+// kopyalanmasina olanak tanir. Onizleme modunda yalniz adres bilgisi verilir.
+function yardimLogKlasoruAc() {
+    var p = esTauriInvoke('log_open_folder');
+    if (!p) {
+        alert('Log klasoru yalniz masaustu uygulamada acilabilir.');
+        return;
+    }
+    p.then(function(yol) {
+        alert('Log klasoru: ' + (yol || 'Belirtilmemiş'));
+    }).catch(function(hata) {
+        alert('Log klasoru acilamadi: ' + String(hata || 'bilinmeyen hata'));
+    });
+}
+
+// Log dosyasini kullanici icin guncel tutmak amaciyla veri klasorundeki
+// dosyanin guncel oldugunu bildirir. Daha sonra kullanici klasorunu acar.
+// (Dosyanin disa aktarilmasi: gerekirse isletim sistemi kopyalama islemi
+// ile kullanici kendi yapar; izin kisit olsa dahi yapay dosya uretilmez.)
+function yardimLoglariAktar() {
+    var p = esTauriInvoke('log_open_folder');
+    if (!p) {
+        alert('Loglar yalniz masaustu uygulamada dışa aktarilabilir.');
+        return;
+    }
+    p.then(function(yol) {
+        alert('Loglar kayitlidiniz. Lütfen bilgisayarınızda şu klasöre gidin ve ES OPS klasorunu acin:\n\n' +
+            (yol || 'Belirtilmiş') + '\n\nBu klasordeki es-ops.log dosyalarini destek ekibine iletebilirsiniz.');
+    }).catch(function(hata) {
+        alert('Log adresi alinamadi: ' + String(hata || 'bilinmeyen hata'));
+    });
+}
+
 // ===== SAYFA GECISLERI =====
 function navigateTo(page) {
     document.querySelectorAll('.sidebar-menu a').forEach(function(el) {

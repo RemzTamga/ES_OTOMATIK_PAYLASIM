@@ -30,3 +30,14 @@ src-tauri/icons/icon.ico
 
 # Tauri frontend build copy
 frontend/
+
+# Geçici / geliştirme araç dosyaları (Git'e yanlışlıkla eklenmesin)
+.continue/
+app.js.bak
+cargobuild.log
+cargocheck.log
+cargocheck2.log
+pinterest.html
+rustup-init.exe
+tmp_search.js
+cd

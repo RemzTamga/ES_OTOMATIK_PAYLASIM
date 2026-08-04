@@ -1,13 +1,34 @@
 mod license;
+mod logging;
 mod social;
 mod site;
 
+use tauri::Manager;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Rust panic'lerini uygulamanin veri klasorundeki log dosyasina yazar ve
+    // kullaniciya gorunur bir uyari gosterir (sessiz kapanmayi onler).
+    logging::install_panic_hook();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            // Uygulama basladığında veri klasörü yapısını hazırlayıp bilgi satırı yazar.
+            let dir = app.path().app_data_dir().ok();
+            if let Some(base) = dir {
+                crate::logging::set_data_dir(base.clone());
+                let log = base.join("logs");
+                let _ = std::fs::create_dir_all(&log);
+                let _ = crate::logging::log_append_to_path(&log.join("es-ops.log"), "INFO", "ES OPS baslatildi (surum 1.0.0)");
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
+            crate::logging::log_append,
+            crate::logging::log_open_folder,
+            crate::logging::log_export_to,
             social::commands::social_platform_catalog,
             social::commands::social_account_connections,
             social::commands::social_account_status,

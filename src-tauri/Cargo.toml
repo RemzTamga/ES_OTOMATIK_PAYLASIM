@@ -38,6 +38,8 @@ rsa = "0.9"
 # Lisans bitis tarihi karsilastirmasi (yerel tarih).
 chrono = "0.4"
 # UuidCreateSequential: ES Merkez ile birebir ayni stabil makine kodu uretimi.
+# Win32_UI_WindowsAndMessaging: panic durumunda MessageBoxW ile kullaniciya
+# Turkce hata gosterimi (logging.rs).
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.59", features = ["Win32_System_Rpc"] }
+windows-sys = { version = "0.59", features = ["Win32_System_Rpc", "Win32_UI_WindowsAndMessaging"] }
 
