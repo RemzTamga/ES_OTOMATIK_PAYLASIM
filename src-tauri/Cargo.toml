@@ -33,4 +33,11 @@ base64 = "0.22"
 # HMAC-SHA1: X (Twitter) OAuth 1.0a imzalama. 
 hmac = "0.12"
 sha1 = "0.10"
+# ES Merkez Lisanslama uyumlu RSA-PSS imza dogrulamasi (lisans modulu).
+rsa = "0.9"
+# Lisans bitis tarihi karsilastirmasi (yerel tarih).
+chrono = "0.4"
+# UuidCreateSequential: ES Merkez ile birebir ayni stabil makine kodu uretimi.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_System_Rpc"] }
 

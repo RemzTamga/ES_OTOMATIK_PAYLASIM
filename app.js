@@ -3727,17 +3727,10 @@ function dashboardBaglantiGuncelle() {
 
 // ---- YAPILANDIRMA ----
 var ES_LISANS = {
-    PRODUCT_CODE: 'ESOPS',
+    PRODUCT_CODE: '002',
     PRODUCT_NAME: 'ES Otomatik Paylasim Sistemi',
     DEMO_GUN: 15,
-    LICENCE_FILE_NAME: 'license.lic',
-
-    // Public Key - ES Merkez Lisanslama tarafindan saglanacak
-    // NOT: Bu deger su an icin yapilandirilmamistir (null).
-    // Gercek Ed25519 Public Key gelmedigi surece imza dogrulamasi yapilamaz.
-    // Public Key temin edilene kadar tum lisans yuklemeleri 'imza dogrulanamadi'
-    // hatasi ile reddedilir. Bu bilincli bir guvenlik onlemidir.
-    ED25519_PUBLIC_KEY_BASE64: null
+    LICENCE_FILE_NAME: 'license.lic'
 };
 
 // ---- KALICI DEPOLAMA (localStorage tabanli) ----
@@ -3803,18 +3796,11 @@ var ES_DEPO = {
 };
 
 // ---- MAKINE KIMLIGI (Machine ID) ----
-// NOT: Gercek CPU ID ve Disk Serial bilgisine erismek icin arka plan servisi gerekir.
-// Web tarayicisinda (client-side JS) dogrudan CPU ID ve Disk Serial alinamaz.
-// UYGULAMA TURU: Saf HTML/CSS/JS frontend (backend yok). Bu nedenle:
-//
-// 1. Machine ID olarak tarayici parmak izi (browser fingerprint) kullanilir.
-// 2. Gercek makine kimligi atamasi icin asagidaki yontemlerden biri kullanilmalidir:
-//    a) Node.js arka plan servisi (electron, NW.js vb.)
-//    b) Windows Registry uzerinden WMI/C++ yardimcisi
-//    c) ES Merkez Lisanslama tarafindan manuel makine kodu atamasi
-// 3. Mevcut cozum GECICI olup, guvenli degildir.
-//    Tarayici parmak izi, ayni bilgisayarda farkli tarayicilarda degisir.
-//    localStorage silindiginde sifirlanir.
+// NOT: Gercek makine kodu Rust/Tauri tarafinda uretilir (ES Merkez Lisanslama
+// ile ayni algoritma): wmic CPU ProcessorId + disk SerialNumber +
+// hostname-UuidCreateSequential parcalari SHA-256 ile ozetlenir.
+// JavaScript yalniz sonucu goruntuler; dogrulama tarafi kesinlikle JS degildir.
+// Tarayici onizlemesi (Tauri disi) icin gecici bir fallback parmak izi kullanilir.
 var ES_MACHINE = {
     _machineId: null,
 
@@ -3847,23 +3833,43 @@ var ES_MACHINE = {
         return 'MID-' + groups.join('-');
     },
 
+    // Gercek makine kodu Rust komutu 'license_machine_id' ile alinir.
+    // Tauri yoksa (tarayici onizlemesi) gecici fallback kullanilir.
     getMachineId: function() {
-        if (this._machineId) return this._machineId;
+        var self = this;
+        if (this._machineId) return Promise.resolve(this._machineId);
 
         var stored = ES_DEPO.get('machine_id', null);
         if (stored) {
             this._machineId = stored;
-            return stored;
+            return Promise.resolve(stored);
         }
 
-        var id = this._getFallbackId();
-        this._machineId = id;
-        ES_DEPO.set('machine_id', id);
-        return id;
+        var p = esTauriInvoke('license_machine_id');
+        if (!p) {
+            var id = this._getFallbackId();
+            this._machineId = id;
+            ES_DEPO.set('machine_id', id);
+            return Promise.resolve(id);
+        }
+
+        return p.then(function(id) {
+            self._machineId = id;
+            ES_DEPO.set('machine_id', id);
+            return id;
+        }).catch(function() {
+            var fallback = self._getFallbackId();
+            self._machineId = fallback;
+            ES_DEPO.set('machine_id', fallback);
+            return fallback;
+        });
     },
 
     getDisplayId: function() {
-        return this.getMachineId();
+        if (this._machineId) return this._machineId;
+        var stored = ES_DEPO.get('machine_id', null);
+        if (stored) return stored;
+        return this._getFallbackId();
     }
 };
 
@@ -3949,194 +3955,116 @@ var ES_DEMO = {
 };
 
 // ---- LISANS DOGRULAMA ----
-// Public Key henuz yapilandirilmadigi icin imza dogrulamasi basarisiz olur.
+// Dogrulama tamamen Rust/Tauri tarafinda yapilir (license.rs):
+//   - RSA-2048 / RSA-PSS / SHA-256 imza dogrulamasi (ES Merkez public key'i ile)
+//   - canonical JSON (alfabetik anahtar sirasi, compact, UTF-8)
+//   - product_code === '002' kontrolu
+//   - makine kodu eslesmesi
+//   - status === 'ACTIVE' kontrolu
+//   - sureli lisanslarda bitis tarihi kontrolu
+// Lisans icerigi Windows Credential Manager'da (keyring) saklanir.
+// JavaScript yalniz sonucu goruntuler; imza/anahtar JS'te bulunmaz.
 var ES_LICENSE = {
-    _currentLicense: null,
+    _currentInfo: null,
 
-    // lisans.lic dosyasini yukle ve dogrula
+    // lisans.lic icerigini Rust'a gonder, dogrula ve (gecerliyse) sakla.
+    // Eski sonuc yapisini (success/message/license/step) korur.
     loadAndVerify: function(fileContent) {
-        var result = {
-            success: false,
-            message: '',
-            license: null,
-            step: 0
+        var p = esTauriInvoke('license_install', { content: fileContent || '' });
+        if (!p) {
+            return Promise.resolve({
+                success: false,
+                message: 'Lisans dogrulamasi yalniz Tauri ortaminda calisir.',
+                license: null,
+                step: 0
+            });
+        }
+        return p.then(function(status) {
+            if (status.valid) {
+                ES_LICENSE._currentInfo = status.license || null;
+                return {
+                    success: true,
+                    message: 'Lisans basariyla etkinlestirildi.',
+                    license: status.license || null,
+                    step: 7
+                };
+            }
+            var reason = status.reason || 'invalid';
+            return {
+                success: false,
+                message: ES_LICENSE._mesaj(reason),
+                license: null,
+                step: ES_LICENSE._adim(reason)
+            };
+        }).catch(function() {
+            return {
+                success: false,
+                message: 'Lisans dogrulanamadi.',
+                license: null,
+                step: 3
+            };
+        });
+    },
+
+    // Rust neden kodlarini kullanici dostu mesaja cevirir.
+    _mesaj: function(reason) {
+        var mesajlar = {
+            invalid_json: 'Gecersiz lisans dosyasi.',
+            missing_fields: 'Gecersiz lisans dosyasi.',
+            invalid_base64: 'Lisans dogrulanamadi.',
+            invalid_signature: 'Lisans dogrulanamadi.',
+            wrong_product: 'Bu lisans farkli bir urun icin uretilmistir.',
+            wrong_machine: 'Bu lisans bu bilgisayar icin gecerli degildir.',
+            not_active: 'Lisans durumu gecerli degildir.',
+            expired: 'Lisans suresi dolmustur.'
         };
-
-        // Adim 1: Dosya var mi?
-        if (!fileContent || fileContent.trim() === '') {
-            result.message = 'Lisans dosyasi bulunamadi.';
-            return result;
-        }
-        result.step = 1;
-
-        // Adim 2: JSON gecerli mi?
-        var license;
-        try {
-            license = JSON.parse(fileContent);
-        } catch(e) {
-            result.message = 'Gecersiz lisans dosyasi.';
-            return result;
-        }
-        result.step = 2;
-
-        // Adim 3: Dijital imza gecerli mi? (Ed25519)
-        if (!this._verifySignature(license)) {
-            result.message = 'Lisans dogrulanamadi.';
-            return result;
-        }
-        result.step = 3;
-
-        // Adim 4: Product Code eslesiyor mu?
-        if (!license.product_code || license.product_code !== ES_LISANS.PRODUCT_CODE) {
-            result.message = 'Bu lisans farkli bir urun icin uretilmistir.';
-            return result;
-        }
-        result.step = 4;
-
-        // Adim 5: Machine ID eslesiyor mu?
-        var currentMachineId = ES_MACHINE.getMachineId();
-        if (!license.machine_id || license.machine_id !== currentMachineId) {
-            result.message = 'Bu lisans bu bilgisayar icin gecerli degildir.';
-            return result;
-        }
-        result.step = 5;
-
-        // Adim 6: status === ACTIVE mi?
-        if (!license.status || license.status !== 'ACTIVE') {
-            result.message = 'Lisans durumu gecerli degildir.';
-            return result;
-        }
-        result.step = 6;
-
-        // Adim 7: Lisans politikasi kontrolu
-        if (license.license_policy === 'SUBSCRIPTION') {
-            if (license.license_expire_date) {
-                var expireDate = new Date(license.license_expire_date);
-                var now = new Date();
-                if (now > expireDate) {
-                    result.message = 'Lisans suresi dolmustur.';
-                    return result;
-                }
-            }
-        }
-        // PERPETUAL ise sure kontrolu yapilmaz
-        result.step = 7;
-
-        // Tum kontroller basarili
-        this._currentLicense = license;
-        result.success = true;
-        result.message = 'Lisans basariyla etkinlestirildi.';
-        result.license = license;
-
-        // Lisansi kalici olarak kaydet
-        this._saveLicense(license);
-
-        return result;
+        return mesajlar[reason] || 'Lisans dogrulanamadi.';
     },
 
-    // Imza dogrulamasi (Ed25519)
-    _verifySignature: function(license) {
-        if (!license.signature) return false;
-
-        // Public Key yapilandirilmamis ise imza dogrulamasi yapilamaz
-        if (!ES_LISANS.ED25519_PUBLIC_KEY_BASE64) {
-            console.warn('ES_OPS: Ed25519 Public Key yapilandirilmamistir. Imza dogrulamasi yapilamaz.');
-            return false;
-        }
-
-        try {
-            // Lisans verisinden imza haric JSON olustur
-            var dataToVerify = {};
-            for (var key in license) {
-                if (key !== 'signature') {
-                    dataToVerify[key] = license[key];
-                }
-            }
-            var messageBytes = nacl.util.decodeUTF8(JSON.stringify(dataToVerify));
-            // Referans license.lic: signature Base64URL formatindadir
-            var sigBase64 = license.signature.replace(/-/g, '+').replace(/_/g, '/');
-            while (sigBase64.length % 4 !== 0) { sigBase64 += '='; }
-            var signatureBytes = nacl.util.decodeBase64(sigBase64);
-            var pubK = ES_LISANS.ED25519_PUBLIC_KEY_BASE64 || '';
-            var pubBase64 = pubK.replace(/-/g, '+').replace(/_/g, '/');
-            while (pubBase64.length % 4 !== 0) { pubBase64 += '='; }
-            var publicKeyBytes = nacl.util.decodeBase64(pubBase64);
-
-            return nacl.sign.detached.verify(messageBytes, signatureBytes, publicKeyBytes);
-        } catch(e) {
-            console.error('Imza dogrulama hatasi:', e);
-            return false;
-        }
+    // Hata rengi icin eski adim numaralari: 6+ kirmizi, digerleri sari.
+    _adim: function(reason) {
+        var adimlar = {
+            invalid_json: 2,
+            missing_fields: 2,
+            invalid_base64: 3,
+            invalid_signature: 3,
+            wrong_product: 4,
+            wrong_machine: 5,
+            not_active: 6,
+            expired: 7
+        };
+        return adimlar[reason] || 3;
     },
 
-    // Lisansi localStorage'a kaydet
-    _saveLicense: function(license) {
-        try {
-            localStorage.setItem('es_ops_license_data', JSON.stringify(license));
-        } catch(e) {}
-    },
-
-    // Kayitli lisansi getir
-    getStoredLicense: function() {
-        if (this._currentLicense) return this._currentLicense;
-        try {
-            var stored = localStorage.getItem('es_ops_license_data');
-            if (stored) {
-                this._currentLicense = JSON.parse(stored);
-                return this._currentLicense;
-            }
-        } catch(e) {}
-        return null;
-    },
-
-    // Kayitli lisansi temizle
-    clearStoredLicense: function() {
-        this._currentLicense = null;
-        try {
-            localStorage.removeItem('es_ops_license_data');
-        } catch(e) {}
-    },
-
-    // Kayitli lisansi dogrula (program baslangicinda)
+    // Kayitli lisansi dogrula (program baslangicinda).
+    // Rust her cagrida depodaki lisansi yeniden dogrular; gecersizse siler.
     verifyStoredLicense: function() {
-        var license = this.getStoredLicense();
-        if (!license) return { valid: false, reason: 'no_license' };
-
-        // Product Code kontrol
-        if (license.product_code !== ES_LISANS.PRODUCT_CODE) {
-            this.clearStoredLicense();
-            return { valid: false, reason: 'wrong_product' };
+        var p = esTauriInvoke('license_status');
+        if (!p) {
+            return Promise.resolve({ valid: false, reason: 'no_tauri', license: null });
         }
-
-        // Machine ID kontrol
-        if (license.machine_id !== ES_MACHINE.getMachineId()) {
-            this.clearStoredLicense();
-            return { valid: false, reason: 'wrong_machine' };
-        }
-
-        // status kontrol
-        if (license.status !== 'ACTIVE') {
-            this.clearStoredLicense();
-            return { valid: false, reason: 'not_active' };
-        }
-
-        // Imza kontrolu
-        if (!this._verifySignature(license)) {
-            this.clearStoredLicense();
-            return { valid: false, reason: 'invalid_signature' };
-        }
-
-        // Sure kontrolu
-        if (license.license_policy === 'SUBSCRIPTION' && license.license_expire_date) {
-            var expireDate = new Date(license.license_expire_date);
-            var now = new Date();
-            if (now > expireDate) {
-                this.clearStoredLicense();
-                return { valid: false, reason: 'expired' };
+        return p.then(function(status) {
+            if (status.valid) {
+                ES_LICENSE._currentInfo = status.license || null;
+                return { valid: true, reason: null, license: status.license || null };
             }
-        }
+            ES_LICENSE._currentInfo = null;
+            return { valid: false, reason: status.reason || 'invalid', license: null };
+        }).catch(function() {
+            ES_LICENSE._currentInfo = null;
+            return { valid: false, reason: 'error', license: null };
+        });
+    },
 
-        return { valid: true, license: license };
+    // Son dogrulanmis lisans bilgisini getir (yalniz gosterim icin).
+    getStoredLicense: function() {
+        return this._currentInfo;
+    },
+
+    // Kayitli lisansi temizle.
+    clearStoredLicense: function() {
+        this._currentInfo = null;
+        esTauriInvoke('license_clear');
     }
 };
 
@@ -4151,26 +4079,26 @@ function esLisansBaslangicKontrolu() {
 
     if (!durumKart) return; // Lisans sayfasi yuklenmemis
 
-    // 1. Kayitli lisans var mi ve gecerli mi?
-    var lisansDurum = ES_LICENSE.verifyStoredLicense();
+    // 1. Kayitli lisans var mi ve gecerli mi? (Rust tarafinda dogrulanir)
+    ES_LICENSE.verifyStoredLicense().then(function(lisansDurum) {
+        if (lisansDurum.valid) {
+            // Gecerli lisans var - lisansli mod
+            _lisansGoster('licensed', lisansDurum.license);
+            return;
+        }
 
-    if (lisansDurum.valid) {
-        // Gecerli lisans var - lisansli mod
-        _lisansGoster('licensed', lisansDurum.license);
-        return;
-    }
+        // 2. Lisans yoksa veya gecersizse - demo kontrol et
+        var demoDurum = ES_DEMO.checkAndStart();
 
-    // 2. Lisans yoksa veya gecersizse - demo kontrol et
-    var demoDurum = ES_DEMO.checkAndStart();
+        if (demoDurum.status === 'active') {
+            // Demo devam ediyor
+            _lisansGoster('demo', null, demoDurum);
+            return;
+        }
 
-    if (demoDurum.status === 'active') {
-        // Demo devam ediyor
-        _lisansGoster('demo', null, demoDurum);
-        return;
-    }
-
-    // 3. Demo bitmis - kilit ekrani
-    _lisansGoster('locked', null, demoDurum);
+        // 3. Demo bitmis - kilit ekrani
+        _lisansGoster('locked', null, demoDurum);
+    });
 }
 
 // Lisans durumunu goster
@@ -4270,7 +4198,7 @@ function _lisansBilgiGoster(license) {
         _lisansSatir('Lisans ID', license.license_id || '-') +
         _lisansSatir('Lisans Politikasi', policyText) +
         _lisansSatir('Lisans Turu', license.license_type || '-') +
-        _lisansSatir('Makine Kodu', ES_MACHINE.getDisplayId()) +
+        _lisansSatir('Makine Kodu', license.machine_id || ES_MACHINE.getDisplayId()) +
         _lisansSatir('Maks. Transfer', (license.max_transfer_count || '0')) +
         _lisansSatir('Kullanilan Transfer', (license.transfer_count || '0')) +
         _lisansSatir('Notlar', license.notes || '-') +
@@ -4284,24 +4212,31 @@ function _lisansSatir(etiket, deger) {
 }
 
 function _makineKoduGoster() {
-    var alan = document.getElementById('lisansMakineKodu');
-    if (!alan) {
+    ES_MACHINE.getMachineId().then(function(id) {
+        var alan = document.getElementById('lisansMakineKodu');
+        if (alan) {
+            alan.textContent = id;
+            return;
+        }
+
         // Durum kartina ekle
         var kart = document.getElementById('lisansDurumKart');
-        if (kart) {
-            var existing = kart.querySelector('.makine-kodu-alani');
-            if (!existing) {
-                var div = document.createElement('div');
-                div.className = 'makine-kodu-alani';
-                div.style.cssText = 'margin-top:12px;padding-top:12px;border-top:1px solid #f3f4f6;';
-                div.innerHTML = '<div style="font-size:0.78rem;color:#9ca3af;margin-bottom:4px;">Makine Kodu</div>' +
-                    '<div style="font-size:0.95rem;font-weight:600;color:#1a1a2e;font-family:monospace;letter-spacing:1px;">' +
-                    ES_MACHINE.getDisplayId() + '</div>' +
-                    '<div style="font-size:0.72rem;color:#9ca3af;margin-top:4px;">Bu kodu ES Merkez Lisanslama\'ya iletin.</div>';
-                kart.querySelector('.dashboard-card').appendChild(div);
-            }
+        if (!kart) return;
+        var existing = kart.querySelector('.makine-kodu-alani');
+        if (existing) {
+            var deger = existing.querySelector('.makine-kodu-deger');
+            if (deger) deger.textContent = id;
+            return;
         }
-    }
+        var div = document.createElement('div');
+        div.className = 'makine-kodu-alani';
+        div.style.cssText = 'margin-top:12px;padding-top:12px;border-top:1px solid #f3f4f6;';
+        div.innerHTML = '<div style="font-size:0.78rem;color:#9ca3af;margin-bottom:4px;">Makine Kodu</div>' +
+            '<div class="makine-kodu-deger" style="font-size:0.95rem;font-weight:600;color:#1a1a2e;font-family:monospace;letter-spacing:1px;">' +
+            id + '</div>' +
+            '<div style="font-size:0.72rem;color:#9ca3af;margin-top:4px;">Bu kodu ES Merkez Lisanslama\'ya iletin.</div>';
+        kart.querySelector('.dashboard-card').appendChild(div);
+    });
 }
 
 function _dashboardLisansBadge(isLicensed) {
@@ -4368,20 +4303,20 @@ function lisansDosyaYukle() {
 
     reader.onload = function(e) {
         var content = e.target.result;
-        var result = ES_LICENSE.loadAndVerify(content);
-
-        if (sonuc) {
-            if (result.success) {
-                sonuc.innerHTML = '<div style="padding:12px;background:#d1fae5;border-radius:6px;color:#059669;font-weight:600;">' +
-                    '&#x2705; ' + result.message + '</div>';
-                // Sayfayi yenile
-                esLisansBaslangicKontrolu();
-            } else {
-                var errorClass = result.step >= 6 ? '#ef4444' : '#f59e0b';
-                sonuc.innerHTML = '<div style="padding:12px;background:#fee2e2;border-radius:6px;color:' + errorClass + ';">' +
-                    '&#x274c; ' + result.message + '</div>';
+        ES_LICENSE.loadAndVerify(content).then(function(result) {
+            if (sonuc) {
+                if (result.success) {
+                    sonuc.innerHTML = '<div style="padding:12px;background:#d1fae5;border-radius:6px;color:#059669;font-weight:600;">' +
+                        '&#x2705; ' + result.message + '</div>';
+                    // Sayfayi yenile
+                    esLisansBaslangicKontrolu();
+                } else {
+                    var errorClass = result.step >= 6 ? '#ef4444' : '#f59e0b';
+                    sonuc.innerHTML = '<div style="padding:12px;background:#fee2e2;border-radius:6px;color:' + errorClass + ';">' +
+                        '&#x274c; ' + result.message + '</div>';
+                }
             }
-        }
+        });
     };
 
     reader.onerror = function() {

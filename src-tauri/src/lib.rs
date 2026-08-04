@@ -1,3 +1,4 @@
+mod license;
 mod social;
 mod site;
 
@@ -48,6 +49,10 @@ pub fn run() {
             site::website_test,
             site::website_publish,
             site::website_sections,
+            license::license_install,
+            license::license_status,
+            license::license_machine_id,
+            license::license_clear,
           ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
