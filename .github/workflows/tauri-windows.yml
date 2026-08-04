@@ -1,4 +1,4 @@
-name: "Tauri Windows Build"
+﻿name: "Tauri Windows Build"
 on:
   workflow_dispatch:
 
@@ -36,15 +36,15 @@ jobs:
 
       - name: Build Tauri release (MSI + NSIS)
         env:
-          # Gerçek YouTube OAuth client id, yalnız build ortamına aktarılır.
-          # Rust tarafında `option_env!` ile derleme anında uygulamaya gömülür.
+          # GerÃ§ek YouTube OAuth client id, yalnÄ±z build ortamÄ±na aktarÄ±lÄ±r.
+          # Rust tarafÄ±nda `option_env!` ile derleme anÄ±nda uygulamaya gÃ¶mÃ¼lÃ¼r.
           ES_OPS_YOUTUBE_CLIENT_ID: ${{ secrets.ES_OPS_YOUTUBE_CLIENT_ID }}
-          # Gerçek Meta App ID (Facebook / Instagram ortak motoru için).
-          # Yalnız derleme anında `option_env!` ile uygulamaya gömülür.
-          # DİKKAT: App Secret asla gömülmez/aktarılmaz; Meta kod→token değişimi
-          # secret gerektirdiğinden bağlantı `app_secret_required` durumunda kalır.
+          # GerÃ§ek Meta App ID (Facebook / Instagram ortak motoru iÃ§in).
+          # YalnÄ±z derleme anÄ±nda `option_env!` ile uygulamaya gÃ¶mÃ¼lÃ¼r.
+          # DÄ°KKAT: App Secret asla gÃ¶mÃ¼lmez/aktarÄ±lmaz; Meta kodâ†’token deÄŸiÅŸimi
+          # secret gerektirdiÄŸinden baÄŸlantÄ± `app_secret_required` durumunda kalÄ±r.
           ES_OPS_META_APP_ID: ${{ secrets.ES_OPS_META_APP_ID }}
-        run: npx tauri build
+        run: npx tauri build --bundles msi,nsis
 
       - name: List bundle outputs
         shell: pwsh
