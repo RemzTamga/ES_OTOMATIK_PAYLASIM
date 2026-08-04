@@ -622,7 +622,7 @@ pub fn x_config_status() -> Result<XConfigStatus, SocialError> {
 #[tauri::command]
 pub fn x_set_config(consumer_key: String, consumer_secret: String) -> Result<XConfigStatus, SocialError> {
     if consumer_key.trim().is_empty() || consumer_secret.trim().is_empty() {
-        return Err(SocialError::OperationFailed);
+        return Err(SocialError::XNotConfigured);
     }
     x::store_consumer_key(&consumer_key)?;
     x::store_consumer_secret(&consumer_secret)?;

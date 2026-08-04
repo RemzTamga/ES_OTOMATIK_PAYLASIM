@@ -133,7 +133,7 @@ pub fn config_status() -> Result<(bool, bool), SocialError> {
 
 pub fn store_consumer_key(value: &str) -> Result<(), SocialError> {
     if value.trim().is_empty() {
-        return Err(SocialError::OperationFailed);
+        return Err(SocialError::XNotConfigured);
     }
     credential_store::store_token(
         PLATFORM_ID,
@@ -145,7 +145,7 @@ pub fn store_consumer_key(value: &str) -> Result<(), SocialError> {
 
 pub fn store_consumer_secret(value: &str) -> Result<(), SocialError> {
     if value.trim().is_empty() {
-        return Err(SocialError::OperationFailed);
+        return Err(SocialError::XNotConfigured);
     }
     credential_store::store_token(PLATFORM_ID, X_CONFIG_CONN, TokenType::AccessToken, value.trim())
 }

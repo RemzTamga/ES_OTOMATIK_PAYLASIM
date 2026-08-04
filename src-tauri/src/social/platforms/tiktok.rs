@@ -430,7 +430,7 @@ fn connect_for_user(
 /// ve tarayıcı anlamsız bir oturum için açılmaz (sahte bağlantı üretilmez).
 pub fn connect(app: &AppHandle) -> Result<SocialAccountConnection, SocialError> {
     let client_key = resolved_client_key().ok_or(SocialError::TiktokNotConfigured)?;
-    let client_secret = resolved_client_secret().ok_or(SocialError::OperationFailed)?;
+    let client_secret = resolved_client_secret().ok_or(SocialError::TiktokNotConfigured)?;
 
     let listener = bind_loopback()?;
     let port = listener

@@ -2315,15 +2315,11 @@ function ayarlarPlatformListele() {
         html += '        <span class="platform-durum"><span class="status-dot ' + durumClass + '"></span>' + durumText + '</span>';
         html += '    </div>';
         html += '    <div class="platform-alt">';
-        if (metaPlatform) {
-            // OAuth başarıyla tamamlandığında gerçek hesap adı burada gösterilir.
-            if (p.bagli && p.hesapAdi) {
-                html += '        <div class="platform-hesap-bilgi">Hesap: ' + p.hesapAdi + '</div>';
-            }
-        } else {
-            html += '        <div class="platform-hesap-input">';
-            html += '            <input type="text" class="form-input" id="ayarlarHesapAdi_' + p.id + '" placeholder="Hesap adı" value="' + (p.hesapAdi || '') + '" ' + (p.bagli ? 'disabled' : '') + '>';
-            html += '        </div>';
+        // Tüm platformlar OAuth ile bağlanır; bağlantı öncesi kullanıcı adı
+        // girişi gerekmez (kullanıcı adı hiçbir bağlantı komutuna gönderilmez).
+        // OAuth başarıyla tamamlandığında gerçek hesap adı burada gösterilir.
+        if (p.bagli && p.hesapAdi) {
+            html += '        <div class="platform-hesap-bilgi">Hesap: ' + p.hesapAdi + '</div>';
         }
         if (sonKontrolText) {
             html += '        <span class="platform-son-kontrol">' + sonKontrolText + '</span>';
@@ -2383,6 +2379,21 @@ function ayarlarPlatformListele() {
                 '<button class="btn btn-warning btn-small" onclick="ayarlarPinterestConfigTemizle()">Temizle</button></div>';
             html += '        </div>';
         }
+        if (p.id === 'tiktok') {
+            // TikTok Content Posting API, OAuth token değişiminde Client Key +
+            // Client Secret ister. İkisi de güvenli depoda saklanır; secret
+            // asla kaynak koda veya ön yüze yazılmaz.
+            html += '        <div class="platform-config" id="ayarlarTiktokConfigGrubu">';
+            html += '            <div class="form-row"><label>Client Key</label>' +
+                '<input type="text" class="form-input" id="ayarlarTiktokClientKey" placeholder="TikTok Client Key"></div>';
+            html += '            <div class="form-row"><label>Client Secret</label>' +
+                '<input type="password" class="form-input" id="ayarlarTiktokClientSecret" placeholder="TikTok Client Secret"></div>';
+            html += '            <div class="platform-config-durum" id="ayarlarTiktokConfigDurum"></div>';
+            html += '            <div class="platform-config-actions">' +
+                '<button class="btn btn-primary btn-small" onclick="ayarlarTiktokConfigKaydet()">Kaydet</button>' +
+                '<button class="btn btn-warning btn-small" onclick="ayarlarTiktokConfigTemizle()">Temizle</button></div>';
+            html += '        </div>';
+        }
         html += '    </div>';
         html += '    <div class="platform-actions">';
         if (!p.bagli) {
@@ -2401,6 +2412,7 @@ function ayarlarPlatformListele() {
     ayarlarLinkedinConfigDurumYukle();
     ayarlarPinterestConfigDurumYukle();
     ayarlarMetaConfigDurumYukle();
+    ayarlarTiktokConfigDurumYukle();
 }
 
 // ===== KONTROLLU HATA KODU -> TURKCE MESAJ =====
