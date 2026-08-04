@@ -599,6 +599,8 @@ document.addEventListener('DOMContentLoaded', function() {
         webArea.addEventListener('click', function() { webInput.click(); });
         webInput.addEventListener('change', function() {
             webContainer.innerHTML = '';
+            webSecilenMedyaPath = '';
+            webSecilenMedyaAd = '';
             var files = Array.from(this.files);
             files.forEach(function(file, index) {
                 var item = document.createElement('div');
@@ -621,6 +623,8 @@ document.addEventListener('DOMContentLoaded', function() {
             webArea.style.borderColor = '#d1d5db';
             webArea.style.background = '#f9fafb';
             webContainer.innerHTML = '';
+            webSecilenMedyaPath = '';
+            webSecilenMedyaAd = '';
             var files = Array.from(e.dataTransfer.files);
             files.forEach(function(file, index) {
                 var item = document.createElement('div');
@@ -646,13 +650,15 @@ function webTaslakKaydet() {
         return;
     }
 
-    var bolumAdi = document.getElementById('webBolum').options[document.getElementById('webBolum').selectedIndex].text;
+    var bolumAdiEl = document.getElementById('webBolumAdi');
+    var bolumAdi = bolumAdiEl ? bolumAdiEl.value.trim() : '';
+    if (!bolumAdi) bolumAdi = bolum !== '' ? bolum : 'Belirtilmemis';
     var taslak = {
         id: Date.now(),
         icerik: icerik,
         baslik: baslik,
         bolum: bolum,
-        bolumAdi: bolum !== '' ? bolumAdi : 'Belirtilmemis',
+        bolumAdi: bolumAdi,
         tarih: new Date().toLocaleString('tr-TR')
     };
     webTaslaklar.push(taslak);
@@ -662,6 +668,7 @@ function webTaslakKaydet() {
     document.getElementById('webIcerik').value = '';
     document.getElementById('webBaslik').value = '';
     document.getElementById('webBolum').value = '';
+    if (document.getElementById('webBolumAdi')) document.getElementById('webBolumAdi').value = '';
     var wc = document.getElementById('webUploadedFiles');
     if (wc) wc.innerHTML = '';
 }
@@ -698,6 +705,7 @@ function webTaslakDuzenle(index) {
     document.getElementById('webIcerik').value = t.icerik;
     document.getElementById('webBaslik').value = t.baslik;
     document.getElementById('webBolum').value = t.bolum;
+    if (document.getElementById('webBolumAdi')) document.getElementById('webBolumAdi').value = t.bolumAdi || t.bolum;
     webTaslaklar.splice(index, 1);
     webTaslakListele();
 }
@@ -713,21 +721,26 @@ function webTaslakYayinla(index) {
         alert('Bu taslagin hedef web bolumu secilmemistir. Lutfen once duzenleyerek web bolumu secin.');
         return;
     }
+    document.getElementById('webBolum').value = t.bolum;
+    if (document.getElementById('webBolumAdi')) document.getElementById('webBolumAdi').value = t.bolumAdi || t.bolum;
     webYayinla(t.icerik, t.baslik, t.bolum);
 }
 
 // ===== FAZ 3 - WEB SIMDI YAYINLA =====
+var webSecilenMedyaPath = '';
+var webSecilenMedyaAd = '';
+
 function webSimdiYayinla() {
     var icerik = document.getElementById('webIcerik').value.trim();
     var baslik = document.getElementById('webBaslik').value.trim();
-    var bolum = document.getElementById('webBolum').value;
+    var bolum = document.getElementById('webBolum').value.trim();
 
     if (icerik === '' && baslik === '') {
         alert('Yayinlanacak icerik veya baslik girin.');
         return;
     }
     if (!bolum || bolum === '') {
-        alert('Web bolumu secimi zorunludur. Lutfen bir web bolumu secin.');
+        alert('Web bolumu zorunludur. Bolum kimligini yazin veya bolumleri API\'den getirerek secin.');
         return;
     }
 
@@ -735,11 +748,141 @@ function webSimdiYayinla() {
 }
 
 function webYayinla(icerik, baslik, bolum) {
-    var bolumSelect = document.getElementById('webBolum');
-    var bolumAdi = bolumSelect.options[bolumSelect.selectedIndex].text;
-    var msg = 'Web sitesi yayinlama entegrasyonu henuz yapilandirilmemistir. Icerik yayinlanamadi.\n\nHedef: ' + bolumAdi + '\nBaslik: ' + (baslik || '(baslik yok)');
-    alert(msg);
+    var bolumAdiEl = document.getElementById('webBolumAdi');
+    var bolumAdi = bolumAdiEl ? bolumAdiEl.value.trim() : '';
+    if (!bolumAdi) bolumAdi = bolum;
+
+    var p = esTauriInvoke('website_publish', {
+        title: baslik || '',
+        content: icerik,
+        section_id: bolum || '',
+        section_name: bolumAdi || '',
+        media_path: webSecilenMedyaPath || ''
+    });
+    if (!p) {
+        alert('Web yayinlama yalniz uygulama ici calistiginda yapilabilir. Ayarlar > Web Sitesi b\u00f6l\u00fcm\u00fcnden API bilgilerini girin.');
+        return;
+    }
+    p.then(function(out) {
+        if (out && out.ok) {
+            var mesaj = 'Web yayini basarili.\n' + out.turkce;
+            if (out.content_id) mesaj += '\nIcerik ID: ' + out.content_id;
+            if (out.content_url) mesaj += '\nAdres: ' + out.content_url;
+            alert(mesaj);
+            bildirimEkle('web-baglanti', 'basarili', 'Web yayini yayinlandi', out.turkce);
+            gecmisWebKayitEkle({
+                durum: 'basarili',
+                tarihSaat: new Date().toLocaleString('tr-TR'),
+                tur: 'Web Yayini',
+                webBolum: bolumAdi || bolum,
+                baslik: baslik || '(baslik yok)',
+                gorselAdi: webSecilenMedyaAd || '-',
+                icerik: icerik,
+                icerikId: out.content_id || '',
+                icerikAdres: out.content_url || ''
+            });
+            webFormuTemizle();
+        } else {
+            var msg = out ? out.turkce : 'Yayin sonucu alinamadi.';
+            alert('Web yayini basarisiz.\n' + msg);
+            bildirimEkle('web-baglanti', 'uyari', 'Web yayini basarisiz', msg);
+            gecmisWebKayitEkle({
+                durum: 'basarisiz',
+                tarihSaat: new Date().toLocaleString('tr-TR'),
+                tur: 'Web Yayini',
+                webBolum: bolumAdi || bolum,
+                baslik: baslik || '(baslik yok)',
+                gorselAdi: webSecilenMedyaAd || '-',
+                icerik: icerik,
+                hataNedeni: msg
+            });
+        }
+    }).catch(function(e) {
+        var msg = (e && e.message) ? e.message : (typeof e === 'string' ? e : 'Bilinmeyen hata');
+        alert('Web yayini basarisiz.\n' + msg);
+        bildirimEkle('web-baglanti', 'uyari', 'Web yayini basarisiz', msg);
+    });
 }
+
+function webFormuTemizle() {
+    if (document.getElementById('webIcerik')) document.getElementById('webIcerik').value = '';
+    if (document.getElementById('webBaslik')) document.getElementById('webBaslik').value = '';
+    if (document.getElementById('webBolum')) document.getElementById('webBolum').value = '';
+    if (document.getElementById('webBolumAdi')) document.getElementById('webBolumAdi').value = '';
+    var wc = document.getElementById('webUploadedFiles');
+    if (wc) wc.innerHTML = '';
+    webSecilenMedyaPath = '';
+    webSecilenMedyaAd = '';
+}
+
+function webDisktenSec() {
+    var p = esTauriInvoke('pick_media_files');
+    if (!p) {
+        alert('Dosya secimi yalniz uygulama ici calistiginda yapilabilir. Onizleme modunda surukle-birak alanini kullanin.');
+        return;
+    }
+    p.then(function(paths) {
+        if (!paths || paths.length === 0) return;
+        webSecilenMedyaPath = paths[0];
+        var ad = webSecilenMedyaPath.split(/[\\/]/).pop();
+        webSecilenMedyaAd = ad;
+        var wc = document.getElementById('webUploadedFiles');
+        if (wc) wc.innerHTML = '<div class="uploaded-file-item"><span class="file-name">' + ad + '</span></div>';
+    }).catch(function(e) {
+        var msg = (e && e.message) ? e.message : 'Bilinmeyen hata';
+        alert('Dosya secilemedi.\n' + msg);
+    });
+}
+
+function webBolumleriGetir() {
+    var p = esTauriInvoke('website_sections');
+    if (!p) {
+        alert('Bolum listesi yalniz uygulama ici calistiginda API\'den alinabilir. Bolum kimligini elle girebilirsiniz.');
+        return;
+    }
+    p.then(function(out) {
+        if (!out || !out.ok) {
+            var msg = out ? out.turkce : 'Bolum listesi alinamadi.';
+            alert(msg);
+            bildirimEkle('web-baglanti', 'uyari', 'Bolum listesi alinamadi', msg);
+            return;
+        }
+        var dl = document.getElementById('webBolumListesi');
+        if (dl) {
+            dl.innerHTML = '';
+            out.sections.forEach(function(s) {
+                var opt = document.createElement('option');
+                opt.value = s.id;
+                opt.label = s.name;
+                dl.appendChild(opt);
+            });
+        }
+        var ip = document.getElementById('webBolum');
+        if (ip && ip.value && out.sections.length > 0) {
+            var eslesme = out.sections.filter(function(s) { return s.id === ip.value; });
+            var adEl = document.getElementById('webBolumAdi');
+            if (eslesme.length > 0 && adEl) adEl.value = eslesme[0].name;
+        }
+        alert(out.turkce);
+        bildirimEkle('web-baglanti', 'basarili', 'Bolum listesi alindi', out.turkce);
+    }).catch(function(e) {
+        var msg = (e && e.message) ? e.message : (typeof e === 'string' ? e : 'Bilinmeyen hata');
+        alert('Bolum listesi alinamadi.\n' + msg);
+    });
+}
+
+document.addEventListener('input', function(e) {
+    if (e.target && e.target.id === 'webBolum') {
+        var adEl = document.getElementById('webBolumAdi');
+        if (!adEl) return;
+        var dl = document.getElementById('webBolumListesi');
+        if (!dl) return;
+        var secili = Array.prototype.filter.call(dl.options, function(o) { return o.value === e.target.value; });
+        if (secili.length > 0) {
+            adEl.value = secili[0].label || secili[0].text;
+        }
+    }
+});
 
 // ===== FAZ 4 - MEDYA KUTUPHANESI =====
 var medyaSeciliKlasor = '01';
@@ -1169,6 +1312,12 @@ function gecmisDetayGoster(k, tip) {
         html += '<div class="detay-satir"><span class="detay-etiket">Sira Numarasi</span><span class="detay-deger">' + (k.siraNumarasi || '-') + '</span></div>';
     } else {
         html += '<div class="detay-satir"><span class="detay-etiket">Web Bolumu</span><span class="detay-deger">' + (k.webBolum || '-') + '</span></div>';
+        if (k.icerikId) {
+            html += '<div class="detay-satir"><span class="detay-etiket">Icerik ID</span><span class="detay-deger">' + k.icerikId + '</span></div>';
+        }
+        if (k.icerikAdres) {
+            html += '<div class="detay-satir"><span class="detay-etiket">Icerik Adresi</span><span class="detay-deger"><a href="' + k.icerikAdres + '" target="_blank" rel="noopener">' + k.icerikAdres + '</a></span></div>';
+        }
     }
 
     html += '<div class="detay-satir"><span class="detay-etiket">Baslik</span><span class="detay-deger">' + (k.baslik || '-') + '</span></div>';
@@ -3256,102 +3405,178 @@ function ayarlarPinterestConfigTemizle() {
 }
 
 // ===== WEB SITESI BAGLANTISI =====
+
+// Web yapilandirmasini form alanlarindan toplar. Gizli olmayan tum alanlar
+// SiteConfigInput ile birebir eslesir; secret yalniz doluysa gonderilir.
+function webAyarlarFormuGetir() {
+    var timeout = parseInt(document.getElementById('ayarlarWebSure').value, 10);
+    if (isNaN(timeout) || timeout <= 0) timeout = 15;
+    return {
+        site_url: document.getElementById('ayarlarWebAdres').value.trim(),
+        api_base: document.getElementById('ayarlarApiAdres').value.trim(),
+        auth_style: document.getElementById('ayarlarAuthYontem').value,
+        auth_header_name: document.getElementById('ayarlarAuthBaslik').value.trim(),
+        test_endpoint: document.getElementById('ayarlarWebTestEndpoint').value.trim(),
+        publish_endpoint: document.getElementById('ayarlarWebYayinEndpoint').value.trim(),
+        sections_endpoint: document.getElementById('ayarlarWebBolumEndpoint').value.trim(),
+        sections_path: document.getElementById('ayarlarWebSectionsPath').value.trim() || 'data',
+        section_id_path: document.getElementById('ayarlarWebBolumIdPath').value.trim() || 'id',
+        section_name_path: document.getElementById('ayarlarWebBolumAdiPath').value.trim() || 'name',
+        content_id_path: document.getElementById('ayarlarWebIcerikIdPath').value.trim() || 'data.id',
+        content_url_path: document.getElementById('ayarlarWebIcerikUrlPath').value.trim() || 'data.url',
+        error_message_path: document.getElementById('ayarlarWebHataMesajPath').value.trim() || 'error.message',
+        media_field_name: document.getElementById('ayarlarWebMedyaAlanAdi').value.trim() || 'image',
+        multipart: document.getElementById('ayarlarWebMultipart').checked,
+        timeout_seconds: timeout,
+        payload_template: document.getElementById('ayarlarWebSablon').value.trim(),
+        secret: document.getElementById('ayarlarApiAnahtar').value
+    };
+}
+
+function webAyarlarDoldur(view) {
+    if (!view) return;
+    var cfg = view.cfg || view;
+    if (document.getElementById('ayarlarWebAdres')) document.getElementById('ayarlarWebAdres').value = cfg.site_url || '';
+    if (document.getElementById('ayarlarApiAdres')) document.getElementById('ayarlarApiAdres').value = cfg.api_base || '';
+    if (document.getElementById('ayarlarAuthYontem')) document.getElementById('ayarlarAuthYontem').value = cfg.auth_style || '';
+    if (document.getElementById('ayarlarAuthBaslik')) document.getElementById('ayarlarAuthBaslik').value = cfg.auth_header_name || '';
+    if (document.getElementById('ayarlarWebTestEndpoint')) document.getElementById('ayarlarWebTestEndpoint').value = cfg.test_endpoint || '';
+    if (document.getElementById('ayarlarWebYayinEndpoint')) document.getElementById('ayarlarWebYayinEndpoint').value = cfg.publish_endpoint || '';
+    if (document.getElementById('ayarlarWebBolumEndpoint')) document.getElementById('ayarlarWebBolumEndpoint').value = cfg.sections_endpoint || '';
+    if (document.getElementById('ayarlarWebSectionsPath')) document.getElementById('ayarlarWebSectionsPath').value = cfg.sections_path || '';
+    if (document.getElementById('ayarlarWebBolumIdPath')) document.getElementById('ayarlarWebBolumIdPath').value = cfg.section_id_path || '';
+    if (document.getElementById('ayarlarWebBolumAdiPath')) document.getElementById('ayarlarWebBolumAdiPath').value = cfg.section_name_path || '';
+    if (document.getElementById('ayarlarWebIcerikIdPath')) document.getElementById('ayarlarWebIcerikIdPath').value = cfg.content_id_path || '';
+    if (document.getElementById('ayarlarWebIcerikUrlPath')) document.getElementById('ayarlarWebIcerikUrlPath').value = cfg.content_url_path || '';
+    if (document.getElementById('ayarlarWebHataMesajPath')) document.getElementById('ayarlarWebHataMesajPath').value = cfg.error_message_path || '';
+    if (document.getElementById('ayarlarWebMedyaAlanAdi')) document.getElementById('ayarlarWebMedyaAlanAdi').value = cfg.media_field_name || '';
+    if (document.getElementById('ayarlarWebMultipart')) document.getElementById('ayarlarWebMultipart').checked = !!cfg.multipart;
+    if (document.getElementById('ayarlarWebSure')) document.getElementById('ayarlarWebSure').value = cfg.timeout_seconds || 15;
+    if (document.getElementById('ayarlarWebSablon')) document.getElementById('ayarlarWebSablon').value = cfg.payload_template || '';
+    ayarlarWebBaglanti.bagli = false;
+    ayarlarWebBaglanti.webAdres = cfg.site_url || '';
+    ayarlarWebBaglanti.apiAdres = cfg.api_base || '';
+    ayarlarWebBaglanti.authYontem = cfg.auth_style || '';
+    ayarlarWebBaglanti.sonKontrol = view.last_test || '';
+    ayarlarWebDurumGoster(cfg.api_base !== '');
+}
+
 function ayarlarWebTestEt() {
-    var webAdres = document.getElementById('ayarlarWebAdres').value.trim();
-    var apiAdres = document.getElementById('ayarlarApiAdres').value.trim();
-    var authYontem = document.getElementById('ayarlarAuthYontem').value;
-
-    if (!webAdres || !apiAdres) {
-        alert('Web sitesi adresi ve API adresi zorunludur.');
-        bildirimEkle('sistem-uyari', 'uyari',
-            'Web baglantisi testi basarisiz - Zorunlu alan eksik',
-            'Web sitesi adresi ve API adresi girilmeden baglanti testi yapilamaz.'
-        );
+    var input = webAyarlarFormuGetir();
+    if (!input.api_base || !input.test_endpoint || !input.publish_endpoint || !input.auth_style) {
+        var mesaj = 'API temel adresi, test uc noktasi, yayin uc noktasi ve dogrulama yontemi zorunludur.';
+        alert(mesaj);
+        bildirimEkle('sistem-uyari', 'uyari', 'Web baglantisi testi basarisiz - Zorunlu alan eksik', mesaj);
         return;
     }
-
-    if (!authYontem || authYontem === '') {
-        alert('Kimlik dogrulama yontemi secimi zorunludur.');
-        bildirimEkle('sistem-uyari', 'uyari',
-            'Web baglantisi testi basarisiz - Yontem secilmedi',
-            'Kimlik dogrulama yontemi secilmeden baglanti testi yapilamaz.'
-        );
+    var p = esTauriInvoke('website_config_save', { input: input });
+    if (!p) {
+        alert('Baglanti testi yalniz uygulama ici calistiginda yapilabilir.');
         return;
     }
-
-    alert('Web sitesi baglanti bilgileri teknik entegrasyon tamamlanmadan dogrulanamaz.');
-    bildirimEkle('web-baglanti', 'uyari',
-        'Web baglantisi test edilemiyor',
-        'Web sitesi baglanti bilgileri teknik entegrasyon tamamlanmadan dogrulanamaz.'
-    );
+    p.then(function() {
+        return esTauriInvoke('website_test');
+    }).then(function(out) {
+        if (out && out.ok) {
+            ayarlarWebBaglanti.bagli = true;
+            ayarlarWebBaglanti.sonKontrol = new Date().toLocaleString('tr-TR');
+            ayarlarWebDurumGoster(true);
+            dashboardBaglantiGuncelle();
+            alert('Baglanti basarili.\n' + out.turkce);
+            bildirimEkle('web-baglanti', 'basarili', 'Web baglantisi testi basarili', out.turkce);
+        } else {
+            var msg = out ? out.turkce : 'Test sonucu alinamadi.';
+            alert('Baglanti testi basarisiz.\n' + msg);
+            bildirimEkle('web-baglanti', 'uyari', 'Web baglantisi testi basarisiz', msg);
+        }
+    }).catch(function(e) {
+        var msg = (e && e.message) ? e.message : (typeof e === 'string' ? e : 'Bilinmeyen hata');
+        alert('Baglanti testi basarisiz.\n' + msg);
+        bildirimEkle('web-baglanti', 'uyari', 'Web baglantisi testi basarisiz', msg);
+    });
 }
 
 function ayarlarWebKaydet() {
-    var webAdres = document.getElementById('ayarlarWebAdres').value.trim();
-    var apiAdres = document.getElementById('ayarlarApiAdres').value.trim();
-    var authYontem = document.getElementById('ayarlarAuthYontem').value;
-
-    if (!webAdres || !apiAdres || !authYontem || authYontem === '') {
-        alert('Web sitesi adresi, API adresi ve dogrulama yontemi zorunludur.');
-        bildirimEkle('sistem-uyari', 'uyari',
-            'Web baglantisi kaydedilemedi - Zorunlu alan eksik',
-            'Web sitesi adresi, API adresi ve dogrulama yontemi girilmeden kaydedilemez.'
-        );
+    var input = webAyarlarFormuGetir();
+    if (!input.api_base || !input.test_endpoint || !input.publish_endpoint || !input.auth_style) {
+        var mesaj = 'API temel adresi, test uc noktasi, yayin uc noktasi ve dogrulama yontemi zorunludur.';
+        alert(mesaj);
+        bildirimEkle('sistem-uyari', 'uyari', 'Web baglantisi kaydedilemedi - Zorunlu alan eksik', mesaj);
         return;
     }
 
-    ayarlarWebBaglanti.webAdres = webAdres;
-    ayarlarWebBaglanti.apiAdres = apiAdres;
-    ayarlarWebBaglanti.authYontem = authYontem;
-    ayarlarWebBaglanti.bagli = false;
-    ayarlarWebBaglanti.sonKontrol = new Date().toLocaleString('tr-TR');
-
-    // localStorage'a kaydet (API anahtari dahil edilmez)
+    // Onizleme modunda gizli olmayan bilgileri localStorage'a yedekle (anahtar asla).
     var kayit = {
-        bagli: ayarlarWebBaglanti.bagli,
-        webAdres: webAdres,
-        apiAdres: apiAdres,
-        authYontem: authYontem,
-        sonKontrol: ayarlarWebBaglanti.sonKontrol
+        bagli: false,
+        webAdres: input.site_url,
+        apiAdres: input.api_base,
+        authYontem: input.auth_style,
+        sonKontrol: new Date().toLocaleString('tr-TR')
     };
     localStorage.setItem(AYARLAR_WEB_KEY, JSON.stringify(kayit));
 
-    // API anahtari localStorage'a kaydedilmez, console'a yazilmaz
-    document.getElementById('ayarlarApiAnahtar').value = '';
-    ayarlarWebDurumGoster();
-    dashboardBaglantiGuncelle();
-
-    alert('Web sitesi baglanti bilgileri kaydedildi. API anahtari saklanmamistir.');
-
-    bildirimEkle('genel', 'basarili',
-        'Web baglantisi kaydedildi',
-        'Web sitesi baglanti bilgileri basariyla kaydedildi. API anahtari guvenlik nedeniyle saklanmamistir.'
-    );
+    var p = esTauriInvoke('website_config_save', { input: input });
+    if (!p) {
+        ayarlarWebBaglanti.bagli = false;
+        ayarlarWebBaglanti.webAdres = input.site_url;
+        ayarlarWebBaglanti.apiAdres = input.api_base;
+        ayarlarWebBaglanti.authYontem = input.auth_style;
+        ayarlarWebDurumGoster(input.api_base !== '');
+        document.getElementById('ayarlarApiAnahtar').value = '';
+        alert('Web yapilandirmasi kaydedildi. API anahtari saklanmamistir (onizleme modu).');
+        return;
+    }
+    p.then(function() {
+        ayarlarWebBaglanti.bagli = false;
+        ayarlarWebBaglanti.webAdres = input.site_url;
+        ayarlarWebBaglanti.apiAdres = input.api_base;
+        ayarlarWebBaglanti.authYontem = input.auth_style;
+        ayarlarWebBaglanti.sonKontrol = new Date().toLocaleString('tr-TR');
+        ayarlarWebDurumGoster(true);
+        dashboardBaglantiGuncelle();
+        // API anahtari localStorage ya da console'a yazilmaz
+        document.getElementById('ayarlarApiAnahtar').value = '';
+        alert('Web yapilandirmasi kaydedildi. Anahtar Windows Kimlik Bilgi Yoneticisi icinde saklanir.');
+        bildirimEkle('web-baglanti', 'basarili', 'Web yapilandirmasi kaydedildi',
+            'API temel adresi ve uc noktalari kaydedildi; anahtar guvenli depoda saklanir.');
+    }).catch(function(e) {
+        var msg = (e && e.message) ? e.message : (typeof e === 'string' ? e : 'Kayit sirasinda hata olustu');
+        alert('Kaydetme basarisiz.\n' + msg);
+        bildirimEkle('sistem-uyari', 'uyari', 'Web yapilandirmasi kaydedilemedi', msg);
+    });
 }
 
 function ayarlarWebKaldir() {
-    ayarlarWebBaglanti = {
-        bagli: false,
-        webAdres: '',
-        apiAdres: '',
-        authYontem: 'API Key',
-        sonKontrol: ''
+    var temizle = function() {
+        ayarlarWebBaglanti = {
+            bagli: false,
+            webAdres: '',
+            apiAdres: '',
+            authYontem: 'bearer',
+            sonKontrol: ''
+        };
+        if (document.getElementById('ayarlarWebAdres')) document.getElementById('ayarlarWebAdres').value = '';
+        if (document.getElementById('ayarlarApiAdres')) document.getElementById('ayarlarApiAdres').value = '';
+        if (document.getElementById('ayarlarAuthYontem')) document.getElementById('ayarlarAuthYontem').value = 'bearer';
+        if (document.getElementById('ayarlarAuthBaslik')) document.getElementById('ayarlarAuthBaslik').value = '';
+        if (document.getElementById('ayarlarWebTestEndpoint')) document.getElementById('ayarlarWebTestEndpoint').value = '';
+        if (document.getElementById('ayarlarWebYayinEndpoint')) document.getElementById('ayarlarWebYayinEndpoint').value = '';
+        if (document.getElementById('ayarlarWebBolumEndpoint')) document.getElementById('ayarlarWebBolumEndpoint').value = '';
+        if (document.getElementById('ayarlarApiAnahtar')) document.getElementById('ayarlarApiAnahtar').value = '';
+        localStorage.removeItem(AYARLAR_WEB_KEY);
+        ayarlarWebDurumGoster(false);
+        dashboardBaglantiGuncelle();
+        alert('Web baglantisi ve guvenli anahtar kaldirildi.');
     };
-
-    document.getElementById('ayarlarWebAdres').value = '';
-    document.getElementById('ayarlarApiAdres').value = '';
-    document.getElementById('ayarlarAuthYontem').value = 'API Key';
-    document.getElementById('ayarlarApiAnahtar').value = '';
-
-    localStorage.removeItem(AYARLAR_WEB_KEY);
-
-    ayarlarWebDurumGoster();
-    dashboardBaglantiGuncelle();
-
-    alert('Web sitesi baglantisi kaldirildi.');
+    var p = esTauriInvoke('website_config_clear');
+    if (!p) { temizle(); return; }
+    p.then(temizle).catch(function(e) {
+        var msg = (e && e.message) ? e.message : 'Bilinmeyen hata';
+        alert('Kaldirilemedi.\n' + msg);
+    });
 }
 
-function ayarlarWebDurumGoster() {
+function ayarlarWebDurumGoster(configured) {
     var durumGrubu = document.getElementById('ayarlarWebDurumGrubu');
     var durumEl = document.getElementById('ayarlarWebDurum');
     var sonKontrolEl = document.getElementById('ayarlarWebSonKontrol');
@@ -3359,9 +3584,13 @@ function ayarlarWebDurumGoster() {
 
     if (!durumGrubu || !durumEl || !sonKontrolEl || !kaldirBtn) return;
 
-    if (ayarlarWebBaglanti.webAdres) {
+    if (configured) {
         durumGrubu.style.display = 'block';
-        durumEl.innerHTML = '<span class="status-dot gray"></span> Bagli Degil';
+        if (ayarlarWebBaglanti.bagli) {
+            durumEl.innerHTML = '<span class="status-dot green"></span> Baglanildi (test basarili)';
+        } else {
+            durumEl.innerHTML = '<span class="status-dot gray"></span> Yapilandirildi - Test edilmedi';
+        }
         sonKontrolEl.textContent = 'Son kontrol: ' + (ayarlarWebBaglanti.sonKontrol || '-');
         kaldirBtn.style.display = 'inline-block';
     } else {
@@ -3371,25 +3600,29 @@ function ayarlarWebDurumGoster() {
 }
 
 function ayarlarWebGeriYukle() {
-    var kayitli = localStorage.getItem(AYARLAR_WEB_KEY);
-    if (kayitli) {
-        try {
-            var data = JSON.parse(kayitli);
-            ayarlarWebBaglanti.bagli = data.bagli || false;
-            ayarlarWebBaglanti.webAdres = data.webAdres || '';
-            ayarlarWebBaglanti.apiAdres = data.apiAdres || '';
-            ayarlarWebBaglanti.authYontem = data.authYontem || 'API Key';
-            ayarlarWebBaglanti.sonKontrol = data.sonKontrol || '';
-
-            if (ayarlarWebBaglanti.webAdres) {
-                document.getElementById('ayarlarWebAdres').value = ayarlarWebBaglanti.webAdres;
-                document.getElementById('ayarlarApiAdres').value = ayarlarWebBaglanti.apiAdres;
-                document.getElementById('ayarlarAuthYontem').value = ayarlarWebBaglanti.authYontem;
-            }
-
-            ayarlarWebDurumGoster();
-        } catch(e) {}
+    var p = esTauriInvoke('website_config_get');
+    if (!p) {
+        // Onizleme modu: yalniz gizli olmayan eski yerel kayit doldurulur
+        var kayitli = localStorage.getItem(AYARLAR_WEB_KEY);
+        if (kayitli) {
+            try {
+                var data = JSON.parse(kayitli);
+                ayarlarWebBaglanti.bagli = false;
+                ayarlarWebBaglanti.webAdres = data.webAdres || '';
+                ayarlarWebBaglanti.apiAdres = data.apiAdres || '';
+                ayarlarWebBaglanti.authYontem = data.authYontem || 'bearer';
+                ayarlarWebBaglanti.sonKontrol = data.sonKontrol || '';
+                if (document.getElementById('ayarlarWebAdres')) document.getElementById('ayarlarWebAdres').value = ayarlarWebBaglanti.webAdres;
+                if (document.getElementById('ayarlarApiAdres')) document.getElementById('ayarlarApiAdres').value = ayarlarWebBaglanti.apiAdres;
+                if (document.getElementById('ayarlarWebTestEndpoint')) document.getElementById('ayarlarWebTestEndpoint').value = '/health';
+                ayarlarWebDurumGoster(ayarlarWebBaglanti.apiAdres !== '');
+            } catch (e) {}
+        }
+        return;
     }
+    p.then(function(view) {
+        if (view) webAyarlarDoldur(view);
+    }).catch(function() {});
 }
 
 // ===== GENEL AYARLAR =====

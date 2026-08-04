@@ -1,4 +1,5 @@
 mod social;
+mod site;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -41,6 +42,12 @@ pub fn run() {
             social::commands::pinterest_set_config,
             social::commands::pinterest_clear_config,
             social::commands::pinterest_publish,
+            site::website_config_get,
+            site::website_config_save,
+            site::website_config_clear,
+            site::website_test,
+            site::website_publish,
+            site::website_sections,
           ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

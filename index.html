@@ -274,29 +274,30 @@
                     <input type="text" class="form-input" id="webBaslik" placeholder="İçerik başlığı veya açıklaması girin">
                 </div>
                 <div class="form-group">
-                    <label>Görsel Seçme veya Yükleme</label>
+                    <label>Görsel / Video Seçme</label>
                     <div class="file-upload-area" id="webUploadArea">
-                        <input type="file" accept="image/*" class="file-input-hidden" id="webFileInput">
-                        <div class="file-upload-placeholder">Görsel seçmek için tıklayın</div>
+                        <input type="file" accept="image/*,video/*" class="file-input-hidden" id="webFileInput">
+                        <div class="file-upload-placeholder">Görsel veya video seçmek için tıklayın</div>
+                    </div>
+                    <div style="margin-top:6px;">
+                        <button class="btn btn-secondary btn-small" onclick="webDisktenSec()">Bilgisayardan Dosya Seç</button>
                     </div>
                     <div class="uploaded-files" id="webUploadedFiles"></div>
                 </div>
-                <div class="form-group">
-                    <label>Yayınlanacak Web Bölümü <span class="required-star">*</span></label>
-                    <select class="form-input" id="webBolum">
-                        <option value="">-- Web Bölümü Seçin --</option>
-                        <option value="ana-sayfa">Ana Sayfa</option>
-                        <option value="slider">Slider</option>
-                        <option value="hero">Hero</option>
-                        <option value="urunler">Ürünler</option>
-                        <option value="hizmetler">Hizmetler</option>
-                        <option value="kampanyalar">Kampanyalar</option>
-                        <option value="blog">Blog</option>
-                        <option value="duyurular">Duyurular</option>
-                        <option value="popup">Popup</option>
-                        <option value="diger">Diğer tanımlanmış alanlar</option>
-                    </select>
-                    <p class="form-hint">Web bölümü seçimi zorunludur.</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Yayınlanacak Web Bölümü <span class="required-star">*</span></label>
+                        <input type="text" class="form-input" id="webBolum" list="webBolumListesi" placeholder="Bolum kimligi veya API'den sec">
+                        <datalist id="webBolumListesi"></datalist>
+                        <p class="form-hint">Bolum kimligini yazin; API listesini kullanmak icin once bolumleri getirin.</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Bolum Adı</label>
+                        <input type="text" class="form-input" id="webBolumAdi" placeholder="Secilen bolumun adi (secimle dolar)">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="webBolumleriGetir()">Bölümleri API'den Getir</button>
                 </div>
                 <div class="form-actions">
                     <button class="btn btn-secondary" onclick="webTaslakKaydet()">Taslak Kaydet</button>
@@ -501,27 +502,104 @@
                         </div>
                         <div class="ayarlar-icerik" id="ayarlar-web-sitesi" style="display:none;">
                             <div class="ayarlar-form">
-                                <div class="form-group">
-                                    <label>Web Sitesi Adresi <span class="required-star">*</span></label>
-                                    <input type="text" class="form-input" id="ayarlarWebAdres" placeholder="https://www.ornek.com">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Web Sitesi Adresi</label>
+                                        <input type="text" class="form-input" id="ayarlarWebAdres" placeholder="https://www.ornek.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>API Temel Adresi <span class="required-star">*</span></label>
+                                        <input type="text" class="form-input" id="ayarlarApiAdres" placeholder="https://api.ornek.com/v1">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Kimlik Dogrulama Yontemi <span class="required-star">*</span></label>
+                                        <select class="form-input" id="ayarlarAuthYontem">
+                                            <option value="">-- Yontem Seciniz --</option>
+                                            <option value="bearer">Bearer Token (OAuth / JWT)</option>
+                                            <option value="api_key">API Key</option>
+                                            <option value="none">Kimlik Yok (Anonim)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="ayarlarAuthBaslikGrubu">
+                                        <label>Anahtar Baslik Adi</label>
+                                        <input type="text" class="form-input" id="ayarlarAuthBaslik" placeholder="X-API-Key (API Key modunda kullanilir)">
+                                    </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>API Adresi <span class="required-star">*</span></label>
-                                    <input type="text" class="form-input" id="ayarlarApiAdres" placeholder="https://api.ornek.com/v1">
+                                    <label>API Anahtari / Token</label>
+                                    <input type="password" class="form-input" id="ayarlarApiAnahtar" placeholder="Yeni anahtar girin; bos birakirsaniz mevcut anahtar korunur">
+                                    <p class="form-hint">Anahtar Windows Kimlik Bilgi Yoneticisi'nde saklanir; koda veya diske acik yazilmaz.</p>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Test Uc Noktasi <span class="required-star">*</span></label>
+                                        <input type="text" class="form-input" id="ayarlarWebTestEndpoint" placeholder="/health veya /test">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Yayin Uc Noktasi <span class="required-star">*</span></label>
+                                        <input type="text" class="form-input" id="ayarlarWebYayinEndpoint" placeholder="/content veya /publish">
+                                    </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Kimlik Dogrulama Yontemi <span class="required-star">*</span></label>
-                                    <select class="form-input" id="ayarlarAuthYontem">
-                                        <option value="">-- Yontem Seciniz --</option>
-                                        <option value="API Key">API Key</option>
-                                        <option value="OAuth">OAuth</option>
-                                        <option value="JWT">JWT</option>
-                                    </select>
+                                    <label>Bolum Listesi Uc Noktasi (opsiyonel)</label>
+                                    <input type="text" class="form-input" id="ayarlarWebBolumEndpoint" placeholder="/sections - bos ise bolumler API'den alinmaz">
                                 </div>
-                                <div class="form-group">
-                                    <label>API Anahtari</label>
-                                    <input type="password" class="form-input" id="ayarlarApiAnahtar" placeholder="API anahtari (ekranda gosterilmez)">
-                                </div>
+                                <details class="ayarlar-detay">
+                                    <summary>Gelismis Yanit Alanlari ve Sablon</summary>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Bolum Listesi Dizi Yolu</label>
+                                            <input type="text" class="form-input" id="ayarlarWebSectionsPath" placeholder="data veya data.items">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Bolum Kimlik Alani Yolu</label>
+                                            <input type="text" class="form-input" id="ayarlarWebBolumIdPath" placeholder="id">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Bolum Adi Alani Yolu</label>
+                                            <input type="text" class="form-input" id="ayarlarWebBolumAdiPath" placeholder="name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Icerik Kimligi Alani Yolu</label>
+                                            <input type="text" class="form-input" id="ayarlarWebIcerikIdPath" placeholder="data.id">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Icerik Adresi Alani Yolu</label>
+                                            <input type="text" class="form-input" id="ayarlarWebIcerikUrlPath" placeholder="data.url">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Hata Mesaji Alani Yolu</label>
+                                            <input type="text" class="form-input" id="ayarlarWebHataMesajPath" placeholder="error.message">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Medya Form Alani Adi</label>
+                                            <input type="text" class="form-input" id="ayarlarWebMedyaAlanAdi" placeholder="image">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Zaman Asimi (saniye)</label>
+                                            <input type="number" class="form-input" id="ayarlarWebSure" min="1" max="300" value="15">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-checkbox-label">
+                                            <input type="checkbox" id="ayarlarWebMultipart"> Medyayi multipart form olarak gonder
+                                        </label>
+                                        <p class="form-hint">Isaretliyse sablon duz bir nesne olmali; her alan bir form parcasi olur, medya dosyasi ayri gonderilir.</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Yayin Govde Sablonu (JSON)</label>
+                                        <textarea class="form-textarea" id="ayarlarWebSablon" rows="4" placeholder='{"title":"{{baslik}}","content":"{{icerik}}","section_id":"{{bolum_id}}","section_name":"{{bolum_adi}}"}'></textarea>
+                                        <p class="form-hint">Yer tutucular: {{baslik}} {{icerik}} {{bolum_id}} {{bolum_adi}} {{medya_base64}}</p>
+                                    </div>
+                                </details>
                                 <div class="form-group" id="ayarlarWebDurumGrubu" style="display:none;">
                                     <label>Baglanti Durumu</label>
                                     <div id="ayarlarWebDurum" style="font-size:0.88rem;color:#6b7280;">Bagli Degil</div>
