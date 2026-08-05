@@ -535,15 +535,26 @@ pub fn resolved_client_id() -> Option<String> {
         .or_else(|| read_client_id().ok().flatten())
 }
 
-/// Kullanım sırasında çözülecek Client Secret. Yalnız güvenli depodan okunur.
+/// Kullanım sırasında çözülecek Client Secret. Önce derleme zamanı
+/// `ES_OPS_PINTEREST_CLIENT_SECRET`, varsa onu, yoksa güvenli depodaki kaydı kullanır.
 pub fn resolved_client_secret() -> Option<String> {
-    read_client_secret().ok().flatten()
+    pinterest_client_secret_compiled()
+        .map(String::from)
+        .or_else(|| read_client_secret().ok().flatten())
 }
 
-/// Pinterest Client ID / Client Secret güvenli depoda yapılandırılmış mı?
+/// Pinterest Client Secret, derleme zamanında (varsa) güvenli biçimde gömülür.
+/// Değer tanımlı değilse `None` döner; derleme bu yüzden başarısız olmaz.
+fn pinterest_client_secret_compiled() -> Option<&'static str> {
+    option_env!("ES_OPS_PINTEREST_CLIENT_SECRET")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+}
+
+/// Pinterest Client ID / Client Secret yapılandırılmış mı? (ham değer dönmez)
 pub fn config_status() -> Result<(bool, bool), SocialError> {
     let has_id = resolved_client_id().is_some();
-    let has_secret = read_client_secret()?.is_some();
+    let has_secret = resolved_client_secret().is_some();
     Ok((has_id, has_secret))
 }
 

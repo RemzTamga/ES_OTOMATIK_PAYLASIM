@@ -181,7 +181,7 @@ test('Instagram: Meta yapilandirmasi eksikken tek ve dogru bildirim', async () =
     if (b.baslik !== 'Instagram bağlantısı başlatılamadı') {
         throw new Error('Beklenen baslik bulunamadi: ' + b.baslik);
     }
-    if (b.aciklama.indexOf('Meta bağlantı ayarları henüz tamamlanmamış. Sistem yöneticisinin Meta uygulama bağlantısını') === -1) {
+    if (b.aciklama.indexOf('Meta uygulama kimligi (App ID) yapilandirilmamis') === -1) {
         throw new Error('Kullanici dostu mesaj bekleniyor: ' + b.aciklama);
     }
     if (calls.filter((c) => c === 'instagram_connect').length !== 1) {
