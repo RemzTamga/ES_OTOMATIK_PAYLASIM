@@ -326,7 +326,9 @@ fn run_meta_connect_flow(
     let listener = meta::bind_loopback()?;
     // Meta redirect URI sabittir ve App Dashboard'undaki "Valid OAuth Redirect
     // URIs" listesine bu tam adresle kaydedilir. Dinamik port kullanılmaz.
-    let redirect_uri = "http://127.0.0.1:43123/meta-callback".to_string();
+    // Meta, IP adresi içeren redirect URI'lerini (ör. `127.0.0.1`) reddeder;
+    // bu yüzden etki adı `localhost` kullanılır (loopback dinleyici aynı hedef).
+    let redirect_uri = "http://localhost:43123/meta-callback".to_string();
     let state = meta::generate_state()?;
 
     let scope = super::platforms::facebook::SCOPES;

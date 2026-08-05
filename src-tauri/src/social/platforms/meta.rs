@@ -90,9 +90,16 @@ pub fn generate_state() -> Result<String, SocialError> {
 // ---- Loopback callback ----
 
 /// Meta OAuth için sabit loopback callback portu. Bu portla birlikte redirect
-/// URI'nin tamamı (`http://127.0.0.1:43123/meta-callback`) Meta App
+/// URI'nin tamamı (`http://localhost:43123/meta-callback`) Meta App
 /// Dashboard'undaki "Valid OAuth Redirect URIs" listesine kaydedilmelidir.
+/// Meta, IP adresi içeren redirect URI'lerini (ör. `127.0.0.1`) kabul etmez;
+/// bu yüzden `localhost` etki adı kullanılır.
 pub const META_LOOPBACK_PORT: u16 = 43123;
+
+/// Loopback dinleyicinin bağlandığı adres. `localhost` etki adı, Meta'nın
+/// "Valid OAuth Redirect URIs" listesinde IP adresi kabul etmemesinden dolayı
+/// redirect URI'de kullanılır; dinleyici ise her zaman `127.0.0.1` üzerinde açılır.
+pub const META_LOOPBACK_HOST: &str = "localhost";
 
 /// Meta OAuth callback path'i (redirect URI'nin path kısmı). Callback
 /// isteklerinde bu path zorunludur; başka bir kaynağa yanıt reddedilir.
@@ -863,12 +870,14 @@ mod tests {
     #[test]
     fn redirect_uri_is_fixed_address() {
         // Redirect URI tam olarak sabit adreste; dinamik port kullanılmaz.
-        let expected = "http://127.0.0.1:43123/meta-callback";
+        // Meta, IP adresi (`127.0.0.1`) içeren URI'leri "Valid OAuth Redirect
+        // URIs" listesinde kabul etmediğinden etki adı `localhost` kullanılır.
+        let expected = "http://localhost:43123/meta-callback";
         let port = META_LOOPBACK_PORT.to_string();
-        assert_eq!(format!("127.0.0.1:{}", port), "127.0.0.1:43123");
+        assert_eq!(format!("{}:{}", META_LOOPBACK_HOST, port), "localhost:43123");
         assert_eq!(META_CALLBACK_PATH, "/meta-callback");
         assert!(expected.contains(&META_CALLBACK_PATH));
-        assert!(expected.contains(&format!("127.0.0.1:{}", META_LOOPBACK_PORT)));
+        assert!(expected.contains(&format!("{}:{}", META_LOOPBACK_HOST, META_LOOPBACK_PORT)));
     }
 
     #[test]
