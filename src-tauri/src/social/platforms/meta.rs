@@ -89,9 +89,21 @@ pub fn generate_state() -> Result<String, SocialError> {
 
 // ---- Loopback callback ----
 
-/// `127.0.0.1` üzerinde dinamik (serbest) bir portta dinleyici açar.
+/// Meta OAuth için sabit loopback callback portu. Bu portla birlikte redirect
+/// URI'nin tamamı (`http://127.0.0.1:43123/meta-callback`) Meta App
+/// Dashboard'undaki "Valid OAuth Redirect URIs" listesine kaydedilmelidir.
+pub const META_LOOPBACK_PORT: u16 = 43123;
+
+/// Meta OAuth callback path'i (redirect URI'nin path kısmı). Callback
+/// isteklerinde bu path zorunludur; başka bir kaynağa yanıt reddedilir.
+pub const META_CALLBACK_PATH: &str = "/meta-callback";
+
+/// `127.0.0.1` üzerinde sabit porta dinleyici açar. Port başka bir program
+/// tarafından kullanılıyorsa açık kontrollü `CallbackPortInUse` hatası döner;
+/// sahte bağlantı üretilmez.
 pub fn bind_loopback() -> Result<TcpListener, SocialError> {
-    TcpListener::bind(("127.0.0.1", 0)).map_err(|_| SocialError::OauthTimeout)
+    TcpListener::bind(("127.0.0.1", META_LOOPBACK_PORT))
+        .map_err(|_| SocialError::CallbackPortInUse)
 }
 
 /// Loopback gelen isteğindeki `code` ve `state` değerlerini ayrıştırır.
@@ -110,6 +122,12 @@ pub fn parse_callback_query(query: &str) -> (Option<String>, Option<String>) {
         }
     }
     (code, state)
+}
+
+/// Callback isteğinin path bölümünün `/meta-callback` olup olmadığını doğrular.
+/// Query kısmı (`?code=...&state=...`) dışarıda bırakılır; path tam eşleşmeli.
+fn is_valid_callback_path(path: &str) -> bool {
+    path == META_CALLBACK_PATH
 }
 
 /// Callback dinlenecek kadar bekler ve `(code, state)` döndürür.
@@ -158,6 +176,17 @@ pub fn wait_for_callback(listener: &TcpListener) -> Result<(String, String), Soc
                     .next()
                     .and_then(|l| l.split_whitespace().nth(1))
                     .unwrap_or("/");
+
+                // Callback yalnız tam `/meta-callback` path'inde kabul edilir.
+                // Başka bir path (ör. sağlık yoklaması, favicon, hatalı yönlendirme)
+                // reddedilir; başarı/state/sahte toplam üretilmez.
+                let request_path = path_and_query
+                    .split_once('?')
+                    .map(|(p, _)| p)
+                    .unwrap_or(&path_and_query);
+                if !is_valid_callback_path(request_path) {
+                    return Err(SocialError::OauthExchangeFailed);
+                }
 
                 let response_body =
                     "<html><body><h3>ES OPS</h3><p>Baglanti tamamlandi. Bu pencereyi kapatabilirsiniz.</p></body></html>";
@@ -829,6 +858,51 @@ mod tests {
             .trim_start_matches('v')
             .split('.')
             .all(|p| p.parse::<u32>().is_ok()));
+    }
+
+    #[test]
+    fn redirect_uri_is_fixed_address() {
+        // Redirect URI tam olarak sabit adreste; dinamik port kullanılmaz.
+        let expected = "http://127.0.0.1:43123/meta-callback";
+        let port = META_LOOPBACK_PORT.to_string();
+        assert_eq!(format!("127.0.0.1:{}", port), "127.0.0.1:43123");
+        assert_eq!(META_CALLBACK_PATH, "/meta-callback");
+        assert!(expected.contains(&META_CALLBACK_PATH));
+        assert!(expected.contains(&format!("127.0.0.1:{}", META_LOOPBACK_PORT)));
+    }
+
+    #[test]
+    fn valid_callback_path_is_accepted() {
+        // Query kısmı varsa path yalnız `/meta-callback` olmalı.
+        assert!(is_valid_callback_path("/meta-callback"));
+        assert!(is_valid_callback_path("/meta-callback"));
+    }
+
+    #[test]
+    fn invalid_callback_path_is_rejected() {
+        // Başka path (hata sayfası, sağlık yoklaması, boş) reddedilir.
+        assert!(!is_valid_callback_path("/"));
+        assert!(!is_valid_callback_path("/other"));
+        assert!(!is_valid_callback_path("/meta-callback/"));
+        assert!(!is_valid_callback_path(""));
+    }
+
+    #[test]
+    fn state_validation_is_preserved() {
+        // Callback'ten state dönmeli; eksikse OauthStateMismatch üretilir.
+        let (_, state) = parse_callback_query("code=abc&state=xyz");
+        assert_eq!(state.as_deref(), Some("xyz"));
+        let empty = parse_callback_query("code=abc");
+        assert!(empty.1.is_none());
+    }
+
+    #[test]
+    fn bind_loopback_returns_controlled_error_when_port_in_use() {
+        // Sabit port doluysa kontrollü CallbackPortInUse hatası; sahte yok.
+        let held = std::net::TcpListener::bind(("127.0.0.1", META_LOOPBACK_PORT)).unwrap();
+        let err = bind_loopback().unwrap_err();
+        assert_eq!(err, SocialError::CallbackPortInUse);
+        drop(held);
     }
 
     #[test]
