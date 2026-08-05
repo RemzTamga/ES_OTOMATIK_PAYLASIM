@@ -2451,12 +2451,10 @@ function ayarlarPlatformListele() {
     if (!liste) return;
 
     var html = '';
-    var metaConfigGosterildi = false;
     ayarlarPlatformlar.forEach(function(p) {
         var durumClass = p.bagli ? 'green' : 'gray';
         var durumText = p.bagli ? 'Bağlı' : 'Bağlı Değil';
         var sonKontrolText = p.sonKontrol ? ('Son kontrol: ' + p.sonKontrol) : '';
-        var metaPlatform = (p.id === 'facebook' || p.id === 'instagram');
         // Facebook/Instagram OAuth öncesi kullanıcı adı girişi gerektirmez;
         // buton etiketi bağlanacak hesabı açıkça belirtir.
         var baglanEtiketi = p.id === 'instagram' ? 'Instagram Hesabını Bağla'
@@ -2469,83 +2467,14 @@ function ayarlarPlatformListele() {
         html += '    </div>';
         html += '    <div class="platform-alt">';
         // Tüm platformlar OAuth ile bağlanır; bağlantı öncesi kullanıcı adı
-        // girişi gerekmez (kullanıcı adı hiçbir bağlantı komutuna gönderilmez).
-        // OAuth başarıyla tamamlandığında gerçek hesap adı burada gösterilir.
+        // veya teknik uygulama kimliği girişi gerekmez (bu değerler hiçbir
+        // bağlantı komutuna gönderilmez). OAuth başarıyla tamamlandığında
+        // platformdan dönen gerçek hesap adı burada gösterilir.
         if (p.bagli && p.hesapAdi) {
             html += '        <div class="platform-hesap-bilgi">Hesap: ' + p.hesapAdi + '</div>';
         }
         if (sonKontrolText) {
             html += '        <span class="platform-son-kontrol">' + sonKontrolText + '</span>';
-        }
-        if (metaPlatform && !metaConfigGosterildi) {
-            // Meta App ID / App Secret formu: Facebook ve Instagram ortak Meta
-            // kimliklerini kullanır; form tek kez (ilk Meta kartında) gösterilir.
-            metaConfigGosterildi = true;
-            html += '        <div class="platform-config" id="ayarlarMetaConfigGrubu">';
-            html += '            <div class="form-row"><label>Meta App ID</label>' +
-                '<input type="text" class="form-input" id="ayarlarMetaAppId" placeholder="Meta Uygulama Kimliği"></div>';
-            html += '            <div class="form-row"><label>Meta App Secret</label>' +
-                '<input type="password" class="form-input" id="ayarlarMetaAppSecret" placeholder="Meta Uygulama Gizli Anahtarı"></div>';
-            html += '            <div class="platform-config-durum" id="ayarlarMetaConfigDurum"></div>';
-            html += '            <div class="platform-config-actions">' +
-                '<button class="btn btn-primary btn-small" onclick="ayarlarMetaConfigKaydet()">Kaydet</button>' +
-                '<button class="btn btn-warning btn-small" onclick="ayarlarMetaConfigTemizle()">Temizle</button></div>';
-            html += '            <div class="platform-config-not">Not: Meta kimlikleri yalnız bu bilgisayarın güvenli deposuna (Windows Kimlik Yöneticisi) kaydedilir; kaynak koda, arayüze veya loglara yazılmaz. App Secret ekranda gösterilmez.</div>';
-            html += '        </div>';
-        }
-        if (p.id === 'x') {
-            html += '        <div class="platform-config" id="ayarlarXConfigGrubu">';
-            html += '            <div class="form-row"><label>Consumer Key</label>' +
-                '<input type="text" class="form-input" id="ayarlarXClientKey" placeholder="X API Consumer Key"></div>';
-            html += '            <div class="form-row"><label>Consumer Secret</label>' +
-                '<input type="password" class="form-input" id="ayarlarXClientSecret" placeholder="X API Consumer Secret"></div>';
-            html += '            <div class="platform-config-durum" id="ayarlarXConfigDurum"></div>';
-            html += '            <div class="platform-config-actions">' +
-                '<button class="btn btn-primary btn-small" onclick="ayarlarXConfigKaydet()">Kaydet</button>' +
-                '<button class="btn btn-warning btn-small" onclick="ayarlarXConfigTemizle()">Temizle</button></div>';
-            html += '        </div>';
-        }
-        if (p.id === 'linkedin') {
-            // LinkedIn, masaüstü Native PKCE akışı kullanır; Client Secret
-            // gerekmez ve bu ekranda secret alanı kasıtlı olarak yoktur.
-            html += '        <div class="platform-config" id="ayarlarLinkedinConfigGrubu">';
-            html += '            <div class="form-row"><label>Client ID</label>' +
-                '<input type="text" class="form-input" id="ayarlarLinkedinClientId" placeholder="LinkedIn OAuth Client ID"></div>';
-            html += '            <div class="platform-config-durum" id="ayarlarLinkedinConfigDurum"></div>';
-            html += '            <div class="platform-config-actions">' +
-                '<button class="btn btn-primary btn-small" onclick="ayarlarLinkedinConfigKaydet()">Kaydet</button>' +
-                '<button class="btn btn-warning btn-small" onclick="ayarlarLinkedinConfigTemizle()">Temizle</button></div>';
-            html += '        </div>';
-        }
-        if (p.id === 'pinterest') {
-            // Pinterest v5 API, OAuth token değişiminde Client ID + Client
-            // Secret (HTTP Basic) ister. İkisi de güvenli depoda saklanır;
-            // secret asla bu ekranda veya ön yüzde kalıcı tutulmaz.
-            html += '        <div class="platform-config" id="ayarlarPinterestConfigGrubu">';
-            html += '            <div class="form-row"><label>Client ID</label>' +
-                '<input type="text" class="form-input" id="ayarlarPinterestClientId" placeholder="Pinterest API Client ID"></div>';
-            html += '            <div class="form-row"><label>Client Secret</label>' +
-                '<input type="password" class="form-input" id="ayarlarPinterestClientSecret" placeholder="Pinterest API Client Secret"></div>';
-            html += '            <div class="platform-config-durum" id="ayarlarPinterestConfigDurum"></div>';
-            html += '            <div class="platform-config-actions">' +
-                '<button class="btn btn-primary btn-small" onclick="ayarlarPinterestConfigKaydet()">Kaydet</button>' +
-                '<button class="btn btn-warning btn-small" onclick="ayarlarPinterestConfigTemizle()">Temizle</button></div>';
-            html += '        </div>';
-        }
-        if (p.id === 'tiktok') {
-            // TikTok Content Posting API, OAuth token değişiminde Client Key +
-            // Client Secret ister. İkisi de güvenli depoda saklanır; secret
-            // asla kaynak koda veya ön yüze yazılmaz.
-            html += '        <div class="platform-config" id="ayarlarTiktokConfigGrubu">';
-            html += '            <div class="form-row"><label>Client Key</label>' +
-                '<input type="text" class="form-input" id="ayarlarTiktokClientKey" placeholder="TikTok Client Key"></div>';
-            html += '            <div class="form-row"><label>Client Secret</label>' +
-                '<input type="password" class="form-input" id="ayarlarTiktokClientSecret" placeholder="TikTok Client Secret"></div>';
-            html += '            <div class="platform-config-durum" id="ayarlarTiktokConfigDurum"></div>';
-            html += '            <div class="platform-config-actions">' +
-                '<button class="btn btn-primary btn-small" onclick="ayarlarTiktokConfigKaydet()">Kaydet</button>' +
-                '<button class="btn btn-warning btn-small" onclick="ayarlarTiktokConfigTemizle()">Temizle</button></div>';
-            html += '        </div>';
         }
         html += '    </div>';
         html += '    <div class="platform-actions">';
@@ -2561,85 +2490,25 @@ function ayarlarPlatformListele() {
     });
 
     liste.innerHTML = html;
-    ayarlarXConfigDurumYukle();
-    ayarlarLinkedinConfigDurumYukle();
-    ayarlarPinterestConfigDurumYukle();
-    ayarlarMetaConfigDurumYukle();
-    ayarlarTiktokConfigDurumYukle();
 }
 
 // ===== KONTROLLU HATA KODU -> TURKCE MESAJ =====
 // Rust tarafindan dondurulen kisa teknik kodlari, gizli bilgi (token/kod)
 // icermeyen anlasilir Turkce bildirime esler. Bilinmeyen kod genel bir mesaja
 // duser; asla ham teknik cevap veya token gosterilmez.
-// X Consumer Key / Consumer Secret yapilandirma durumunu yukler.
-function ayarlarXConfigDurumYukle() {
-    var durumEl = document.getElementById('ayarlarXConfigDurum');
-    if (!durumEl) return;
-    var s = esTauriInvoke('x_config_status');
-    if (!s) { durumEl.textContent = 'Onizleme modunda baglanti yapilamaz.'; return; }
-    s.then(function(stat) {
-        if (!stat) return;
-        if (stat.consumerKeyConfigured && stat.consumerSecretConfigured) {
-            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Consumer Key ve Consumer Secret yapilandirildi.</span>';
-        } else if (stat.consumerKeyConfigured) {
-            durumEl.innerHTML = '<span style="color:#f59e0b;font-weight:600;">Consumer Key var. Consumer Secret HENUZ yok.</span>';
-        } else {
-            durumEl.textContent = 'Consumer Key ve Consumer Secret henuz yapilandirilmadi.';
-        }
-    }).catch(function() { durumEl.textContent = 'X yapilandirma durumu okunamadi.'; });
-}
-
-// X Consumer Key / Secret'i guvenli depoya kaydeder (Tauri).
-function ayarlarXConfigKaydet() {
-    var durumEl = document.getElementById('ayarlarXConfigDurum');
-    var ck = document.getElementById('ayarlarXClientKey').value.trim();
-    var cs = document.getElementById('ayarlarXClientSecret').value.trim();
-    if (!ck || !cs) {
-        alert('X Consumer Key ve Consumer Secret zorunludur.');
-        if (durumEl) durumEl.textContent = 'Consumer Key ve Consumer Secret girin.';
-        return;
-    }
-    var s = esTauriInvoke('x_set_config', { consumerKey: ck, consumerSecret: cs });
-    if (!s) { if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.'; return; }
-    s.then(function() {
-        document.getElementById('ayarlarXClientSecret').value = '';
-        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">X kimlikleri guvenli sekilde kaydedildi.</span>';
-        alert('X Consumer Key ve Consumer Secret guvenli sekilde kaydedildi. (Consumer Secret ekranda/yerelde gosterilmez.)');
-        bildirimEkle('sosyal-medya-baglanti', 'basarili', 'X kimlikleri kaydedildi', 'X baglantisi icin gerekli Consumer Key ve Consumer Secret guvenli depoya kaydedildi.');
-    }).catch(function(err) {
-        var raw = (err && (err.message || err.code || err)) || '';
-        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + raw;
-        alert('X kimlikleri kaydedilemedi.');
-    });
-}
-
-// X Consumer Key / Secret'i guvenli depodan temizler (Tauri).
-function ayarlarXConfigTemizle() {
-    var durumEl = document.getElementById('ayarlarXConfigDurum');
-    var s = esTauriInvoke('x_clear_config');
-    if (!s) { if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.'; return; }
-    s.then(function() {
-        document.getElementById('ayarlarXClientKey').value = '';
-        document.getElementById('ayarlarXClientSecret').value = '';
-        if (durumEl) durumEl.textContent = 'X kimlikleri temizlendi.';
-        alert('X kimlikleri temizlendi.');
-    }).catch(function() { if (durumEl) durumEl.textContent = 'Temizleme basarisiz.'; });
-}
-
 function metaHataMesaji(code) {
     var c = String(code || '');
     if (c.indexOf('meta_not_configured') !== -1) {
-        return 'Meta bağlantı ayarları henüz tamamlanmamış. Sistem yöneticisinin Meta uygulama bağlantısını (App ID) yapılandırması gerekiyor.';
+        return 'Bu surumde Meta uygulama kimligi (App ID) yapilandirilmamis. Bağlantı için güncel sürüm gereklidir; destek ekibiyle iletişime geçin.';
     }
     if (c.indexOf('app_secret_required') !== -1) {
-        return 'Meta bağlantı ayarları henüz tamamlanmamış. Sistem yöneticisinin Meta uygulama gizli anahtarını (App Secret) güvenli biçimde yapılandırması gerekiyor.';
+        return 'Bu surumde Meta uygulama gizli anahtari (App Secret) yapilandirilmamis. Bağlantı için güncel sürüm gereklidir; destek ekibiyle iletişime geçin.';
     }
     if (c.indexOf('tiktok_not_configured') !== -1) {
-        return 'TikTok Client Key / Client Secret yapilandirilmamis. TikTok baglantisi icin once Client Key ve Client Secret girin ve kaydedin.';
+        return 'Bu surumde TikTok uygulama kimlikleri yapilandirilmamis. Bağlantı için güncel sürüm gereklidir; destek ekibiyle iletişime geçin.';
     }
     if (c.indexOf('linkedin_not_configured') !== -1) {
-        return 'LinkedIn Client ID yapilandirilmamis. LinkedIn baglantisi icin once Ayarlar > Sosyal Medya b\u00f6l\u00fcm\u00fcnde Client ID girin ve kaydedin. (Client Secret gerekmez; Native PKCE kullanilir.)';
+        return 'Bu surumde LinkedIn uygulama kimligi yapilandirilmamis. Bağlantı için güncel sürüm gereklidir; destek ekibiyle iletişime geçin.';
     }
     if (c.indexOf('linkedin_identity_lookup_failed') !== -1) {
         return 'LinkedIn kullanici kimligi alinamadi. Yetkilendirme yari kalabilir; hesabi yeniden baglamayi deneyin.';
@@ -2648,7 +2517,7 @@ function metaHataMesaji(code) {
         return 'Yayin yapilabilir (ADMINISTRATOR / CONTENT_ADMIN / DIRECT_SPONSORED_CONTENT_POSTER rolune sahip) yonetilen sirket sayfasi bulunamadi.';
     }
     if (c.indexOf('pinterest_not_configured') !== -1) {
-        return 'Pinterest Client ID / Client Secret yapilandirilmamis. Pinterest baglantisi icin once Ayarlar > Sosyal Medya b\u00f6l\u00fcm\u00fcnde Client ID ve Client Secret girin ve kaydedin.';
+        return 'Bu surumde Pinterest uygulama kimlikleri yapilandirilmamis. Bağlantı için güncel sürüm gereklidir; destek ekibiyle iletişime geçin.';
     }
     if (c.indexOf('pinterest_identity_lookup_failed') !== -1) {
         return 'Pinterest kullanici kimligi alinamadi. Yetkilendirme yari kalabilir; hesabi yeniden baglamayi deneyin.';
@@ -2741,63 +2610,46 @@ function ayarlarPlatformBaglan(id) {
     }
 
     // X: gercek OAuth 1.0a akisi Rust (`x_connect`) tarafindan calistirilir.
+    // Kimlikler EXE'ye gomulu oldugundan on-kontrol yapilmaz; eksikse Rust
+    // `x_not_configured` kontrollu hatasiyla doner (sahte basari uretilmez).
     if (id === 'x') {
-        var xCfg = esTauriInvoke('x_config_status');
-        if (!xCfg) {
+        var xConn = esTauriInvoke('x_connect', {});
+        if (!xConn) {
             bildirimEkle('sosyal-medya-baglanti', 'bilgi',
                 'X baglantisi yalniz masaustunde kullanilabilir',
                 'X hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
             return;
         }
-        xCfg.then(function(stat) {
-            var keyOk = stat && stat.consumerKeyConfigured;
-            var secretOk = stat && stat.consumerSecretConfigured;
-            if (!keyOk || !secretOk) {
+        xConn.then(function(res) {
+            var durum = res && res.connection ? res.connection.connectionStatus : null;
+            if (durum === 'connected') {
+                p.bagli = true;
+                p.hesapAdi = res.connection.accountDisplayName || '';
+                p.sonKontrol = new Date().toLocaleString('tr-TR');
+                ayarlarPlatformListele();
+                dashboardBaglantiGuncelle();
+                bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                    'X baglantisi kuruldu',
+                    'X hesap baglantisi basariyla kuruldu.');
+            } else {
                 bildirimEkle('sosyal-medya-baglanti', 'uyari',
-                    'X icin Consumer Key / Consumer Secret gerekli',
-                    'X baglantisi icin once Ayarlar kisminda X Consumer Key ve Consumer Secret girin ve kaydedin.');
-                var grp = document.getElementById('ayarlarXConfigGrubu');
-                if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
+                    'X baglantisi kurulamadi',
+                    'X hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
             }
-            var xConn = esTauriInvoke('x_connect', {});
-            if (!xConn) {
-                bildirimEkle('sosyal-medya-baglanti', 'bilgi',
-                    'X baglantisi yalniz masaustunde kullanilabilir',
-                    'X hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
-                return;
+        }).catch(function(err) {
+            var raw = String((err && (err.message || err.code || err)) || '');
+            var msg;
+            if (raw.indexOf('x_not_configured') !== -1) {
+                msg = 'X icin gerekli uygulama kimlikleri bu surumde yapilandirilmamis. Lutfen destek ekibiyle iletisime gecin.';
+            } else if (raw.indexOf('oauth_cancelled') !== -1) {
+                msg = 'X giris ekraninda yetkilendirme iptal edildi.';
+            } else if (raw.indexOf('oauth_timeout') !== -1) {
+                msg = 'X yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
+            } else {
+                msg = 'X baglantisi basarisiz oldu: ' + raw;
             }
-            xConn.then(function(res) {
-                var durum = res && res.connection ? res.connection.connectionStatus : null;
-                if (durum === 'connected') {
-                    p.bagli = true;
-                    p.hesapAdi = res.connection.accountDisplayName || '';
-                    p.sonKontrol = new Date().toLocaleString('tr-TR');
-                    ayarlarPlatformListele();
-                    dashboardBaglantiGuncelle();
-                    bildirimEkle('sosyal-medya-baglanti', 'basarili',
-                        'X baglantisi kuruldu',
-                        'X hesap baglantisi basariyla kuruldu.');
-                } else {
-                    bildirimEkle('sosyal-medya-baglanti', 'uyari',
-                        'X baglantisi kurulamadi',
-                        'X hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
-                }
-            }).catch(function(err) {
-                var raw = String((err && (err.message || err.code || err)) || '');
-                var msg;
-                if (raw.indexOf('x_not_configured') !== -1) {
-                    msg = 'X Consumer Key / Consumer Secret yapilandirilmamis. Once bu kimlikleri girin ve kaydedin.';
-                } else if (raw.indexOf('oauth_cancelled') !== -1) {
-                    msg = 'X giris ekraninda yetkilendirme iptal edildi.';
-                } else if (raw.indexOf('oauth_timeout') !== -1) {
-                    msg = 'X yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
-                } else {
-                    msg = 'X baglantisi basarisiz oldu: ' + raw;
-                }
-                bildirimEkle('sosyal-medya-baglanti', 'hata',
-                    'X baglantisi kurulamadi', msg);
-            });
+            bildirimEkle('sosyal-medya-baglanti', 'hata',
+                'X baglantisi kurulamadi', msg);
         });
         return;
     }
@@ -2910,238 +2762,166 @@ function ayarlarPlatformBaglan(id) {
     }
 
     // TikTok: gercek TikTok Content Posting API OAuth akisina baglanir.
-    // En az bir client_key + client_secret yapilandirilmis olmalidir.
-    // Yapilandirilmamissa kullanici bu kimlikleri girmeye yonlendirilir; OAuth
-    // baslatilmaz ve baglanti "kuruldu" gibi gosterilmez.
+    // Kimlikler EXE'ye gomuldugunden on-kontrol yapilmaz; eksikse Rust
+    // `tiktok_not_configured` kontrollu hatasiyla doner. OAuth baslatilmaz,
+    // sahte baglanti uretilmez.
     if (id === 'tiktok') {
-        var ttCfg = esTauriInvoke('tiktok_config_status');
-        if (!ttCfg) {
+        var ttConn = esTauriInvoke('tiktok_connect', {});
+        if (!ttConn) {
             bildirimEkle('sosyal-medya-baglanti', 'bilgi',
                 'TikTok baglantisi yalniz masaustunde kullanilabilir',
                 'TikTok hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
             return;
         }
-        ttCfg.then(function(stat) {
-            var keyVar = stat && stat.clientKeyConfigured;
-            var secretVar = stat && stat.clientSecretConfigured;
-            if (!keyVar || !secretVar) {
-                // Client Key / Secret yok: kullaniciyi yapilandirmaya yonlendir.
-                // Tarayici acilmaz, OAuth baslatilmaz, sahte baglanti uretilmez.
+        ttConn.then(function(res) {
+            var durum = res && res.connection ? res.connection.connectionStatus : null;
+            if (durum === 'connected') {
+                p.bagli = true;
+                p.hesapAdi = res.connection.accountDisplayName || '';
+                p.sonKontrol = new Date().toLocaleString('tr-TR');
+                ayarlarPlatformListele();
+                dashboardBaglantiGuncelle();
+                bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                    'TikTok baglantisi kuruldu',
+                    'TikTok hesap baglantisi basariyla kuruldu.');
+            } else {
                 bildirimEkle('sosyal-medya-baglanti', 'uyari',
-                    'TikTok icin Client Key / Client Secret gerekli',
-                    'TikTok bağlantısı için önce Ayarlar > Sosyal Medya bölümünde TikTok Client Key ve Client Secret girin ve kaydedin.');
-                var grp = document.getElementById('ayarlarTiktokConfigGrubu');
-                if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
+                    'TikTok baglantisi kurulamadi',
+                    'TikTok hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
             }
-
-            // Kimlikler hazir: gercek OAuth akisini baslat. Tarayici resmi
-            // TikTok yetkilendirme sayfasina acilir; kullanici hesabiyla izin
-            // verir; callback sonrasi bagli TikTok kullanici baglanir.
-            var ttConn = esTauriInvoke('tiktok_connect', {});
-            if (!ttConn) {
-                bildirimEkle('sosyal-medya-baglanti', 'bilgi',
-                    'TikTok baglantisi yalniz masaustunde kullanilabilir',
-                    'TikTok hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
-                return;
+        }).catch(function(err) {
+            var raw = (err && (err.message || err.code || err)) || '';
+            var code = String(raw);
+            var msg;
+            if (code.indexOf('tiktok_not_configured') !== -1) {
+                msg = 'TikTok icin gerekli uygulama kimlikleri bu surumde yapilandirilmamis. Lutfen destek ekibiyle iletisime gecin.';
+            } else if (code.indexOf('oauth_cancelled') !== -1) {
+                msg = 'TikTok giris ekraninda yetkilendirme iptal edildi.';
+            } else if (code.indexOf('oauth_timeout') !== -1) {
+                msg = 'TikTok giris oturumu zaman asimina ugradi. Yeniden deneyin.';
+            } else if (code.indexOf('oauth_state_mismatch') !== -1) {
+                msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
+            } else if (code.indexOf('permission_denied') !== -1) {
+                msg = 'TikTok izin istegini reddetti. Gerekli kapsamlar (video.publish) onaylanmamis olabilir.';
+            } else {
+                msg = 'TikTok baglanti islemi basarisiz oldu. Lutfen tekrar deneyin.';
             }
-            ttConn.then(function(res) {
-                var durum = res && res.connection ? res.connection.connectionStatus : null;
-                if (durum === 'connected') {
-                    p.bagli = true;
-                    p.hesapAdi = res.connection.accountDisplayName || '';
-                    p.sonKontrol = new Date().toLocaleString('tr-TR');
-                    ayarlarPlatformListele();
-                    dashboardBaglantiGuncelle();
-                    bildirimEkle('sosyal-medya-baglanti', 'basarili',
-                        'TikTok baglantisi kuruldu',
-                        'TikTok hesap baglantisi basariyla kuruldu.');
-                } else {
-                    bildirimEkle('sosyal-medya-baglanti', 'uyari',
-                        'TikTok baglantisi kurulamadi',
-                        'TikTok hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
-                }
-            }).catch(function(err) {
-                var raw = (err && (err.message || err.code || err)) || '';
-                var code = String(raw);
-                var msg;
-                if (code.indexOf('tiktok_not_configured') !== -1) {
-                    msg = 'TikTok Client Key / Client Secret yapilandirilmamis. Once bu kimlikleri girin ve kaydedin.';
-                } else if (code.indexOf('oauth_cancelled') !== -1) {
-                    msg = 'TikTok giris ekraninda yetkilendirme iptal edildi.';
-                } else if (code.indexOf('oauth_timeout') !== -1) {
-                    msg = 'TikTok giris oturumu zaman asimina ugradi. Yeniden deneyin.';
-                } else if (code.indexOf('oauth_state_mismatch') !== -1) {
-                    msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
-                } else if (code.indexOf('permission_denied') !== -1) {
-                    msg = 'TikTok izin istegini reddetti. Gerekli kapsamlar (video.publish) onaylanmamis olabilir.';
-                } else {
-                    msg = 'TikTok baglanti islemi basarisiz oldu. Lutfen tekrar deneyin.';
-                }
-                bildirimEkle('sosyal-medya-baglanti', 'hata',
-                    'TikTok baglantisi kurulamadi', msg);
-            });
-        }).catch(function() {
             bildirimEkle('sosyal-medya-baglanti', 'hata',
-                'TikTok baglantisi kurulamadi',
-                'TikTok yapilandirma durumu okunamadi.');
+                'TikTok baglantisi kurulamadi', msg);
         });
         return;
     }
 
     // LinkedIn: gercek Native PKCE OAuth akisina baglanir (Client Secret
-    // gerekmez). Yalniz Client ID yapilandirilmis olmalidir; yapilandirilmamissa
-    // kullanici Client ID girmeye yonlendirilir, OAuth baslatilmaz.
+    // gerekmez). Client ID EXE'ye gomuldugunden on-kontrol yapilmaz; eksikse
+    // Rust `linkedin_not_configured` kontrollu hatasiyla doner.
     if (id === 'linkedin') {
-        var liCfg = esTauriInvoke('linkedin_config_status');
-        if (!liCfg) {
+        var liConn = esTauriInvoke('linkedin_connect', {});
+        if (!liConn) {
             bildirimEkle('sosyal-medya-baglanti', 'bilgi',
                 'LinkedIn baglantisi yalniz masaustunde kullanilabilir',
                 'LinkedIn hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
             return;
         }
-        liCfg.then(function(stat) {
-            if (!stat || !stat.clientIdConfigured) {
+        // Client ID hazir: gercek PKCE OAuth akisini baslat. Tarayici resmi
+        // LinkedIn yetkilendirme sayfasina acilir; callback sonrasi kisisel
+        // profil ve yayin yapilabilir sirket sayfalari baglanir.
+        liConn.then(function(res) {
+            var list = (res && res.connections) || [];
+            if (list.length === 0) {
                 bildirimEkle('sosyal-medya-baglanti', 'uyari',
-                    'LinkedIn icin Client ID gerekli',
-                    'LinkedIn baglantisi icin once Ayarlar > Sosyal Medya b\u00f6l\u00fcm\u00fcnde LinkedIn Client ID girin ve kaydedin. (Client Secret gerekmez; Native PKCE kullanilir.)');
-                var grp = document.getElementById('ayarlarLinkedinConfigGrubu');
-                if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    'LinkedIn baglantisi kurulamadi',
+                    'LinkedIn hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
                 return;
             }
-
-            // Client ID hazir: gercek PKCE OAuth akisini baslat. Tarayici resmi
-            // LinkedIn yetkilendirme sayfasina acilir; callback sonrasi kisisel
-            // profil ve yayin yapilabilir sirket sayfalari baglanir.
-            var liConn = esTauriInvoke('linkedin_connect', {});
-            if (!liConn) {
-                bildirimEkle('sosyal-medya-baglanti', 'bilgi',
-                    'LinkedIn baglantisi yalniz masaustunde kullanilabilir',
-                    'LinkedIn hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
-                return;
+            p.bagli = true;
+            p.hesapAdi = (list[0].accountDisplayName) || '';
+            p.sonKontrol = new Date().toLocaleString('tr-TR');
+            ayarlarPlatformListele();
+            dashboardBaglantiGuncelle();
+            var hedefSayisi = '1 kisisel profil';
+            var sayfaSayisi = list.length - 1;
+            if (sayfaSayisi > 0) hedefSayisi += ' + ' + sayfaSayisi + ' sirket sayfasi';
+            bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                'LinkedIn baglantisi kuruldu',
+                'LinkedIn hesap baglantisi basariyla kuruldu (' + hedefSayisi + ').');
+        }).catch(function(err) {
+            var raw = String((err && (err.message || err.code || err)) || '');
+            var code = String(raw);
+            var msg;
+            if (code.indexOf('linkedin_not_configured') !== -1) {
+                msg = 'LinkedIn icin gerekli uygulama kimligi bu surumde yapilandirilmamis. Lutfen destek ekibiyle iletisime gecin.';
+            } else if (code.indexOf('oauth_cancelled') !== -1) {
+                msg = 'LinkedIn giris ekraninda yetkilendirme iptal edildi.';
+            } else if (code.indexOf('oauth_timeout') !== -1) {
+                msg = 'LinkedIn yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
+            } else if (code.indexOf('oauth_state_mismatch') !== -1) {
+                msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
+            } else if (code.indexOf('permission_denied') !== -1) {
+                msg = 'LinkedIn izin istegini reddetti. Gerekli izinler (w_member_social / w_organization_social) onaylanmamis olabilir.';
+            } else if (code.indexOf('linkedin_identity_lookup_failed') !== -1) {
+                msg = 'LinkedIn kullanici kimligi alinamadi. Yetkilendirme yari kalabilir; tekrar deneyin.';
+            } else {
+                msg = 'LinkedIn baglantisi basarisiz oldu: ' + raw;
             }
-            liConn.then(function(res) {
-                var list = (res && res.connections) || [];
-                if (list.length === 0) {
-                    bildirimEkle('sosyal-medya-baglanti', 'uyari',
-                        'LinkedIn baglantisi kurulamadi',
-                        'LinkedIn hesap baglantisi saglanamadi. Sayfayi yenileyin ve tekrar deneyin.');
-                    return;
-                }
-                p.bagli = true;
-                p.hesapAdi = (list[0].accountDisplayName) || '';
-                p.sonKontrol = new Date().toLocaleString('tr-TR');
-                ayarlarPlatformListele();
-                dashboardBaglantiGuncelle();
-                var hedefSayisi = '1 kisisel profil';
-                var sayfaSayisi = list.length - 1;
-                if (sayfaSayisi > 0) hedefSayisi += ' + ' + sayfaSayisi + ' sirket sayfasi';
-                bildirimEkle('sosyal-medya-baglanti', 'basarili',
-                    'LinkedIn baglantisi kuruldu',
-                    'LinkedIn hesap baglantisi basariyla kuruldu (' + hedefSayisi + ').');
-            }).catch(function(err) {
-                var raw = String((err && (err.message || err.code || err)) || '');
-                var code = String(raw);
-                var msg;
-                if (code.indexOf('linkedin_not_configured') !== -1) {
-                    msg = 'LinkedIn Client ID yapilandirilmamis. Once Client ID girin ve kaydedin.';
-                } else if (code.indexOf('oauth_cancelled') !== -1) {
-                    msg = 'LinkedIn giris ekraninda yetkilendirme iptal edildi.';
-                } else if (code.indexOf('oauth_timeout') !== -1) {
-                    msg = 'LinkedIn yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
-                } else if (code.indexOf('oauth_state_mismatch') !== -1) {
-                    msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
-                } else if (code.indexOf('permission_denied') !== -1) {
-                    msg = 'LinkedIn izin istegini reddetti. Gerekli izinler (w_member_social / w_organization_social) onaylanmamis olabilir.';
-                } else if (code.indexOf('linkedin_identity_lookup_failed') !== -1) {
-                    msg = 'LinkedIn kullanici kimligi alinamadi. Yetkilendirme yari kalabilir; tekrar deneyin.';
-                } else {
-                    msg = 'LinkedIn baglantisi basarisiz oldu: ' + raw;
-                }
-                bildirimEkle('sosyal-medya-baglanti', 'hata',
-                    'LinkedIn baglantisi kurulamadi', msg);
-            });
-        }).catch(function() {
             bildirimEkle('sosyal-medya-baglanti', 'hata',
-                'LinkedIn baglantisi kurulamadi',
-                'LinkedIn yapilandirma durumu okunamadi.');
+                'LinkedIn baglantisi kurulamadi', msg);
         });
         return;
     }
 
     // Pinterest: gercek v5 OAuth Authorization Code akisi (klient secret Basic
-    // auth ile token degisiminde kullanilir). Client ID + Client Secret gerekir;
-    // ikisinden biri eksikse OAuth baslatilmaz ve kullanici config'e yonlendirilir.
+    // auth ile token degisiminde kullanilir). Kimlikler EXE'ye gomuldugunden
+    // on-kontrol yapilmaz; eksikse Rust `pinterest_not_configured` kontrollu
+    // hatasiyla doner; OAuth baslatilmaz.
     if (id === 'pinterest') {
-        var pCfg = esTauriInvoke('pinterest_config_status');
-        if (!pCfg) {
+        var pConn = esTauriInvoke('pinterest_connect', {});
+        if (!pConn) {
             bildirimEkle('sosyal-medya-baglanti', 'bilgi',
                 'Pinterest baglantisi yalniz masaustunde kullanilabilir',
                 'Pinterest hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
             return;
         }
-        pCfg.then(function(stat) {
-            if (!stat || !stat.clientIdConfigured || !stat.clientSecretConfigured) {
+        // Kimlikler hazir: gercek Authorization Code akisini baslat. Tarayici
+        // resmi Pinterest yetkilendirme sayfasina acilir; callback sonrasi
+        // hesabin panolari kesfedilir ve her pano ayri bir yayin hedefi olur.
+        pConn.then(function(res) {
+            var panolar = (res && res.connections) || [];
+            if (panolar.length === 0) {
                 bildirimEkle('sosyal-medya-baglanti', 'uyari',
-                    'Pinterest icin Client ID ve Client Secret gerekli',
-                    'Pinterest baglantisi icin once Ayarlar > Sosyal Medya b\u00f6l\u00fcm\u00fcnde Client ID ve Client Secret girin ve kaydedin.');
-                var grp = document.getElementById('ayarlarPinterestConfigGrubu');
-                if (grp) grp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    'Pinterest baglantisi kurulamadi',
+                    'Hesap baglandi ancak yayin yapilabilecek pano bulunamadi.');
                 return;
             }
-
-            // Kimlikler hazir: gercek Authorization Code akisini baslat. Tarayici
-            // resmi Pinterest yetkilendirme sayfasina acilir; callback sonrasi
-            // hesabin panolari kesfedilir ve her pano ayri bir yayin hedefi olur.
-            var pConn = esTauriInvoke('pinterest_connect', {});
-            if (!pConn) {
-                bildirimEkle('sosyal-medya-baglanti', 'bilgi',
-                    'Pinterest baglantisi yalniz masaustunde kullanilabilir',
-                    'Pinterest hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
-                return;
+            p.bagli = true;
+            p.hesapAdi = (panolar[0].accountDisplayName) || '';
+            p.sonKontrol = new Date().toLocaleString('tr-TR');
+            ayarlarPlatformListele();
+            dashboardBaglantiGuncelle();
+            bildirimEkle('sosyal-medya-baglanti', 'basarili',
+                'Pinterest baglantisi kuruldu',
+                'Pinterest hesap baglantisi basariyla kuruldu (' + panolar.length + ' pano yayin hedefi).');
+        }).catch(function(err) {
+            var raw = String((err && (err.message || err.code || err)) || '');
+            var code = String(raw);
+            var msg;
+            if (code.indexOf('pinterest_not_configured') !== -1) {
+                msg = 'Pinterest icin gerekli uygulama kimlikleri bu surumde yapilandirilmamis. Lutfen destek ekibiyle iletisime gecin.';
+            } else if (code.indexOf('oauth_cancelled') !== -1) {
+                msg = 'Pinterest giris ekraninda yetkilendirme iptal edildi.';
+            } else if (code.indexOf('oauth_timeout') !== -1) {
+                msg = 'Pinterest yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
+            } else if (code.indexOf('oauth_state_mismatch') !== -1) {
+                msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
+            } else if (code.indexOf('permission_denied') !== -1) {
+                msg = 'Pinterest izin istegini reddetti. Gerekli izinler (boards:read, boards:write, pins:read, pins:write) onaylanmamis olabilir.';
+            } else if (code.indexOf('pinterest_identity_lookup_failed') !== -1) {
+                msg = 'Pinterest kullanici kimligi alinamadi. Yetkilendirme yarı kalabilir; tekrar deneyin.';
+            } else {
+                msg = 'Pinterest baglantisi basarisiz oldu: ' + raw;
             }
-            pConn.then(function(res) {
-                var panolar = (res && res.connections) || [];
-                if (panolar.length === 0) {
-                    bildirimEkle('sosyal-medya-baglanti', 'uyari',
-                        'Pinterest baglantisi kurulamadi',
-                        'Hesap baglandi ancak yayin yapilabilecek pano bulunamadi.');
-                    return;
-                }
-                p.bagli = true;
-                p.hesapAdi = (panolar[0].accountDisplayName) || '';
-                p.sonKontrol = new Date().toLocaleString('tr-TR');
-                ayarlarPlatformListele();
-                dashboardBaglantiGuncelle();
-                bildirimEkle('sosyal-medya-baglanti', 'basarili',
-                    'Pinterest baglantisi kuruldu',
-                    'Pinterest hesap baglantisi basariyla kuruldu (' + panolar.length + ' pano yayin hedefi).');
-            }).catch(function(err) {
-                var raw = String((err && (err.message || err.code || err)) || '');
-                var code = String(raw);
-                var msg;
-                if (code.indexOf('pinterest_not_configured') !== -1) {
-                    msg = 'Pinterest Client ID / Client Secret yapilandirilmamis. Once kimlikleri girin ve kaydedin.';
-                } else if (code.indexOf('oauth_cancelled') !== -1) {
-                    msg = 'Pinterest giris ekraninda yetkilendirme iptal edildi.';
-                } else if (code.indexOf('oauth_timeout') !== -1) {
-                    msg = 'Pinterest yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
-                } else if (code.indexOf('oauth_state_mismatch') !== -1) {
-                    msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
-                } else if (code.indexOf('permission_denied') !== -1) {
-                    msg = 'Pinterest izin istegini reddetti. Gerekli izinler (boards:read, boards:write, pins:read, pins:write) onaylanmamis olabilir.';
-                } else if (code.indexOf('pinterest_identity_lookup_failed') !== -1) {
-                    msg = 'Pinterest kullanici kimligi alinamadi. Yetkilendirme yarı kalabilir; tekrar deneyin.';
-                } else {
-                    msg = 'Pinterest baglantisi basarisiz oldu: ' + raw;
-                }
-                bildirimEkle('sosyal-medya-baglanti', 'hata',
-                    'Pinterest baglantisi kurulamadi', msg);
-            });
-        }).catch(function() {
             bildirimEkle('sosyal-medya-baglanti', 'hata',
-                'Pinterest baglantisi kurulamadi',
-                'Pinterest yapilandirma durumu okunamadi.');
+                'Pinterest baglantisi kurulamadi', msg);
         });
         return;
     }
@@ -3240,366 +3020,6 @@ function ayarlarPlatformKes(id) {
         bildirimEkle('sosyal-medya-baglanti', 'hata',
             'Baglanti islemi gerceklestirilemedi',
             'Baglantili hesap listesi okunamadi. Lutfen tekrar deneyin.');
-    });
-}
-
-// ===== META (FACEBOOK / INSTAGRAM) UYGULAMA KIMLIKLERI =====
-// Facebook/Instagram baglantisi Meta App ID + App Secret gerektirir. Bu
-// kimlikler kullanici tarafindan ayarlar ekraninda girilir ve Rust tarafinda
-// Windows Credential Manager'a guvenli sekilde saklanir (kaynak koduna
-// gomulmez). Bu fonksiyonlar yapilandirmanin durumunu yukler, kaydeder ve
-// temizler.
-
-// Sayfa yuklendiginde Meta yapilandirma durumunu sorgula (Tauri ortami varsa).
-function ayarlarMetaConfigDurumYukle() {
-    var grubu = document.getElementById('ayarlarMetaConfigGrubu');
-    if (!grubu) return;
-    var durumEl = document.getElementById('ayarlarMetaConfigDurum');
-    var appIdInput = document.getElementById('ayarlarMetaAppId');
-    if (!durumEl) return;
-
-    var s = esTauriInvoke('meta_config_status');
-    if (!s) {
-        // Tauri ortami yok: onizleme modu. Bilgi mesaji goster.
-        durumEl.textContent = 'Meta kimlikleri yalniz masaustu uygulamada saklanabilir. (Onizleme modunda baglanti yapilamaz.)';
-        return;
-    }
-    s.then(function(stat) {
-        if (!stat) return;
-        if (stat.appIdConfigured) {
-            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Meta App ID yapilandirildi. App Secret ' +
-                (stat.appSecretConfigured ? 'yapilandirildi.' : 'HENUZ yapilandirilmadi.') + '</span>';
-        } else {
-            durumEl.textContent = 'Meta App ID ve App Secret henuz yapilandirilmadi. Facebook/Instagram baglantisi icin asagiya girin ve kaydedin.';
-        }
-    }).catch(function() {
-        durumEl.textContent = 'Meta yapilandirma durumu okunamadi.';
-    });
-}
-
-// Meta App ID / App Secret'i guvenli depoya kaydet.
-function ayarlarMetaConfigKaydet() {
-    var durumEl = document.getElementById('ayarlarMetaConfigDurum');
-    var appId = document.getElementById('ayarlarMetaAppId').value.trim();
-    var appSecret = document.getElementById('ayarlarMetaAppSecret').value.trim();
-
-    if (!appId || !appSecret) {
-        alert('Meta App ID ve App Secret zorunludur. Bos deger kaydedilemez.');
-        if (durumEl) durumEl.textContent = 'Meta App ID ve App Secret girin.';
-        bildirimEkle('sistem-uyari', 'uyari',
-            'Meta kimlikleri kaydedilemedi - Zorunlu alan eksik',
-            'Meta App ID ve App Secret girilmeden kaydedilemez.');
-        return;
-    }
-
-    var s = esTauriInvoke('meta_set_config', { appId: appId, appSecret: appSecret });
-    if (!s) {
-        alert('Meta kimlikleri yalniz masaustu uygulamada saklanabilir.');
-        if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.';
-        return;
-    }
-    s.then(function(stat) {
-        document.getElementById('ayarlarMetaAppSecret').value = '';
-        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Meta kimlikleri güvenli biçimde kaydedildi.</span>';
-        alert('Meta App ID ve App Secret güvenli biçimde kaydedildi. (App Secret ekranda/yerelde gösterilmez.)');
-        bildirimEkle('sosyal-medya-baglanti', 'basarili',
-            'Meta kimlikleri kaydedildi',
-            'Facebook/Instagram baglantisi icin gerekli App ID ve App Secret guvenli depoya kaydedildi.');
-    }).catch(function(err) {
-        var raw = (err && (err.message || err.code || err)) || '';
-        var msg = metaHataMesaji(String(raw));
-        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + msg;
-        alert('Meta kimlikleri kaydedilemedi.');
-        bildirimEkle('sosyal-medya-baglanti', 'hata',
-            'Meta kimlikleri kaydedilemedi', msg);
-    });
-}
-
-// Meta App ID / App Secret'i guvenli depodan temizle.
-function ayarlarMetaConfigTemizle() {
-    var durumEl = document.getElementById('ayarlarMetaConfigDurum');
-    var s = esTauriInvoke('meta_clear_config');
-    if (!s) {
-        if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.';
-        return;
-    }
-    s.then(function() {
-        document.getElementById('ayarlarMetaAppId').value = '';
-        document.getElementById('ayarlarMetaAppSecret').value = '';
-        if (durumEl) durumEl.textContent = 'Meta kimlikleri temizlendi. Facebook/Instagram baglantisi artik yapilamaz.';
-        alert('Meta kimlikleri temizlendi.');
-        bildirimEkle('sosyal-medya-baglanti', 'bilgi',
-            'Meta kimlikleri temizlendi',
-            'Facebook/Instagram baglantisinda kullanilan App ID ve App Secret guvenli depodan silindi.');
-    }).catch(function() {
-        if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
-        alert('Meta kimlikleri temizlenemedi.');
-    });
-}
-
-// ===== TIKTOK (CLIENT KEY / CLIENT SECRET) UYGULAMA KIMLIKLERI =====
-// TikTok baglantisi Client Key + Client Secret gerektirir. Bu kimlikler
-// kullanici tarafindan ayarlar ekraninda girilir ve Rust tarafinda Windows
-// Credential Manager'a guvenli sekilde saklanir (kaynak koduna gomulmez; ham
-// secret asla on yuze dondurulmez). Bu fonksiyonlar yapilandirmanin durumunu
-// yukler, kaydeder ve temizler.
-
-// Sayfa yuklendiginde TikTok yapilandirma durumunu sorgula (Tauri ortami varsa).
-function ayarlarTiktokConfigDurumYukle() {
-    var grubu = document.getElementById('ayarlarTiktokConfigGrubu');
-    if (!grubu) return;
-    var durumEl = document.getElementById('ayarlarTiktokConfigDurum');
-    if (!durumEl) return;
-
-    var s = esTauriInvoke('tiktok_config_status');
-    if (!s) {
-        // Tauri ortami yok: onizleme modu. Bilgi mesaji goster.
-        durumEl.textContent = 'TikTok kimlikleri yalniz masaustu uygulamada saklanabilir. (Onizleme modunda baglanti yapilamaz.)';
-        return;
-    }
-    s.then(function(stat) {
-        if (!stat) return;
-        if (stat.clientKeyConfigured && stat.clientSecretConfigured) {
-            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">TikTok Client Key ve Client Secret yapilandirildi.</span>';
-        } else if (stat.clientKeyConfigured) {
-            durumEl.innerHTML = '<span style="color:#f59e0b;font-weight:600;">TikTok Client Key yapilandirildi. Client Secret HENUZ yapilandirilmadi.</span>';
-        } else {
-            durumEl.textContent = 'TikTok Client Key ve Client Secret henuz yapilandirilmadi. TikTok baglantisi icin asagiya girin ve kaydedin.';
-        }
-    }).catch(function() {
-        durumEl.textContent = 'TikTok yapilandirma durumu okunamadi.';
-    });
-}
-
-// TikTok Client Key / Client Secret'i guvenli depoya kaydet.
-function ayarlarTiktokConfigKaydet() {
-    var durumEl = document.getElementById('ayarlarTiktokConfigDurum');
-    var clientKey = document.getElementById('ayarlarTiktokClientKey').value.trim();
-    var clientSecret = document.getElementById('ayarlarTiktokClientSecret').value.trim();
-
-    if (!clientKey || !clientSecret) {
-        alert('TikTok Client Key ve Client Secret zorunludur. Bos deger kaydedilemez.');
-        if (durumEl) durumEl.textContent = 'TikTok Client Key ve Client Secret girin.';
-        bildirimEkle('sistem-uyari', 'uyari',
-            'TikTok kimlikleri kaydedilemedi - Zorunlu alan eksik',
-            'TikTok Client Key ve Client Secret girilmeden kaydedilemez.');
-        return;
-    }
-
-    var s = esTauriInvoke('tiktok_set_config', { clientKey: clientKey, clientSecret: clientSecret });
-    if (!s) {
-        alert('TikTok kimlikleri yalniz masaustu uygulamada saklanabilir.');
-        if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.';
-        return;
-    }
-    s.then(function(stat) {
-        document.getElementById('ayarlarTiktokClientSecret').value = '';
-        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">TikTok kimlikleri güvenli biçimde kaydedildi.</span>';
-        alert('TikTok Client Key ve Client Secret güvenli biçimde kaydedildi. (Client Secret ekranda/yerelde gösterilmez.)');
-        bildirimEkle('sosyal-medya-baglanti', 'basarili',
-            'TikTok kimlikleri kaydedildi',
-            'TikTok baglantisi icin gerekli Client Key ve Client Secret guvenli depoya kaydedildi.');
-    }).catch(function(err) {
-        var raw = (err && (err.message || err.code || err)) || '';
-        var msg = metaHataMesaji(String(raw));
-        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + msg;
-        alert('TikTok kimlikleri kaydedilemedi.');
-        bildirimEkle('sosyal-medya-baglanti', 'hata',
-            'TikTok kimlikleri kaydedilemedi', msg);
-    });
-}
-
-// TikTok Client Key / Client Secret'i guvenli depodan temizle.
-function ayarlarTiktokConfigTemizle() {
-    var durumEl = document.getElementById('ayarlarTiktokConfigDurum');
-    var s = esTauriInvoke('tiktok_clear_config');
-    if (!s) {
-        if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.';
-        return;
-    }
-    s.then(function() {
-        document.getElementById('ayarlarTiktokClientKey').value = '';
-        document.getElementById('ayarlarTiktokClientSecret').value = '';
-        if (durumEl) durumEl.textContent = 'TikTok kimlikleri temizlendi. TikTok baglantisi artik yapilamaz.';
-        alert('TikTok kimlikleri temizlendi.');
-        bildirimEkle('sosyal-medya-baglanti', 'bilgi',
-            'TikTok kimlikleri temizlendi',
-            'TikTok baglantisinda kullanilan Client Key ve Client Secret guvenli depodan silindi.');
-    }).catch(function() {
-        if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
-        alert('TikTok kimlikleri temizlenemedi.');
-    });
-}
-
-// ===== LINKEDIN (CLIENT ID) UYGULAMA KIMLIGI =====
-// LinkedIn baglantisi masaustu Native PKCE akisi kullanir; Client Secret
-// gerekmez ve bu nedenle secret alani/saklama kavrami yoktur. Yalniz Client
-// ID (public identifier) saklanir; bu da gizli bilgi sayilmaz.
-
-// Sayfa yuklendiginde LinkedIn yapilandirma durumunu sorgula (Tauri ortami varsa).
-function ayarlarLinkedinConfigDurumYukle() {
-    var durumEl = document.getElementById('ayarlarLinkedinConfigDurum');
-    if (!durumEl) return;
-
-    var s = esTauriInvoke('linkedin_config_status');
-    if (!s) {
-        // Tauri ortami yok: onizleme modu. Bilgi mesaji goster.
-        durumEl.textContent = 'LinkedIn Client ID yalniz masaustu uygulamada saklanabilir. (Onizleme modunda baglanti yapilamaz.)';
-        return;
-    }
-    s.then(function(stat) {
-        if (!stat) return;
-        if (stat.clientIdConfigured) {
-            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">LinkedIn Client ID yapilandirildi. (Client Secret gerekmez; Native PKCE kullanilir.)</span>';
-        } else {
-            durumEl.textContent = 'LinkedIn Client ID henuz yapilandirilmadi. LinkedIn baglantisi icin asagiya girin ve kaydedin.';
-        }
-    }).catch(function() {
-        durumEl.textContent = 'LinkedIn yapilandirma durumu okunamadi.';
-    });
-}
-
-// LinkedIn Client ID'yi guvenli depoya kaydet (Client ID public bilgidir).
-function ayarlarLinkedinConfigKaydet() {
-    var durumEl = document.getElementById('ayarlarLinkedinConfigDurum');
-    var clientId = document.getElementById('ayarlarLinkedinClientId').value.trim();
-
-    if (!clientId) {
-        alert('LinkedIn Client ID zorunludur. Bos deger kaydedilemez.');
-        if (durumEl) durumEl.textContent = 'LinkedIn Client ID girin.';
-        bildirimEkle('sistem-uyari', 'uyari',
-            'LinkedIn kimligi kaydedilemedi - Zorunlu alan eksik',
-            'LinkedIn Client ID girilmeden kaydedilemez.');
-        return;
-    }
-
-    var s = esTauriInvoke('linkedin_set_config', { clientId: clientId });
-    if (!s) {
-        alert('LinkedIn Client ID yalniz masaustu uygulamada saklanabilir.');
-        if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.';
-        return;
-    }
-    s.then(function() {
-        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">LinkedIn Client ID guvenli bicimde kaydedildi.</span>';
-        alert('LinkedIn Client ID guvenli bicimde kaydedildi. (Client Secret gerekmez.)');
-        bildirimEkle('sosyal-medya-baglanti', 'basarili',
-            'LinkedIn kimligi kaydedildi',
-            'LinkedIn baglantisi icin gerekli Client ID guvenli depoya kaydedildi.');
-    }).catch(function(err) {
-        var raw = (err && (err.message || err.code || err)) || '';
-        var msg = metaHataMesaji(String(raw));
-        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + msg;
-        alert('LinkedIn Client ID kaydedilemedi.');
-        bildirimEkle('sosyal-medya-baglanti', 'hata',
-            'LinkedIn kimligi kaydedilemedi', msg);
-    });
-}
-
-// LinkedIn Client ID'yi guvenli depodan temizle.
-function ayarlarLinkedinConfigTemizle() {
-    var durumEl = document.getElementById('ayarlarLinkedinConfigDurum');
-    var s = esTauriInvoke('linkedin_clear_config');
-    if (!s) {
-        if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.';
-        return;
-    }
-    s.then(function() {
-        document.getElementById('ayarlarLinkedinClientId').value = '';
-        if (durumEl) durumEl.textContent = 'LinkedIn Client ID temizlendi. LinkedIn baglantisi artik yapilamaz.';
-        alert('LinkedIn Client ID temizlendi.');
-        bildirimEkle('sosyal-medya-baglanti', 'bilgi',
-            'LinkedIn kimligi temizlendi',
-            'LinkedIn baglantisinda kullanilan Client ID guvenli depodan silindi.');
-    }).catch(function() {
-        if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
-        alert('LinkedIn Client ID temizlenemedi.');
-    });
-}
-
-// Sayfa yuklendiginde Pinterest yapilandirma durumunu sorgula (Tauri ortami varsa).
-function ayarlarPinterestConfigDurumYukle() {
-    var durumEl = document.getElementById('ayarlarPinterestConfigDurum');
-    if (!durumEl) return;
-
-    var s = esTauriInvoke('pinterest_config_status');
-    if (!s) {
-        // Tauri ortami yok: onizleme modu. Bilgi mesaji goster.
-        durumEl.textContent = 'Pinterest Client ID / Client Secret yalniz masaustu uygulamada saklanabilir. (Onizleme modunda baglanti yapilamaz.)';
-        return;
-    }
-    s.then(function(stat) {
-        if (!stat) return;
-        if (stat.clientIdConfigured && stat.clientSecretConfigured) {
-            durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Pinterest Client ID ve Client Secret yapilandirildi. (Client Secret yalniz guvenli depoda saklanir.)</span>';
-        } else if (stat.clientIdConfigured) {
-            durumEl.innerHTML = '<span style="color:#b45309;font-weight:600;">Pinterest Client ID yapilandirildi, Client Secret henuz girilmedi.</span>';
-        } else {
-            durumEl.textContent = 'Pinterest Client ID ve Client Secret henuz yapilandirilmadi. Pinterest baglantisi icin asagiya girin ve kaydedin.';
-        }
-    }).catch(function() {
-        durumEl.textContent = 'Pinterest yapilandirma durumu okunamadi.';
-    });
-}
-
-// Pinterest Client ID ve Client Secret'i guvenli depoya (Windows Credential
-// Manager) kaydet. Secret asla kaynak dosyaya veya kalici frontend'e yazilmaz.
-function ayarlarPinterestConfigKaydet() {
-    var durumEl = document.getElementById('ayarlarPinterestConfigDurum');
-    var clientId = document.getElementById('ayarlarPinterestClientId').value.trim();
-    var clientSecret = document.getElementById('ayarlarPinterestClientSecret').value.trim();
-
-    if (!clientId || !clientSecret) {
-        alert('Pinterest Client ID ve Client Secret zorunludur. Bos deger kaydedilemez.');
-        if (durumEl) durumEl.textContent = 'Pinterest Client ID ve Client Secret girin.';
-        bildirimEkle('sistem-uyari', 'uyari',
-            'Pinterest kimlikleri kaydedilemedi - Zorunlu alan eksik',
-            'Pinterest Client ID ve Client Secret girilmeden kaydedilemez.');
-        return;
-    }
-
-    var s = esTauriInvoke('pinterest_set_config', { clientId: clientId, clientSecret: clientSecret });
-    if (!s) {
-        alert('Pinterest Client ID / Client Secret yalniz masaustu uygulamada saklanabilir.');
-        if (durumEl) durumEl.textContent = 'Onizleme modunda yapilandirma saklanamaz.';
-        return;
-    }
-    s.then(function() {
-        if (durumEl) durumEl.innerHTML = '<span style="color:#059669;font-weight:600;">Pinterest Client ID ve Client Secret guvenli bicimde kaydedildi.</span>';
-        document.getElementById('ayarlarPinterestClientId').value = '';
-        document.getElementById('ayarlarPinterestClientSecret').value = '';
-        alert('Pinterest Client ID ve Client Secret guvenli bicimde kaydedildi.');
-        bildirimEkle('sosyal-medya-baglanti', 'basarili',
-            'Pinterest kimlikleri kaydedildi',
-            'Pinterest baglantisi icin gerekli Client ID ve Client Secret guvenli depoya kaydedildi.');
-    }).catch(function(err) {
-        var raw = (err && (err.message || err.code || err)) || '';
-        var msg = metaHataMesaji(String(raw));
-        if (durumEl) durumEl.textContent = 'Kayit basarisiz: ' + msg;
-        alert('Pinterest kimlikleri kaydedilemedi.');
-        bildirimEkle('sosyal-medya-baglanti', 'hata',
-            'Pinterest kimlikleri kaydedilemedi', msg);
-    });
-}
-
-// Pinterest Client ID ve Client Secret'i guvenli depodan temizle.
-function ayarlarPinterestConfigTemizle() {
-    var durumEl = document.getElementById('ayarlarPinterestConfigDurum');
-    var s = esTauriInvoke('pinterest_clear_config');
-    if (!s) {
-        if (durumEl) durumEl.textContent = 'Onizleme modunda temizleme yapilamaz.';
-        return;
-    }
-    s.then(function() {
-        document.getElementById('ayarlarPinterestClientId').value = '';
-        document.getElementById('ayarlarPinterestClientSecret').value = '';
-        if (durumEl) durumEl.textContent = 'Pinterest kimlikleri temizlendi. Pinterest baglantisi artik yapilamaz.';
-        alert('Pinterest kimlikleri temizlendi.');
-        bildirimEkle('sosyal-medya-baglanti', 'bilgi',
-            'Pinterest kimlikleri temizlendi',
-            'Pinterest baglantisinda kullanilan Client ID ve Client Secret guvenli depodan silindi.');
-    }).catch(function() {
-        if (durumEl) durumEl.textContent = 'Temizleme basarisiz.';
-        alert('Pinterest kimlikleri temizlenemedi.');
     });
 }
 
@@ -3881,8 +3301,6 @@ document.addEventListener('DOMContentLoaded', function() {
     ayarlarGenelGeriYukle();
     sosyalKatalogYukle();
     sosyalBaglantiDurumlariYukle(); // YouTube dahil gercek baglanti durumunu yukle
-    ayarlarMetaConfigDurumYukle(); // Facebook/Instagram Meta kimlik durumunu yukle
-    ayarlarTiktokConfigDurumYukle(); // TikTok Client Key / Client Secret durumunu yukle
     dashboardBaglantiGuncelle();
 });
 

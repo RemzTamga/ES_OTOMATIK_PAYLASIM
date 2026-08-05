@@ -120,14 +120,31 @@ fn data_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, SocialError> {
 
 const X_CONFIG_CONN: &str = "_x_app_config";
 
-/// Consumer Key / Secret güvenli depoda yapılandırılmış mı? (ham değer dönmez)
+/// X Consumer Key, derleme zamanında (varsa) güvenli biçimde gömülür.
+/// Değer tanımlı değilse `None` döner; derleme bu yüzden başarısız olmaz.
+fn x_consumer_key_compiled() -> Option<&'static str> {
+    option_env!("ES_OPS_X_CONSUMER_KEY")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+}
+
+/// X Consumer Secret, derleme zamanında (varsa) güvenli biçimde gömülür.
+/// Değer tanımlı değilse `None` döner; derleme bu yüzden başarısız olmaz.
+fn x_consumer_secret_compiled() -> Option<&'static str> {
+    option_env!("ES_OPS_X_CONSUMER_SECRET")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+}
+
+/// Consumer Key / Secret yapılandırılmış mı? (ham değer dönmez)
+/// Build-time gömülü veya güvenli depodaki kayıt kullanılır.
 pub fn config_status() -> Result<(bool, bool), SocialError> {
-    let has_key =
-        credential_store::token_exists(PLATFORM_ID, X_CONFIG_CONN, TokenType::RefreshToken)
-            .unwrap_or(false);
-    let has_secret =
-        credential_store::token_exists(PLATFORM_ID, X_CONFIG_CONN, TokenType::AccessToken)
-            .unwrap_or(false);
+    let has_key = credential_store::token_exists(PLATFORM_ID, X_CONFIG_CONN, TokenType::RefreshToken)
+        .unwrap_or(false)
+        || x_consumer_key_compiled().is_some();
+    let has_secret = credential_store::token_exists(PLATFORM_ID, X_CONFIG_CONN, TokenType::AccessToken)
+        .unwrap_or(false)
+        || x_consumer_secret_compiled().is_some();
     Ok((has_key, has_secret))
 }
 
@@ -159,11 +176,16 @@ fn read_consumer_secret() -> Result<Option<String>, SocialError> {
 }
 
 fn resolved_consumer_key() -> Option<String> {
-    read_consumer_key().ok().flatten()
+    x_consumer_key_compiled()
+        .map(str::to_string)
+        .or_else(|| read_consumer_key().ok().flatten())
 }
 
 fn resolved_consumer_secret() -> Result<String, SocialError> {
-    read_consumer_secret()?.ok_or(SocialError::XNotConfigured)
+    x_consumer_secret_compiled()
+        .map(str::to_string)
+        .map(Ok)
+        .unwrap_or_else(|| read_consumer_secret()?.ok_or(SocialError::XNotConfigured))
 }
 
 pub fn clear_config() -> Result<(), SocialError> {

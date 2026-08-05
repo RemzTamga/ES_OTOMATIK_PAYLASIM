@@ -505,16 +505,27 @@ fn resolved_client_key() -> Option<String> {
         .or_else(|| read_client_key().ok().flatten())
 }
 
-/// Kullanım sırasında çözülecek Client Secret. Yalnız güvenli depodan okunur.
+/// Kullanım sırasında çözülecek Client Secret. Önce derleme zamanı
+/// `ES_OPS_TIKTOK_CLIENT_SECRET`, varsa onu, yoksa güvenli depoyu kullanır.
 fn resolved_client_secret() -> Option<String> {
-    read_client_secret().ok().flatten()
+    tiktok_client_secret_compiled()
+        .map(String::from)
+        .or_else(|| read_client_secret().ok().flatten())
+}
+
+/// TikTok Client Secret, derleme zamanında (varsa) güvenli biçimde gömülür.
+/// Değer tanımlı değilse `None` döner; derleme bu yüzden başarısız olmaz.
+fn tiktok_client_secret_compiled() -> Option<&'static str> {
+    option_env!("ES_OPS_TIKTOK_CLIENT_SECRET")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
 }
 
 /// Client Key / Client Secret'in yapılandırılıp yapılandırılmadığını döndürür.
 /// Ham secret asla döndürülmez.
 pub fn config_status() -> Result<(bool, bool), SocialError> {
     let has_key = resolved_client_key().is_some();
-    let has_secret = read_client_secret()?.is_some();
+    let has_secret = resolved_client_secret().is_some();
     Ok((has_key, has_secret))
 }
 

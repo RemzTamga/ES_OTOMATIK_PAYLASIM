@@ -397,7 +397,7 @@ pub struct MetaConfigStatus {
 /// döndürür. Ham secret asla döndürülmez.
 #[tauri::command]
 pub fn meta_config_status() -> Result<MetaConfigStatus, SocialError> {
-    let has_secret = meta::read_app_secret()?.is_some();
+    let has_secret = meta::resolved_app_secret().is_some();
     let has_id = meta::resolved_app_id().is_some();
     Ok(MetaConfigStatus {
         app_id_configured: has_id,
