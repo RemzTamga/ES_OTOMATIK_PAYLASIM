@@ -34,7 +34,7 @@ jobs:
         # o yuzden yalnizca bu test atlanir.
         run: cargo test --lib -- --skip machine_id_matches_es_merkez_on_this_pc
 
-- name: Build Tauri release (MSI + NSIS)
+      - name: Build Tauri release (MSI + NSIS)
         env:
           # GerÃ§ek platform uygulama kimlikleri yalnÄ±z build ortamÄ±na aktarÄ±lÄ±r
           # ve Rust tarafÄ±nda `option_env!` ile derleme anÄ±nda EXE'ye gÃ¶mÃ¼lÃ¼r.
