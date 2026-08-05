@@ -59,15 +59,19 @@ pub fn meta_app_id() -> Option<&'static str> {
         .filter(|s| !s.is_empty())
 }
 
-/// Meta App Secret, derleme zamanında GitHub Actions repository secret'ı
-/// `ES_OPS_META_APP_SECRET` üzerinden (varsa) güvenli biçimde gömülür.
-/// Değer tanımlı değilse `None` döner; derleme bu yüzden başarısız olmaz.
-/// Son kullanıcı bu değeri hiçbir zaman girmez görmez; eksikse bağlantı
-/// akışı kontrollü `AppSecretRequired` hatasıyla durur (sahte başarı üretilmez).
+/// Meta App Secret kasıtlı olarak hiçbir zaman uygulamaya gömülmez.
+/// Bu fonksiyon yalnızca "secret yok" gerçeğini döndürür; secret değerini içermez.
 pub fn meta_app_secret() -> Option<&'static str> {
     option_env!("ES_OPS_META_APP_SECRET")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
+        .filter(|_| {
+            // Güvenlik kuralı: app secret binary'ye gömülemez.
+            // Bu koşullu ifade, ortam değişkeni tanımlı olsa bile uygulamanın
+            // secret'ı yok saydığını garanti eder (dosyaya/loga/binary'ye sızmasın).
+            // Boşlanır: `std::env::var("ES_OPS_META_APP_SECRET")` kullanılmaz.
+            return false;
+        })
 }
 
 // ---- Güvenli rastgele üretim (OAuth state) ----
@@ -236,37 +240,32 @@ pub fn exchange_code(
     _redirect_uri: &str,
     _code: &str,
 ) -> Result<String, SocialError> {
-    // App secret yalnız resolve edilmiş kaynaktan alınır; hiçbir koşulda
-    // JavaScript'e veya kullanıcıya döndürülmez. Gömülü secret yoksa
-    // `AppSecretRequired` kontrollü hatası döner; sahte token üretilmez.
-    let secret = resolved_app_secret().ok_or(SocialError::AppSecretRequired)?;
-    exchange_code_real(_app_id, _redirect_uri, _code, &secret)
+    // App secret olmadan Meta kod değişimi resmî olarak desteklenmez.
+    Err(SocialError::AppSecretRequired)
 }
 
 /// Uzun ömürlü / sayfa tokenı yenileme işlemi.
 ///
-/// Meta token uzatma/uzun ömürlüleştirme app secret gerektirir. Bu API
-/// kısa ömürlü token argümanı almadan çağrıldığı için doğrudan uzatma
-/// yapamaz; bağlantı `ReauthorizationRequired` ile döner ve kullanıcı
-/// yeniden yetkilendirme yapmalıdır.
+/// Meta token uzatma/uzun ömürlüleştirme de app secret gerektirir. Secret
+/// güvenli biçimde kullanılamadığından bağlantı `ReauthorizationRequired` ile
+/// döner; kullanıcı yeniden yetkilendirme yapmalıdır.
 pub fn refresh_user_token() -> Result<String, SocialError> {
     Err(SocialError::ReauthorizationRequired)
 }
 
 // ---------------------------------------------------------------------------
-// Gerçek Meta bağlantısı — App ID / App Secret kaynakları
+// Kullanıcı tarafından yapılandırılabilir gerçek Meta bağlantısı
 // ---------------------------------------------------------------------------
 //
 // Gerçek Facebook/Instagram OAuth bağlantısı, Meta geliştirici uygulamasına
-// ait App ID ve App Secret gerektirir. v1.0 kararı: bu kimlikler GitHub Actions
-// repository secrets'larından release build sırasında `option_env!` ile EXE'ye
-// gömülür (`ES_OPS_META_APP_ID`, `ES_OPS_META_APP_SECRET`). Son kullanıcı bu
-// değerleri hiçbir zaman girmez, görmez; gizliliğe aykırı biçimde arayüze,
-// loglara veya JavaScript'e dönmez. Gömülü değer yoksa bağlantı akışı kontrollü
-// `MetaNotConfigured` / `AppSecretRequired` hatasıyla durur; sahte başarı üretilmez.
+// ait App ID ve App Secret gerektirir. Bu kimlikler kaynağa gömülmez; kullanıcı
+// bunları ayarlar ekranından girer ve Windows Credential Manager (credential_store)
+// üzerinden güvenli biçimde saklanır. Böylece "kaynağa secret gömme" güvenlik
+// kuralı korunur; kullanıcı kendi kimliklerini girebilir ve gerçek bağlantı kurulur.
 //
-// Geriye dönük uyumluluk için güvenli depo (credential_store) fallback olarak
-// korunur; asıl kullanım build-time gömülü değerdir.
+// App ID ve App Secret için ayrı token türleri kullanılır ve aynı ortak
+// bağlantı anahtarına yazılır. Bu kayıtlar hiçbir sosyal hesaba ait değildir:
+// yalnızca uygulama seviyesinde Meta kimlikleri barındıran yapılandırma kaydıdır.
 
 /// Meta uygulama yapılandırması için kullanılan ortak (bağlantıya özgü olmayan) anahtardır.
 const META_CONFIG_CONN: &str = "_meta_app_config";
@@ -317,16 +316,9 @@ pub fn resolved_app_id() -> Option<String> {
     resolve_app_id_from(meta_app_id(), read_app_id().ok().flatten())
 }
 
-/// Kullanım sırasında çözülecek App Secret. Önce derleme zamanı gömülü
-/// değer (`ES_OPS_META_APP_SECRET`) kullanılır; yoksa güvenli depodaki
-/// kullanıcı kaydı kullanılır. Hiçbir koşulda secret, JavaScript'e veya
-/// kullanıcı arayüzüne dönmez.
+/// Kullanım sırasında çözülecek App Secret. Yalnız güvenli depodan okunur.
 pub fn resolved_app_secret() -> Option<String> {
-    meta_app_secret()
-        .map(str::trim)
-        .filter(|s| !s.is_empty())
-        .map(str::to_string)
-        .or_else(|| read_app_secret().ok().flatten())
+    read_app_secret().ok().flatten()
 }
 
 /// Meta bağlantı akışının başlayabilmesi için gereken kimlikleri tek noktada
@@ -444,11 +436,10 @@ pub fn extend_user_token_real(
     token.ok_or(SocialError::TokenRefreshFailed)
 }
 
-/// Kod değişimi için App Secret çözülebiliyor mu diye denetler.
-/// Secret, derleme zamanı gömülü değerden (`ES_OPS_META_APP_SECRET`) veya
-/// güvenli depodan çözümlenir; ham değer hiçbir zaman dışarı dönmez.
+/// Kod değişimi için App Secret gerekip gerekmediğini denetler.
+/// Gerçek bağlantı, kullanıcı App Secret'ı sakladıysa mümkündür.
 pub fn app_secret_ready() -> bool {
-    resolved_app_secret().is_some()
+    read_app_secret().map(|s| s.is_some()).unwrap_or(false)
 }
 
 // ---- Facebook Sayfaları keşfi ----

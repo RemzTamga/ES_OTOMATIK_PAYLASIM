@@ -1,20 +1,12 @@
 // ES OPS - Diğer Sosyal Medya Platformları Bağlantı Akışı Testleri (Node.js).
 //
-// v1.0 kararı: platform uygulama kimlikleri EXE'ye derleme anında gömülür.
-// Ayarlar ekranında HİÇBİR teknik kimlik formu görünmez ve JavaScript
-// tarafında config ön-kontrolü YAPILMAZ. Her platformun "Bağlan" düğmesi
-// doğrudan `x_connect` / `tiktok_connect` / `linkedin_connect` /
-// `pinterest_connect` / `youtube_connect` komutunu çağırır; kimlik eksikse
-// Rust kontrollü hata koduyla döner ve tek, kullanıcı dostu bildirim
-// üretilir (sahte bağlantı / sahte başarı üretilmez).
-//
-// Bu testler şunları doğrular:
-//   - Ayarlar listesinde hiçbir teknik kimlik formunun üretilmediği.
+// Bu testler, Instagram/Meta düzeltmesiyle aynı denetim kalıplarını diğer
+// platformlara (X, TikTok, LinkedIn, Pinterest, YouTube) uygular:
+//   - Config formlarının ayarlar listesinde render edildiği (TikTok dahil).
 //   - OAuth öncesi kullanıcı adı alanının hiçbir platformda üretilmediği.
-//   - Kimlikler eksikken bağlantı komutunun yine de çağrıldığı ve tek,
-//     kullanıcı dostu hata bildirimi üretildiği (config ön-kontrolü yok).
-//   - `*_config_status` komutunun hiç çağrılmadığı.
-//   - Kimlikler hazırken bağlantı komutunun tek kez ve boş argümanla
+//   - Eksik yapılandırmada tek, kullanıcı dostu bildirim ve bağlantı komutunun
+//     çağrılmadığı.
+//   - Yapılandırma hazırken bağlantı komutunun tek kez ve boş argümanla
 //     çağrıldığı.
 //
 // Çalıştırma: node tests/social_other_platforms.test.js
@@ -163,33 +155,23 @@ function loadApp(invokeImpl) {
 
 // ---- Testler ----
 
-test('Ayarlar listesinde HICBIR teknik kimlik formu uretilmiyor (TikTok dahil)', async () => {
+test('TikTok config formu ayarlar listesinde render ediliyor', async () => {
     const sandbox = loadApp(() => null);
 
     sandbox.ayarlarPlatformListele();
     const html = sandbox.document.getElementById('ayarlarPlatformListesi').innerHTML;
 
-    const yasakli = [
-        'ayarlarTiktokConfigGrubu',
-        'ayarlarTiktokClientKey',
-        'ayarlarTiktokClientSecret',
-        'ayarlarTiktokConfigDurum',
-        'ayarlarXConfigGrubu',
-        'ayarlarXClientKey',
-        'ayarlarXConsumerSecret',
-        'ayarlarMetaConfigGrubu',
-        'ayarlarMetaAppId',
-        'ayarlarMetaAppSecret',
-        'ayarlarLinkedinConfigGrubu',
-        'ayarlarLinkedinClientId',
-        'ayarlarPinterestConfigGrubu',
-        'ayarlarPinterestClientId',
-        'ayarlarPinterestClientSecret',
-    ];
-    for (const alan of yasakli) {
-        if (html.indexOf(alan) !== -1) {
-            throw new Error('Teknik kimlik alani gereksiz yere uretildi: ' + alan);
-        }
+    if (html.indexOf('ayarlarTiktokConfigGrubu') === -1) {
+        throw new Error('ayarlarTiktokConfigGrubu render edilmemis');
+    }
+    if (html.indexOf('ayarlarTiktokClientKey') === -1) {
+        throw new Error('ayarlarTiktokClientKey alani yok');
+    }
+    if (html.indexOf('ayarlarTiktokClientSecret') === -1) {
+        throw new Error('ayarlarTiktokClientSecret alani yok');
+    }
+    if (html.indexOf('ayarlarTiktokConfigDurum') === -1) {
+        throw new Error('ayarlarTiktokConfigDurum gosterge alani yok');
     }
 });
 
@@ -204,12 +186,12 @@ test('OAuth oncesi kullanici adi alani HICBIR platformda uretilmiyor', async () 
     }
 });
 
-test('TikTok: config_status cagrilmaz, kimlik eksikken tiktok_connect yine de cagrilir ve tek hata bildirimi olur', async () => {
+test('TikTok: Client Key/Secret eksikken tek bildirim, baglanti komutu cagrilmaz', async () => {
     const cagrilar = [];
     const sandbox = loadApp((cmd) => {
         cagrilar.push(cmd);
-        if (cmd === 'tiktok_connect') {
-            return Promise.reject({ code: 'tiktok_not_configured' });
+        if (cmd === 'tiktok_config_status') {
+            return Promise.resolve({ clientKeyConfigured: false, clientSecretConfigured: false });
         }
         return null;
     });
@@ -218,29 +200,24 @@ test('TikTok: config_status cagrilmaz, kimlik eksikken tiktok_connect yine de ca
     sandbox.ayarlarPlatformBaglan('tiktok');
     await new Promise((r) => setTimeout(r, 0));
 
-    if (cagrilar.indexOf('tiktok_config_status') !== -1) {
-        throw new Error('Config on-kontrolu kaldirildi: tiktok_config_status cagrilmamali');
-    }
-    if (cagrilar.indexOf('tiktok_connect') === -1) {
-        throw new Error('Kimlik eksik olsa bile tiktok_connect cagrilmali');
-    }
     if (sandbox.bildirimler.length !== baslangic + 1) {
         throw new Error('Beklenen 1 bildirim, olusan: ' + (sandbox.bildirimler.length - baslangic));
     }
     const b = sandbox.bildirimler[sandbox.bildirimler.length - 1];
-    if (b.tur !== 'hata') {
-        throw new Error('Hata bildirimi beklenir');
+    if (b.baslik !== 'TikTok icin Client Key / Client Secret gerekli') {
+        throw new Error('Beklenen baslik bulunamadi: ' + b.baslik);
     }
-    if (b.aciklama.indexOf('yapilandirilmamis') === -1 && b.aciklama.indexOf('kimlikleri') === -1) {
-        throw new Error('Kullanici dostu mesaj bekleniyor: ' + b.aciklama);
+    if (cagrilar.indexOf('tiktok_connect') !== -1) {
+        throw new Error('Eksik yapilandirmada tiktok_connect cagrilmamali');
     }
 });
 
 test('TikTok: kimlikler hazirken tiktok_connect tek kez ve bos argumanla cagrilir', async () => {
     const gidenArgs = [];
-    const cagrilar = [];
     const sandbox = loadApp((cmd, args) => {
-        cagrilar.push(cmd);
+        if (cmd === 'tiktok_config_status') {
+            return Promise.resolve({ clientKeyConfigured: true, clientSecretConfigured: true });
+        }
         if (cmd === 'tiktok_connect') {
             gidenArgs.push(args);
             return Promise.resolve({
@@ -254,9 +231,6 @@ test('TikTok: kimlikler hazirken tiktok_connect tek kez ve bos argumanla cagrili
     sandbox.ayarlarPlatformBaglan('tiktok');
     await new Promise((r) => setTimeout(r, 0));
 
-    if (cagrilar.indexOf('tiktok_config_status') !== -1) {
-        throw new Error('Config on-kontrolu kaldirildi: tiktok_config_status cagrilmamali');
-    }
     if (gidenArgs.length !== 1) {
         throw new Error('tiktok_connect tam 1 kez cagrilmali');
     }
@@ -273,12 +247,12 @@ test('TikTok: kimlikler hazirken tiktok_connect tek kez ve bos argumanla cagrili
     }
 });
 
-test('X: config_status cagrilmaz, kimlik eksikken x_connect yine de cagrilir ve tek hata bildirimi olur', async () => {
+test('X: Consumer Key/Secret eksikken tek bildirim, x_connect cagrilmaz', async () => {
     const cagrilar = [];
     const sandbox = loadApp((cmd) => {
         cagrilar.push(cmd);
-        if (cmd === 'x_connect') {
-            return Promise.reject({ code: 'x_not_configured' });
+        if (cmd === 'x_config_status') {
+            return Promise.resolve({ consumerKeyConfigured: false, consumerSecretConfigured: false });
         }
         return null;
     });
@@ -287,29 +261,20 @@ test('X: config_status cagrilmaz, kimlik eksikken x_connect yine de cagrilir ve 
     sandbox.ayarlarPlatformBaglan('x');
     await new Promise((r) => setTimeout(r, 0));
 
-    if (cagrilar.indexOf('x_config_status') !== -1) {
-        throw new Error('Config on-kontrolu kaldirildi: x_config_status cagrilmamali');
-    }
-    if (cagrilar.indexOf('x_connect') === -1) {
-        throw new Error('Kimlik eksik olsa bile x_connect cagrilmali');
-    }
     if (sandbox.bildirimler.length !== baslangic + 1) {
         throw new Error('Beklenen 1 bildirim, olusan: ' + (sandbox.bildirimler.length - baslangic));
     }
-    const b = sandbox.bildirimler[sandbox.bildirimler.length - 1];
-    if (b.tur !== 'hata') {
-        throw new Error('Hata bildirimi beklenir');
-    }
-    if (b.aciklama.indexOf('yapilandirilmamis') === -1 && b.aciklama.indexOf('kimlikleri') === -1) {
-        throw new Error('Kullanici dostu mesaj bekleniyor: ' + b.aciklama);
+    if (cagrilar.indexOf('x_connect') !== -1) {
+        throw new Error('Eksik yapilandirmada x_connect cagrilmamali');
     }
 });
 
-test('X: kimlikler hazirken x_connect tek kez ve bos argumanla cagrilir', async () => {
+test('X: kimlikler hazirken x_connect tek kez cagrilir', async () => {
     const gidenArgs = [];
-    const cagrilar = [];
     const sandbox = loadApp((cmd, args) => {
-        cagrilar.push(cmd);
+        if (cmd === 'x_config_status') {
+            return Promise.resolve({ consumerKeyConfigured: true, consumerSecretConfigured: true });
+        }
         if (cmd === 'x_connect') {
             gidenArgs.push(args);
             return Promise.resolve({
@@ -322,9 +287,6 @@ test('X: kimlikler hazirken x_connect tek kez ve bos argumanla cagrilir', async 
     sandbox.ayarlarPlatformBaglan('x');
     await new Promise((r) => setTimeout(r, 0));
 
-    if (cagrilar.indexOf('x_config_status') !== -1) {
-        throw new Error('Config on-kontrolu kaldirildi: x_config_status cagrilmamali');
-    }
     if (gidenArgs.length !== 1) {
         throw new Error('x_connect tam 1 kez cagrilmali');
     }
@@ -333,12 +295,12 @@ test('X: kimlikler hazirken x_connect tek kez ve bos argumanla cagrilir', async 
     }
 });
 
-test('LinkedIn: config_status cagrilmaz, kimlik eksikken linkedin_connect yine de cagrilir ve tek hata bildirimi olur', async () => {
+test('LinkedIn: Client ID eksikken tek bildirim, linkedin_connect cagrilmaz', async () => {
     const cagrilar = [];
     const sandbox = loadApp((cmd) => {
         cagrilar.push(cmd);
-        if (cmd === 'linkedin_connect') {
-            return Promise.reject({ code: 'linkedin_not_configured' });
+        if (cmd === 'linkedin_config_status') {
+            return Promise.resolve({ clientIdConfigured: false });
         }
         return null;
     });
@@ -347,30 +309,20 @@ test('LinkedIn: config_status cagrilmaz, kimlik eksikken linkedin_connect yine d
     sandbox.ayarlarPlatformBaglan('linkedin');
     await new Promise((r) => setTimeout(r, 0));
 
-    if (cagrilar.indexOf('linkedin_config_status') !== -1) {
-        throw new Error('Config on-kontrolu kaldirildi: linkedin_config_status cagrilmamali');
-    }
-    if (cagrilar.indexOf('linkedin_connect') === -1) {
-        throw new Error('Kimlik eksik olsa bile linkedin_connect cagrilmali');
-    }
     if (sandbox.bildirimler.length !== baslangic + 1) {
         throw new Error('Beklenen 1 bildirim, olusan: ' + (sandbox.bildirimler.length - baslangic));
     }
-    const b = sandbox.bildirimler[sandbox.bildirimler.length - 1];
-    if (b.tur !== 'hata') {
-        throw new Error('Hata bildirimi beklenir');
-    }
-    if (b.aciklama.indexOf('yapilandirilmamis') === -1 && b.aciklama.indexOf('kimligi') === -1) {
-        throw new Error('Kullanici dostu mesaj bekleniyor: ' + b.aciklama);
+    if (cagrilar.indexOf('linkedin_connect') !== -1) {
+        throw new Error('Eksik yapilandirmada linkedin_connect cagrilmamali');
     }
 });
 
-test('Pinterest: config_status cagrilmaz, kimlik eksikken pinterest_connect yine de cagrilir ve tek hata bildirimi olur', async () => {
+test('Pinterest: Client ID/Secret eksikken tek bildirim, pinterest_connect cagrilmaz', async () => {
     const cagrilar = [];
     const sandbox = loadApp((cmd) => {
         cagrilar.push(cmd);
-        if (cmd === 'pinterest_connect') {
-            return Promise.reject({ code: 'pinterest_not_configured' });
+        if (cmd === 'pinterest_config_status') {
+            return Promise.resolve({ clientIdConfigured: false, clientSecretConfigured: false });
         }
         return null;
     });
@@ -379,21 +331,11 @@ test('Pinterest: config_status cagrilmaz, kimlik eksikken pinterest_connect yine
     sandbox.ayarlarPlatformBaglan('pinterest');
     await new Promise((r) => setTimeout(r, 0));
 
-    if (cagrilar.indexOf('pinterest_config_status') !== -1) {
-        throw new Error('Config on-kontrolu kaldirildi: pinterest_config_status cagrilmamali');
-    }
-    if (cagrilar.indexOf('pinterest_connect') === -1) {
-        throw new Error('Kimlik eksik olsa bile pinterest_connect cagrilmali');
-    }
     if (sandbox.bildirimler.length !== baslangic + 1) {
         throw new Error('Beklenen 1 bildirim, olusan: ' + (sandbox.bildirimler.length - baslangic));
     }
-    const b = sandbox.bildirimler[sandbox.bildirimler.length - 1];
-    if (b.tur !== 'hata') {
-        throw new Error('Hata bildirimi beklenir');
-    }
-    if (b.aciklama.indexOf('yapilandirilmamis') === -1 && b.aciklama.indexOf('kimlikleri') === -1) {
-        throw new Error('Kullanici dostu mesaj bekleniyor: ' + b.aciklama);
+    if (cagrilar.indexOf('pinterest_connect') !== -1) {
+        throw new Error('Eksik yapilandirmada pinterest_connect cagrilmamali');
     }
 });
 
