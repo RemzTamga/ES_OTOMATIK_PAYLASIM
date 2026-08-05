@@ -45,6 +45,9 @@ jobs:
           # Meta (Facebook / Instagram ortak motoru) App ID + App Secret.
           ES_OPS_META_APP_ID: ${{ secrets.ES_OPS_META_APP_ID }}
           ES_OPS_META_APP_SECRET: ${{ secrets.ES_OPS_META_APP_SECRET }}
+          # Facebook Login for Business Configuration ID (opsiyonel; paneldeki
+          # konfigürasyon oluşturulunca gömülür, izinler panelden yönetilir).
+          ES_OPS_META_CONFIG_ID: ${{ secrets.ES_OPS_META_CONFIG_ID }}
           # TikTok Authorization Code + Content Posting Client Key / Secret.
           ES_OPS_TIKTOK_CLIENT_KEY: ${{ secrets.ES_OPS_TIKTOK_CLIENT_KEY }}
           ES_OPS_TIKTOK_CLIENT_SECRET: ${{ secrets.ES_OPS_TIKTOK_CLIENT_SECRET }}

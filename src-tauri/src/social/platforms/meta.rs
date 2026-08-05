@@ -70,6 +70,17 @@ pub fn meta_app_secret() -> Option<&'static str> {
         .filter(|s| !s.is_empty())
 }
 
+/// Meta Login for Business Configuration ID, derleme zamanında güvenli biçimde
+/// gömülür (`ES_OPS_META_CONFIG_ID`). Bu ID, Facebook/Instagram izinlerinin
+/// Configuration üzerinden yönetildiği panel oluşturmasıdır; küçük uygulama için
+/// App Dashboard'da "Facebook Login for Business" konfigürasyonundan alınır.
+/// Değer tanımlı değilse `None` döner; akış yine de klasik scope yolunu kullanır.
+pub fn meta_config_id() -> Option<&'static str> {
+    option_env!("ES_OPS_META_CONFIG_ID")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+}
+
 // ---- Güvenli rastgele üretim (OAuth state) ----
 
 /// Kriptografik olarak güvenli rastgele bayt üretir.
@@ -248,15 +259,26 @@ pub fn open_browser(app: &AppHandle, url: &str) -> Result<(), SocialError> {
 // ---- Auth URL ----
 
 /// Meta OAuth yetkilendirme URL'sini oluşturur. `response_type=code` kullanılır.
+///
+/// `config_id` (Facebook Login for Business Configuration ID) verilmişse URL'ye
+/// `config_id` parametresi eklenir ve izinler Configuration üzerinden yönetilir;
+/// `scope` parametresi yine de belirtilebilir (seçim konfigürasyona aittir).
+/// Config ID yoksa akış klasik scope tabanlı devam eder.
 pub fn build_authorize_url(
     app_id: &str,
     redirect_uri: &str,
     scope: &str,
     state: &str,
+    config_id: Option<&str>,
 ) -> String {
-    format!(
-        "{AUTHORIZE_ENDPOINT}?client_id={app_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}&state={state}"
-    )
+    let mut url = format!(
+        "{AUTHORIZE_ENDPOINT}?client_id={app_id}&redirect_uri={redirect_uri}&response_type=code"
+    );
+    if let Some(config_id) = config_id {
+        url.push_str(&format!("&config_id={config_id}"));
+    }
+    url.push_str(&format!("&scope={scope}&state={state}"));
+    url
 }
 
 // ---- Token işlemleri ----
@@ -1030,13 +1052,30 @@ mod tests {
     fn authorize_url_includes_scopes_and_state() {
         let url = build_authorize_url(
             "123",
-            "http://127.0.0.1:8080/",
+            "http://localhost:8080/",
             "pages_show_list,pages_manage_posts",
             "st",
+            None,
         );
         assert!(url.contains("client_id=123"));
         assert!(url.contains("response_type=code"));
         assert!(url.contains("scope=pages_show_list"));
+        assert!(url.contains("state=st"));
+        assert!(!url.contains("config_id="));
+    }
+
+    #[test]
+    fn authorize_url_includes_config_id_when_provided() {
+        let url = build_authorize_url(
+            "123",
+            "http://localhost:8080/redirect",
+            "pages_show_list,pages_manage_posts",
+            "st",
+            Some("1585834799908565"),
+        );
+        assert!(url.contains("config_id=1585834799908565"));
+        assert!(url.starts_with("https://www.facebook.com/dialog/oauth?client_id=123"));
+        // Configuration üzerinden yönetilse bile state korunur.
         assert!(url.contains("state=st"));
     }
 

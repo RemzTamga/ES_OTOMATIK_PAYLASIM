@@ -332,7 +332,13 @@ fn run_meta_connect_flow(
     let state = meta::generate_state()?;
 
     let scope = super::platforms::facebook::SCOPES;
-    let auth_url = meta::build_authorize_url(&app_id, &redirect_uri, scope, &state);
+    let auth_url = meta::build_authorize_url(
+        &app_id,
+        &redirect_uri,
+        scope,
+        &state,
+        meta::meta_config_id(),
+    );
     meta::open_browser(app, &auth_url)?;
 
     let (code, callback_state) = meta::wait_for_callback(&listener)?;
