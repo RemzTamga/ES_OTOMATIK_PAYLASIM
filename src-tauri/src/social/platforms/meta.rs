@@ -1,7 +1,7 @@
 //! Ortak Meta (Facebook / Instagram) entegrasyonunun çekirdeği.
 //!
-//! Bu modül Meta Graph API sürümünü, ortak OAuth akışını, loopback callback
-//! yönetimini, token işlemlerini, Facebook Sayfalarının ve Sayfalara bağlı
+//! Bu modül Meta Graph API sürümünü, ortak OAuth akışını, uygulama içi webview
+//! login yönetimini, token işlemlerini, Facebook Sayfalarının ve Sayfalara bağlı
 //! Instagram profesyonel hesaplarının keşfini tek merkezde tutar. Facebook ve
 //! Instagram platform modülleri (`facebook.rs`, `instagram.rs`) yalnız kendi
 //! içerik ve yayın kurallarını içerir; buradaki ortak altyapıyı tekrar kurmaz.
@@ -98,33 +98,41 @@ pub fn generate_state() -> Result<String, SocialError> {
     Ok(URL_SAFE_NO_PAD.encode(bytes))
 }
 
-// ---- Loopback callback ----
+// ---- Loopback callback (FALLBACK, silinmedi) ----
 
 /// Meta OAuth için sabit loopback callback portu. Bu portla birlikte redirect
 /// URI'nin tamamı (`http://localhost:43123/meta-callback`) Meta App
 /// Dashboard'undaki "Valid OAuth Redirect URIs" listesine kaydedilmelidir.
 /// Meta, IP adresi içeren redirect URI'lerini (ör. `127.0.0.1`) kabul etmez;
 /// bu yüzden `localhost` etki adı kullanılır.
+///
+/// Not: Bu blok, webview akışının kullanılamadığı durumlarda devreye
+/// alınabilecek fallback olarak korunur; birincil akışa katılmaz.
+#[allow(dead_code)]
 pub const META_LOOPBACK_PORT: u16 = 43123;
 
 /// Loopback dinleyicinin bağlandığı adres. `localhost` etki adı, Meta'nın
 /// "Valid OAuth Redirect URIs" listesinde IP adresi kabul etmemesinden dolayı
 /// redirect URI'de kullanılır; dinleyici ise her zaman `127.0.0.1` üzerinde açılır.
+#[allow(dead_code)]
 pub const META_LOOPBACK_HOST: &str = "localhost";
 
 /// Meta OAuth callback path'i (redirect URI'nin path kısmı). Callback
 /// isteklerinde bu path zorunludur; başka bir kaynağa yanıt reddedilir.
+#[allow(dead_code)]
 pub const META_CALLBACK_PATH: &str = "/meta-callback";
 
 /// `127.0.0.1` üzerinde sabit porta dinleyici açar. Port başka bir program
 /// tarafından kullanılıyorsa açık kontrollü `CallbackPortInUse` hatası döner;
-/// sahte bağlantı üretilmez.
+/// sahte bağlantı üretilmez. (Fallback; şu an webview akışı kullanılır.)
+#[allow(dead_code)]
 pub fn bind_loopback() -> Result<TcpListener, SocialError> {
     TcpListener::bind(("127.0.0.1", META_LOOPBACK_PORT))
         .map_err(|_| SocialError::CallbackPortInUse)
 }
 
 /// Loopback gelen isteğindeki `code` ve `state` değerlerini ayrıştırır.
+/// (Fallback akışın da URL ayrıştırıcısı; webview akışıyla ortak.)
 pub fn parse_callback_query(query: &str) -> (Option<String>, Option<String>) {
     let mut code = None;
     let mut state = None;
@@ -144,11 +152,13 @@ pub fn parse_callback_query(query: &str) -> (Option<String>, Option<String>) {
 
 /// Callback isteğinin path bölümünün `/meta-callback` olup olmadığını doğrular.
 /// Query kısmı (`?code=...&state=...`) dışarıda bırakılır; path tam eşleşmeli.
+#[allow(dead_code)]
 fn is_valid_callback_path(path: &str) -> bool {
     path == META_CALLBACK_PATH
 }
 
-/// Callback dinlenecek kadar bekler ve `(code, state)` döndürür.
+/// Callback dinlenecek kadar bekler ve `(code, state)` döndürür. (Fallback.)
+#[allow(dead_code)]
 pub fn wait_for_callback(listener: &TcpListener) -> Result<(String, String), SocialError> {
     listener
         .set_nonblocking(true)
@@ -195,9 +205,6 @@ pub fn wait_for_callback(listener: &TcpListener) -> Result<(String, String), Soc
                     .and_then(|l| l.split_whitespace().nth(1))
                     .unwrap_or("/");
 
-                // Callback yalnız tam `/meta-callback` path'inde kabul edilir.
-                // Başka bir path (ör. sağlık yoklaması, favicon, hatalı yönlendirme)
-                // reddedilir; başarı/state/sahte toplam üretilmez.
                 let request_path = path_and_query
                     .split_once('?')
                     .map(|(p, _)| p)
@@ -239,6 +246,69 @@ pub fn wait_for_callback(listener: &TcpListener) -> Result<(String, String), Soc
     }
 }
 
+// ---- Uygulama içi webview login (SUAT / Facebook Login for Business yolu) ----
+
+/// Meta'nın resmî masaüstü/webview redirect URI'si. Meta'nın "Manually Build
+/// a Login Flow" dokümanı, masaüstü uygulamalarında login'in uygulama içi bir
+/// webview'da yürütülmesini ve redirect adresinin bu sabit değer olmasını şart
+/// koşar. Adres Meta'nın kendi alan adında olduğundan "uygulamanın domainleri"
+/// denetiminden etkilenmez; `http://localhost:...` akışı yalnız fallback olarak
+/// korunur (bkz. yukarıdaki loopback bölümü).
+pub const META_LOGIN_SUCCESS_URI: &str = "https://www.facebook.com/connect/login_success.html";
+
+/// Meta login webview penceresinin Tauri etiketi.
+pub const META_LOGIN_WINDOW_LABEL: &str = "meta-login";
+
+/// Login akışını uygulama içi webview penceresinde yürütür ve
+/// `login_success.html` yönlendirmesindeki authorization code'i yakalar.
+///
+/// - `auth_url` yeni bir webview penceresinde açılır; sistem tarayıcısı ve
+///   loopback sunucu kullanılmaz. Meta'nın resmî masaüstü webview akışıdır.
+/// - Yalnız `META_LOGIN_SUCCESS_URI` önekindeki navigasyon yakalanır; `error`
+///   varsa `OauthCancelled`, state eşleşmezse `OauthStateMismatch`, code
+///   eksikse `OauthExchangeFailed` döner.
+/// - Kullanıcı penceresini kapatır veya süre aşarsa `OauthTimeout` döner.
+pub fn login_via_webview(
+    app: &AppHandle,
+    auth_url: &str,
+    expected_state: &str,
+) -> Result<String, SocialError> {
+    let url = tauri::Url::parse(auth_url).map_err(|_| SocialError::OperationFailed)?;
+    let (tx, rx) = std::sync::mpsc::channel::<Result<String, SocialError>>();
+    let expected_state = expected_state.to_string();
+
+    tauri::WebviewWindowBuilder::new(
+        app,
+        META_LOGIN_WINDOW_LABEL,
+        tauri::WebviewUrl::External(url),
+    )
+    .inner_size(660.0, 780.0)
+    .title("Meta ile Bağlan")
+    .on_navigation(move |nav_url| {
+        if !nav_url.as_str().starts_with(META_LOGIN_SUCCESS_URI) {
+            return true;
+        }
+        let query = nav_url.query().unwrap_or("");
+        let outcome = if query.contains("error=") {
+            Err(SocialError::OauthCancelled)
+        } else {
+            let (code, state) = parse_callback_query(query);
+            match (code, state) {
+                (Some(code), Some(state)) if state == expected_state => Ok(code),
+                (Some(_), Some(_)) => Err(SocialError::OauthStateMismatch),
+                _ => Err(SocialError::OauthExchangeFailed),
+            }
+        };
+        let _ = tx.send(outcome);
+        false
+    })
+    .build()
+    .map_err(|_| SocialError::OperationFailed)?;
+
+    rx.recv_timeout(Duration::from_secs(OAUTH_TIMEOUT_SECS))
+        .map_err(|_| SocialError::OauthTimeout)?
+}
+
 // ---- HTTP istemci ----
 
 /// Ortak Meta HTTP istemcisi. Uygun tek bloklama istemcisidir.
@@ -249,7 +319,9 @@ pub fn http_client() -> Result<reqwest::blocking::Client, SocialError> {
         .map_err(|_| SocialError::ApiError)
 }
 
-/// Tarayıcıyı resmî Tauri shell mekanizmasıyla açar.
+/// Tarayıcıyı resmî Tauri shell mekanizmasıyla açar. (Fallback; webview akışında
+/// kullanılmaz. Loopback fallback yolu etkenleştirilirse yeniden bağlanır.
+#[allow(dead_code)]
 pub fn open_browser(app: &AppHandle, url: &str) -> Result<(), SocialError> {
     app.shell()
         .open(url, None)
@@ -258,12 +330,18 @@ pub fn open_browser(app: &AppHandle, url: &str) -> Result<(), SocialError> {
 
 // ---- Auth URL ----
 
-/// Meta OAuth yetkilendirme URL'sini oluşturur. `response_type=code` kullanılır.
+/// Meta OAuth yetkilendirme URL'sini oluşturur. Aşağıdaki kurallar:
 ///
-/// `config_id` (Facebook Login for Business Configuration ID) verilmişse URL'ye
-/// `config_id` parametresi eklenir ve izinler Configuration üzerinden yönetilir;
-/// `scope` parametresi yine de belirtilebilir (seçim konfigürasyona aittir).
-/// Config ID yoksa akış klasik scope tabanlı devam eder.
+/// - `response_type=code` her zaman kullanılır (SUAT kuralı: System-user
+///   access token yalnız authorization code grant'i kabul eder).
+/// - `config_id` (Facebook Login for Business Configuration ID) varsa:
+///   * `config_id` parametresi eklenir;
+///   * `override_default_response_type=true` parametresi eklenir (kod,
+///     SUAT'ın gerektirdiği grant tipine zorlar);
+///   * `scope` parametresi EKLENMEZ (SUAT konfigürasyonunda izinler panel
+///     tarafından Configuration üzerinden yönetilir).
+/// - `config Iltisat yoksa klasik scope tabanlı akış korunur: bu durumda
+///   `scope` gönderilir, `override` parametresi gönderilmez.
 pub fn build_authorize_url(
     app_id: &str,
     redirect_uri: &str,
@@ -271,14 +349,17 @@ pub fn build_authorize_url(
     state: &str,
     config_id: Option<&str>,
 ) -> String {
-    let mut url = format!(
-        "{AUTHORIZE_ENDPOINT}?client_id={app_id}&redirect_uri={redirect_uri}&response_type=code"
-    );
     if let Some(config_id) = config_id {
-        url.push_str(&format!("&config_id={config_id}"));
+        // SUAT: scope gönderilmez; izinler Configuration üzerinden verilir.
+        return format!(
+            "{AUTHORIZE_ENDPOINT}?client_id={}&redirect_uri={}&response_type=code&config_id={}&override_default_response_type=true&state={}",
+            app_id, redirect_uri, config_id, state
+        );
     }
-    url.push_str(&format!("&scope={scope}&state={state}"));
-    url
+    format!(
+        "{AUTHORIZE_ENDPOINT}?client_id={}&redirect_uri={}&response_type=code&scope={}&state={}",
+        app_id, redirect_uri, scope, state
+    )
 }
 
 // ---- Token işlemleri ----
@@ -891,31 +972,21 @@ mod tests {
 
     #[test]
     fn redirect_uri_is_fixed_address() {
-        // Redirect URI tam olarak sabit adreste; dinamik port kullanılmaz.
-        // Meta, IP adresi (`127.0.0.1`) içeren URI'leri "Valid OAuth Redirect
-        // URIs" listesinde kabul etmediğinden etki adı `localhost` kullanılır.
-        let expected = "http://localhost:43123/meta-callback";
-        let port = META_LOOPBACK_PORT.to_string();
-        assert_eq!(format!("{}:{}", META_LOOPBACK_HOST, port), "localhost:43123");
-        assert_eq!(META_CALLBACK_PATH, "/meta-callback");
-        assert!(expected.contains(&META_CALLBACK_PATH));
-        assert!(expected.contains(&format!("{}:{}", META_LOOPBACK_HOST, META_LOOPBACK_PORT)));
+        // Resmî masaüstü webview redirect adresi sabittir; localhost/port yok.
+        assert_eq!(
+            META_LOGIN_SUCCESS_URI,
+            "https://www.facebook.com/connect/login_success.html"
+        );
+        assert!(META_LOGIN_SUCCESS_URI.starts_with("https://www.facebook.com/"));
+        assert!(META_LOGIN_SUCCESS_URI.contains("connect/login_success.html"));
     }
 
     #[test]
-    fn valid_callback_path_is_accepted() {
-        // Query kısmı varsa path yalnız `/meta-callback` olmalı.
-        assert!(is_valid_callback_path("/meta-callback"));
-        assert!(is_valid_callback_path("/meta-callback"));
-    }
-
-    #[test]
-    fn invalid_callback_path_is_rejected() {
-        // Başka path (hata sayfası, sağlık yoklaması, boş) reddedilir.
-        assert!(!is_valid_callback_path("/"));
-        assert!(!is_valid_callback_path("/other"));
-        assert!(!is_valid_callback_path("/meta-callback/"));
-        assert!(!is_valid_callback_path(""));
+    fn webview_callback_covers_login_success_query() {
+        // login_success.html query'si code + state taşır; parse girdisi budur.
+        let (code, state) = parse_callback_query("code=abc123&state=xyz");
+        assert_eq!(code.as_deref(), Some("abc123"));
+        assert_eq!(state.as_deref(), Some("xyz"));
     }
 
     #[test]
@@ -925,15 +996,6 @@ mod tests {
         assert_eq!(state.as_deref(), Some("xyz"));
         let empty = parse_callback_query("code=abc");
         assert!(empty.1.is_none());
-    }
-
-    #[test]
-    fn bind_loopback_returns_controlled_error_when_port_in_use() {
-        // Sabit port doluysa kontrollü CallbackPortInUse hatası; sahte yok.
-        let held = std::net::TcpListener::bind(("127.0.0.1", META_LOOPBACK_PORT)).unwrap();
-        let err = bind_loopback().unwrap_err();
-        assert_eq!(err, SocialError::CallbackPortInUse);
-        drop(held);
     }
 
     #[test]
@@ -1066,16 +1128,37 @@ mod tests {
 
     #[test]
     fn authorize_url_includes_config_id_when_provided() {
+        // SUAT ana kuralı: config_id ile scope GÖNDERİLMEZ (izinler panelden),
+        // override_default_response_type=true zorunlu, state korunur.
         let url = build_authorize_url(
             "123",
             "http://localhost:8080/redirect",
             "pages_show_list,pages_manage_posts",
             "st",
-            Some("1585834799908565"),
+            Some("917689934731039"),
         );
-        assert!(url.contains("config_id=1585834799908565"));
         assert!(url.starts_with("https://www.facebook.com/dialog/oauth?client_id=123"));
-        // Configuration üzerinden yönetilse bile state korunur.
+        assert!(url.contains("config_id=917689934731039"));
+        assert!(url.contains("override_default_response_type=true"));
+        assert!(url.contains("response_type=code"));
+        assert!(!url.contains("scope="));
+        assert!(url.contains("state=st"));
+    }
+
+    #[test]
+    fn authorize_url_without_config_id_is_scope_based() {
+        // config_id yoksa klasik scope akışı; override parametresi gelmez.
+        let url = build_authorize_url(
+            "123",
+            "https://www.facebook.com/connect/login_success.html",
+            "pages_show_list,pages_manage_posts",
+            "st",
+            None,
+        );
+        assert!(url.contains("scope=pages_show_list,pages_manage_posts"));
+        assert!(!url.contains("config_id="));
+        assert!(!url.contains("override_default_response_type"));
+        assert!(url.contains("response_type=code"));
         assert!(url.contains("state=st"));
     }
 
