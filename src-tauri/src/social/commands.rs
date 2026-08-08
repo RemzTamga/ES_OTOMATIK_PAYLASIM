@@ -331,7 +331,11 @@ fn run_meta_connect_flow(
     let redirect_uri = "http://localhost:43123/meta-callback".to_string();
     let state = meta::generate_state()?;
 
-    let scope = super::platforms::facebook::SCOPES;
+    let scope = if pin_instagram {
+        super::platforms::instagram::SCOPES
+    } else {
+        super::platforms::facebook::SCOPES
+    };
     let auth_url = meta::build_authorize_url(
         &app_id,
         &redirect_uri,
