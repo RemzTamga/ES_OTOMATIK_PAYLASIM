@@ -12,8 +12,7 @@
 //!
 //! Ham tokenlar hiçbir koşulda JavaScript'e, DOM'a, localStorage'a, metadata
 //! deposuna veya loglara gönderilmez. Client secret kullanılmaz; gerçek client
-//! id derleme zamanında `ES_OPS_YOUTUBE_CLIENT_ID` üzerinden gömülür veya
-//! (varsa) kullanıcının güvenli depodaki kaydından çözülür.
+//! id yalnız derleme zamanında `ES_OPS_YOUTUBE_CLIENT_ID` üzerinden gömülür.
 
 use std::io::{Read, Write};
 use std::net::TcpListener;
@@ -51,50 +50,6 @@ fn youtube_client_id() -> Option<&'static str> {
     option_env!("ES_OPS_YOUTUBE_CLIENT_ID")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
-}
-
-// ---- YouTube yapılandırma (Client ID) ----
-
-/// YouTube yapılandırması için kullanılan ortak (bağlantıya özgü olmayan) anahtar.
-/// Yalnız Client ID saklanır; Client Secret bu entegrasyonda asla saklanmaz
-/// (Native PKCE kullanılır).
-const YOUTUBE_CONFIG_CONN: &str = "_youtube_app_config";
-
-/// YouTube Client ID'yi güvenli depoya yazar (Client ID gizli bilgi değildir).
-pub fn store_client_id(client_id: &str) -> Result<(), SocialError> {
-    if client_id.trim().is_empty() {
-        return Err(SocialError::YoutubeNotConfigured);
-    }
-    credential_store::store_token(
-        PLATFORM_ID,
-        YOUTUBE_CONFIG_CONN,
-        TokenType::RefreshToken,
-        client_id.trim(),
-    )
-}
-
-/// Güvenli depodan YouTube Client ID'yi okur.
-pub fn read_client_id() -> Result<Option<String>, SocialError> {
-    credential_store::get_token(PLATFORM_ID, YOUTUBE_CONFIG_CONN, TokenType::RefreshToken)
-}
-
-/// Kullanım sırasında çözülecek Client ID. Önce derleme zamanı
-/// `ES_OPS_YOUTUBE_CLIENT_ID`, varsa onu, yoksa güvenli depodaki kullanıcı
-/// kaydını kullanır.
-pub fn resolved_client_id() -> Option<String> {
-    youtube_client_id()
-        .map(|s| s.to_string())
-        .or_else(|| read_client_id().ok().flatten())
-}
-
-/// Güvenli depodaki YouTube yapılandırmasını temizler.
-pub fn clear_config() -> Result<(), SocialError> {
-    credential_store::delete_all_tokens(PLATFORM_ID, YOUTUBE_CONFIG_CONN)
-}
-
-/// YouTube yapılandırma durumu (gizli bilgi içermez).
-pub fn config_status() -> Result<bool, SocialError> {
-    Ok(resolved_client_id().is_some())
 }
 
 /// Video gizlilik durumu (kontrollü değerler).
@@ -493,7 +448,7 @@ fn connect_for_channel(
 
 /// YouTube'a gerçek OAuth ile bağlanır.
 pub fn connect(app: &AppHandle) -> Result<SocialAccountConnection, SocialError> {
-    let client_id = resolved_client_id().ok_or(SocialError::YoutubeNotConfigured)?;
+    let client_id = youtube_client_id().ok_or(SocialError::YoutubeNotConfigured)?;
 
     let listener = bind_loopback()?;
     let port = listener
@@ -556,8 +511,8 @@ fn obtain_access_token(
         }
     };
 
-    let client_id = resolved_client_id().ok_or(SocialError::YoutubeNotConfigured)?;
-    let tokens = refresh_access_token(&client_id, &refresh).map_err(|_| {
+    let client_id = youtube_client_id().ok_or(SocialError::YoutubeNotConfigured)?;
+    let tokens = refresh_access_token(client_id, &refresh).map_err(|_| {
         update_status(app, &record.connection_id, ConnectionStatus::Error);
         SocialError::TokenRefreshFailed
     })?;
@@ -804,15 +759,16 @@ pub fn upload_video(
         perform_upload(&client, &access_token, title, description, privacy, &bytes, &mime_type);
 
     if matches!(attempt, Err(PutOutcome::AuthRequired)) {
-        let client_id = resolved_client_id().ok_or(SocialError::YoutubeNotConfigured)?;
-        let refresh_token = credential_store::get_token(            &record.platform_id,
+        let client_id = youtube_client_id().ok_or(SocialError::YoutubeNotConfigured)?;
+        let refresh_token = credential_store::get_token(
+            &record.platform_id,
             &record.connection_id,
             TokenType::RefreshToken,
         )
         .map_err(|_| SocialError::CredentialStoreError)?
         .ok_or(SocialError::TokenRefreshFailed)?;
 
-        let tokens = refresh_access_token(&client_id, &refresh_token).map_err(|_| {
+        let tokens = refresh_access_token(client_id, &refresh_token).map_err(|_| {
             update_status(app, &record.connection_id, ConnectionStatus::TokenExpired);
             SocialError::TokenRefreshFailed
         })?;
@@ -937,19 +893,6 @@ mod tests {
         let b = compute_code_challenge(v).unwrap();
         assert_eq!(a, b);
         assert_eq!(a, "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM");
-    }
-
-    #[test]
-    fn store_client_id_rejects_empty() {
-        // Boş Client ID güvenli depoya yazılmaz; kontrollü hataya döner.
-        assert_eq!(
-            store_client_id("").unwrap_err(),
-            SocialError::YoutubeNotConfigured
-        );
-        assert_eq!(
-            store_client_id("   ").unwrap_err(),
-            SocialError::YoutubeNotConfigured
-        );
     }
 
     #[test]

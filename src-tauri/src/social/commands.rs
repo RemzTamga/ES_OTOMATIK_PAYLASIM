@@ -289,44 +289,6 @@ pub fn youtube_upload_video(
     youtube::upload_video(&app, &connection_id, &video_path, &title, &description, privacy_status)
 }
 
-/// YouTube bağlantı yapılandırma durumu (gizli bilgi içermez).
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct YoutubeConfigStatus {
-    pub client_id_configured: bool,
-}
-
-/// YouTube Client ID'nin yapılandırılıp yapılandırılmadığını döndürür.
-/// Bu entegrasyonda Client Secret kavramı yoktur (Native PKCE); secret asla
-/// istenmez/saklanmaz.
-#[tauri::command]
-pub fn youtube_config_status() -> Result<YoutubeConfigStatus, SocialError> {
-    let has_id = youtube::config_status()?;
-    Ok(YoutubeConfigStatus {
-        client_id_configured: has_id,
-    })
-}
-
-/// YouTube Client ID'yi güvenli depoya (Windows Credential Manager) yazar.
-/// Client ID gizli bilgi değildir; Client Secret alanı kasıtlı olarak yoktur.
-/// Boş değer kabul edilmez.
-#[tauri::command]
-pub fn youtube_set_config(client_id: String) -> Result<YoutubeConfigStatus, SocialError> {
-    if client_id.trim().is_empty() {
-        return Err(SocialError::YoutubeNotConfigured);
-    }
-    youtube::store_client_id(&client_id)?;
-    Ok(YoutubeConfigStatus {
-        client_id_configured: true,
-    })
-}
-
-/// Güvenli depodaki YouTube Client ID yapılandırmasını temizler.
-#[tauri::command]
-pub fn youtube_clear_config() -> Result<(), SocialError> {
-    youtube::clear_config()
-}
-
 // ----------------------------------------------------------------------
 // Meta (Facebook / Instagram) bağlantı ve yayın komutları
 // ----------------------------------------------------------------------
