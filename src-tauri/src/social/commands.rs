@@ -304,9 +304,9 @@ pub struct FacebookConnectResult {
 ///
 /// Ortak akış adımları:
 /// 1. Yapılandırılmış App ID / App Secret'ı çöz (güvenli depodan okunur; kaynağa gömülmez).
-/// 2. Loopback listener açar, `state` üretir ve resmî Facebook yetkilendirme
-///    sayfasını sistem tarayıcısında açar.
-/// 3. Callback'ten yetkilendirme kodunu ve state'i alır; state eşleşmesini doğrular.
+/// 2. `state` üretir; resmî Facebook yetkilendirme sayfasını uygulama içi
+///    webview penceresinde açar (redirect: `connect/login_success.html`).
+/// 3. Webview'dan yetkilendirme kodunu alır; state eşleşmesini doğrular.
 /// 4. Kodu gerçek Meta token endpoint'inde App Secret ile token'a çevirir.
 /// 5. Token'la yönetilen Facebook Sayfalarını keşfeder.
 ///
@@ -323,12 +323,12 @@ fn run_meta_connect_flow(
     let (app_id, app_secret) =
         meta::assert_connect_ready(meta::resolved_app_id(), meta::resolved_app_secret())?;
 
-    let listener = meta::bind_loopback()?;
-    // Meta redirect URI sabittir ve App Dashboard'undaki "Valid OAuth Redirect
-    // URIs" listesine bu tam adresle kaydedilir. Dinamik port kullanılmaz.
-    // Meta, IP adresi içeren redirect URI'lerini (ör. `127.0.0.1`) reddeder;
-    // bu yüzden etki adı `localhost` kullanılır (loopback dinleyici aynı hedef).
-    let redirect_uri = "http://localhost:43123/meta-callback".to_string();
+    // Meta'nın resmî masaüstü webview akışı kullanılır: redirect URI sabit
+    // `https://www.facebook.com/connect/login_success.html` adresidir ve login,
+    // uygulama içi webview penceresinde yürütülür. Sistem tarayıcısına
+    // `http://localhost:43123/...` gibi Meta'nın alan adı denetiminden geçmeyen
+    // bir redirect gönderilmez; dinlenecek port/sunucu kullanılmaz.
+    let redirect_uri = meta::META_LOGIN_SUCCESS_URI.to_string();
     let state = meta::generate_state()?;
 
     let scope = if pin_instagram {
@@ -343,12 +343,10 @@ fn run_meta_connect_flow(
         &state,
         meta::meta_config_id(),
     );
-    meta::open_browser(app, &auth_url)?;
 
-    let (code, callback_state) = meta::wait_for_callback(&listener)?;
-    if callback_state != state {
-        return Err(SocialError::OauthStateMismatch);
-    }
+    // Webview, `login_success.html` navigasyonunu yakalayıp code + state'i
+    // doğrular ve sonucu döndürür; sistem tarayıcısı / loopback kullanılmaz.
+    let code = meta::login_via_webview(app, &auth_url, &state)?;
 
     let user_token = meta::exchange_code_real(&app_id, &redirect_uri, &code, &app_secret)?;
 
