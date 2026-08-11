@@ -87,11 +87,16 @@ fn generate_pkce_verifier() -> Result<String, SocialError> {
     Ok(URL_SAFE_NO_PAD.encode(bytes))
 }
 
-/// PKCE `code_challenge` üretir: `code_challenge = base64url(sha256(verifier))`.
+/// PKCE `code_challenge` üretir: TikTok desktop akışı için zorunlu olan
+/// `code_challenge = hex(sha256(verifier))` (S256, HEX kodlama).
 fn pkce_challenge(verifier: &str) -> Result<String, SocialError> {
     use sha2::Digest;
     let digest = sha2::Sha256::digest(verifier.as_bytes());
-    Ok(URL_SAFE_NO_PAD.encode(digest))
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        hex.push_str(&format!("{byte:02x}"));
+    }
+    Ok(hex)
 }
 
 /// Benzersiz bağlantı kimliği üretir.
@@ -926,7 +931,8 @@ mod tests {
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'));
         let challenge = pkce_challenge(&verifier).unwrap();
-        assert!(!challenge.is_empty());
+        assert_eq!(challenge.len(), 64);
+        assert!(challenge.chars().all(|c| c.is_ascii_hexdigit()));
     }
 
     #[test]
