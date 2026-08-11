@@ -80,6 +80,20 @@ fn generate_state() -> Result<String, SocialError> {
     Ok(URL_SAFE_NO_PAD.encode(bytes))
 }
 
+/// PKCE `code_verifier` üretir (RFC 7636: 43-128 karakter, URL-safe).
+/// 32 rastgele bayt → 43 karakterlik URL-safe dize.
+fn generate_pkce_verifier() -> Result<String, SocialError> {
+    let bytes = random_bytes(32)?;
+    Ok(URL_SAFE_NO_PAD.encode(bytes))
+}
+
+/// PKCE `code_challenge` üretir: `code_challenge = base64url(sha256(verifier))`.
+fn pkce_challenge(verifier: &str) -> Result<String, SocialError> {
+    use sha2::Digest;
+    let digest = sha2::Sha256::digest(verifier.as_bytes());
+    Ok(URL_SAFE_NO_PAD.encode(digest))
+}
+
 /// Benzersiz bağlantı kimliği üretir.
 fn generate_connection_id() -> Result<String, SocialError> {
     let bytes = random_bytes(16)?;
@@ -210,16 +224,17 @@ fn open_browser(app: &AppHandle, url: &str) -> Result<(), SocialError> {
 // ---- OAuth URL ----
 
 /// TikTok yetkilendirme URL'sini oluşturur (`response_type=code`).
-/// TLS'ye ilişkin PKCE isteğe bağlı olduğundan burada kullanılmaz; yalnız
-/// resmî `response_type=code` + state akışı uygulanır.
+/// TikTok native akışı PKCE'yi zorunlu kıldığından S256 `code_challenge`
+/// yetkilendirme isteğine eklenir; `code_verifier` token değişiminde gönderilir.
 fn build_authorize_url(
     client_key: &str,
     redirect_uri: &str,
     scope: &str,
     state: &str,
+    code_challenge: &str,
 ) -> String {
     format!(
-        "{AUTHORIZE_ENDPOINT}?response_type=code&client_key={client_key}&redirect_uri={redirect_uri}&scope={scope}&state={state}&disable_visibility_permission=1"
+        "{AUTHORIZE_ENDPOINT}?response_type=code&client_key={client_key}&redirect_uri={redirect_uri}&scope={scope}&state={state}&code_challenge={code_challenge}&code_challenge_method=S256&disable_visibility_permission=1"
     )
 }
 
@@ -232,12 +247,14 @@ struct TokenSet {
     refresh_token: Option<String>,
 }
 
-/// Yetkilendirme kodunu TikTok token endpoint'inde client_secret ile değiştirir.
+/// Yetkilendirme kodunu TikTok token endpoint'inde client_secret + PKCE
+/// `code_verifier` ile değiştirir.
 fn exchange_code(
     client_key: &str,
     client_secret: &str,
     redirect_uri: &str,
     code: &str,
+    code_verifier: &str,
 ) -> Result<TokenSet, SocialError> {
     let client = http_client()?;
     let params = [
@@ -246,6 +263,7 @@ fn exchange_code(
         ("code", code),
         ("grant_type", "authorization_code"),
         ("redirect_uri", redirect_uri),
+        ("code_verifier", code_verifier),
     ];
     let resp = client
         .post(TOKEN_ENDPOINT)
@@ -439,9 +457,12 @@ pub fn connect(app: &AppHandle) -> Result<SocialAccountConnection, SocialError> 
         .port();
     let redirect_uri = format!("http://127.0.0.1:{port}/");
     let state = generate_state()?;
+    let code_verifier = generate_pkce_verifier()?;
+    let code_challenge = pkce_challenge(&code_verifier)?;
     let scope = "user.info.basic,video.publish";
 
-    let auth_url = build_authorize_url(&client_key, &redirect_uri, scope, &state);
+    let auth_url =
+        build_authorize_url(&client_key, &redirect_uri, scope, &state, &code_challenge);
     open_browser(app, &auth_url)?;
 
     let (code, callback_state) = wait_for_callback(&listener)?;
@@ -449,7 +470,13 @@ pub fn connect(app: &AppHandle) -> Result<SocialAccountConnection, SocialError> 
         return Err(SocialError::OauthStateMismatch);
     }
 
-    let tokens = exchange_code(&client_key, &client_secret, &redirect_uri, &code)?;
+    let tokens = exchange_code(
+        &client_key,
+        &client_secret,
+        &redirect_uri,
+        &code,
+        &code_verifier,
+    )?;
     let user = fetch_user_info(&tokens.access_token)?;
 
     connect_for_user(app, &tokens, &user)
@@ -880,12 +907,26 @@ mod tests {
             "http://127.0.0.1:8080/",
             "user.info.basic,video.publish",
             "st",
+            "challenge123",
         );
         assert!(url.contains("response_type=code"));
         assert!(url.contains("client_key=clientkey123"));
         assert!(url.contains("redirect_uri=http://127.0.0.1:8080/"));
         assert!(url.contains("scope=user.info.basic"));
         assert!(url.contains("state=st"));
+        assert!(url.contains("code_challenge=challenge123"));
+        assert!(url.contains("code_challenge_method=S256"));
+    }
+
+    #[test]
+    fn pkce_verifier_and_challenge_are_consistent() {
+        let verifier = generate_pkce_verifier().unwrap();
+        assert!((43..=128).contains(&verifier.len()));
+        assert!(verifier
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'));
+        let challenge = pkce_challenge(&verifier).unwrap();
+        assert!(!challenge.is_empty());
     }
 
     #[test]
