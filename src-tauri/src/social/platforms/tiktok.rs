@@ -5,7 +5,7 @@
 //! - `127.0.0.1` üzerinde dinamik bir loopback callback dinler,
 //! - Kriptografik olarak güvenli `state` kullanır (`response_type=code`),
 //! - Yetkilendirme kodunu gerçek TikTok token endpoint'iyle değiştirir,
-//! - `user.info.basic,video.publish` izinlerini ister,
+//! - `user.info.basic,video.upload` izinlerini ister,
 //! - Gerçek kullanıcı kimliğini (open_id) ve ekran adını
 //!   TikTok User Info API'den alır,
 //! - Tokenları yalnız Windows Credential Manager'da saklar.
@@ -464,7 +464,7 @@ pub fn connect(app: &AppHandle) -> Result<SocialAccountConnection, SocialError> 
     let state = generate_state()?;
     let code_verifier = generate_pkce_verifier()?;
     let code_challenge = pkce_challenge(&code_verifier)?;
-    let scope = "user.info.basic,video.publish";
+    let scope = "user.info.basic,video.upload";
 
     let auth_url =
         build_authorize_url(&client_key, &redirect_uri, scope, &state, &code_challenge);
@@ -910,7 +910,7 @@ mod tests {
         let url = build_authorize_url(
             "clientkey123",
             "http://127.0.0.1:8080/",
-            "user.info.basic,video.publish",
+            "user.info.basic,video.upload",
             "st",
             "challenge123",
         );
