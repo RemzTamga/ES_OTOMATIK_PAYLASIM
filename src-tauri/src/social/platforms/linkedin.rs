@@ -134,9 +134,11 @@ fn pkce_challenge(verifier: &str) -> Result<String, SocialError> {
 
 // ---- Loopback callback ----
 
-/// `127.0.0.1` üzerinde dinamik (serbest) bir portta dinleyici açar.
+/// `127.0.0.1:8080` üzerinde dinleyici açar. LinkedIn, yönlendirme adresini
+/// kayıtlı değerle birebir eşleştirdiğinden sabit port kullanılır; kullanıcının
+/// LinkedIn uygulama ayarlarına `http://127.0.0.1:8080/` kaydedilmelidir.
 fn bind_loopback() -> Result<TcpListener, SocialError> {
-    TcpListener::bind(("127.0.0.1", 0)).map_err(|_| SocialError::OauthTimeout)
+    TcpListener::bind(("127.0.0.1", 8080)).map_err(|_| SocialError::OperationFailed)
 }
 
 /// Loopback gelen isteğindeki `code` ve `state` değerlerini ayrıştırır.
