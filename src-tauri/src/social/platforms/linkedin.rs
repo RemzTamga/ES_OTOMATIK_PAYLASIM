@@ -81,9 +81,11 @@ const VIDEO_POLL_ATTEMPTS: u32 = 36;
 const VIDEO_POLL_INTERVAL: Duration = Duration::from_secs(5);
 
 /// LinkedIn OAuth izinleri (yalnız gereken en dar set).
+/// LinkedIn OpenID akışı `openid` ile birlikte `profile email` kapsamlarını
+/// zorunlu tutar (openid_insufficient_scope_error).
 /// `r_organization_social` kasıtlı olarak istenmez: yalnız okuma yapılacaksa
 /// gerekir; bu entegrasyon yalnız yayın yapar.
-pub const SCOPES: &str = "openid w_member_social w_organization_social rw_organization_admin";
+pub const SCOPES: &str = "openid profile email w_member_social w_organization_social rw_organization_admin";
 
 /// Şirket sayfasına yayın için kabul edilen üye rolleri (resmî değerler).
 pub const PAGE_POST_ROLES: [&str; 3] = [
@@ -1142,6 +1144,8 @@ mod tests {
     fn scopes_are_minimal_and_no_extra_read() {
         // En dar izin seti: kimlik + kişisel yayın + şirket yayını + sayfa keşfi.
         assert!(SCOPES.contains("openid"));
+        assert!(SCOPES.contains("profile"));
+        assert!(SCOPES.contains("email"));
         assert!(SCOPES.contains("w_member_social"));
         assert!(SCOPES.contains("w_organization_social"));
         assert!(SCOPES.contains("rw_organization_admin"));
