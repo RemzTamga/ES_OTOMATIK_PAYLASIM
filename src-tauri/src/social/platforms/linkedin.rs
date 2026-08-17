@@ -309,7 +309,6 @@ fn exchange_code(
     code: &str,
     code_verifier: &str,
 ) -> Result<TokenSet, SocialError> {
-    let client = http_client()?;
     let secret = linkedin_client_secret();
     let body = format!(
         "grant_type=authorization_code&code={}&client_id={}&client_secret={}&redirect_uri={}&code_verifier={}",
@@ -319,33 +318,21 @@ fn exchange_code(
         url_encode_path(redirect_uri),
         url_encode_path(code_verifier),
     );
-    let debug_path = std::env::temp_dir().join("esops_linkedin_debug.log");
-    let _ = std::fs::write(&debug_path, format!("REQUEST BODY:\n{}\n", body));
-    let resp = client
-        .post(TOKEN_ENDPOINT)
-        .header("Content-Type", "application/x-www-form-urlencoded")
-        .body(body)
-        .send()
+    let output = std::process::Command::new("curl.exe")
+        .args([
+            "-s", "-X", "POST", TOKEN_ENDPOINT,
+            "-H", "Content-Type: application/x-www-form-urlencoded",
+            "-d", &body,
+        ])
+        .output()
         .map_err(|_| SocialError::OauthExchangeFailed)?;
-
-    let status = resp.status();
-    let resp_body = resp.text().unwrap_or_default();
+    let resp_body = String::from_utf8_lossy(&output.stdout).to_string();
+    let debug_path = std::env::temp_dir().join("esops_linkedin_debug.log");
     let _ = std::fs::write(&debug_path, format!(
-        "=== LinkedIn Token Exchange ===\nStatus: {}\nClient ID: [{}]\nSecret: [{}]\nRedirect URI: {}\nCode: [{}]\nBody: {}\nRequest: {}\n",
-        status, client_id, secret, redirect_uri, code, resp_body,
-        std::fs::read_to_string(&debug_path).unwrap_or_default()
+        "=== LinkedIn Token Exchange (curl) ===\nBody: {}\nStderr: {}\n",
+        resp_body,
+        String::from_utf8_lossy(&output.stderr)
     ));
-    if !status.is_success() {
-        let lower = resp_body.to_lowercase();
-        if lower.contains("invalid_scope")
-            || lower.contains("access_denied")
-            || lower.contains("unauthorized_client")
-        {
-            return Err(SocialError::PermissionDenied);
-        }
-        return Err(SocialError::OauthExchangeFailed);
-    }
-
     #[derive(serde::Deserialize)]
     struct TokenResp {
         access_token: Option<String>,
