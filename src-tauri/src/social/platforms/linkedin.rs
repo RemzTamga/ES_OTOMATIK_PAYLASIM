@@ -292,16 +292,6 @@ pub fn build_authorize_url(
 
 // ---- Token exchange (secret'sız) ----
 
-use std::sync::Mutex;
-
-/// Son token exchange hatasının detayı (frontend'e gösterilmek üzere).
-static LAST_TOKEN_ERROR: Mutex<Option<String>> = Mutex::new(None);
-
-/// Son token exchange hata detayını alır ve temizler.
-pub fn take_last_token_error() -> Option<String> {
-    LAST_TOKEN_ERROR.lock().ok().and_then(|mut d| d.take())
-}
-
 struct TokenSet {
     access_token: String,
     refresh_token: Option<String>,
@@ -334,7 +324,7 @@ fn exchange_code(
     let status = resp.status();
     let body = resp.text().unwrap_or_default();
     if !status.is_success() {
-        let _ = LAST_TOKEN_ERROR.lock().map(|mut d| *d = Some(format!("HTTP {}: {}", status, body)));
+        let _ = super::super::models::LAST_OAUTH_DETAIL.lock().map(|mut d| *d = Some(format!("HTTP {}: {}", status, body)));
         let lower = body.to_lowercase();
         if lower.contains("invalid_scope")
             || lower.contains("access_denied")

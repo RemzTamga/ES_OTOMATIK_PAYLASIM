@@ -1,4 +1,8 @@
+use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
+
+/// Son token exchange hatasının detayı (dinamik hata mesajı için).
+pub static LAST_OAUTH_DETAIL: Mutex<Option<String>> = Mutex::new(None);
 
 /// Platform destek durumu. Kontrollü değerlerden oluşur.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -174,7 +178,13 @@ impl std::fmt::Display for SocialError {
             SocialError::OauthTimeout => "oauth_timeout",
             SocialError::CallbackPortInUse => "callback_port_in_use",
             SocialError::OauthStateMismatch => "oauth_state_mismatch",
-            SocialError::OauthExchangeFailed => "oauth_exchange_failed",
+            SocialError::OauthExchangeFailed => {
+                return if let Some(detail) = LAST_OAUTH_DETAIL.lock().ok().and_then(|d| d.clone()) {
+                    write!(f, "oauth_exchange_failed: {}", detail)
+                } else {
+                    f.write_str("oauth_exchange_failed")
+                };
+            }
             SocialError::ChannelLookupFailed => "channel_lookup_failed",
             SocialError::TokenExpired => "token_expired",
             SocialError::TokenRefreshFailed => "token_refresh_failed",

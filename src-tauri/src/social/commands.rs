@@ -676,15 +676,8 @@ pub struct LinkedinConnectResult {
 ///   veya `DIRECT_SPONSORED_CONTENT_POSTER` rolüne sahip olduğu şirket
 ///   sayfaları keşfedilir ve ayrı bağlantı olarak döndürülür.
 #[tauri::command]
-pub fn linkedin_connect(app: AppHandle) -> Result<LinkedinConnectResult, String> {
-    let connections = linkedin::connect(&app).map_err(|e| {
-        let code = format!("{}", e);
-        if let Some(detail) = linkedin::take_last_token_error() {
-            format!("{}: {}", code, detail)
-        } else {
-            code
-        }
-    })?;
+pub fn linkedin_connect(app: AppHandle) -> Result<LinkedinConnectResult, SocialError> {
+    let connections = linkedin::connect(&app)?;
     Ok(LinkedinConnectResult { connections })
 }
 
