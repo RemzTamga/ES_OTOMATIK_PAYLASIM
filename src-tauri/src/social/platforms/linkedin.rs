@@ -1,12 +1,11 @@
 //! Gerçek LinkedIn entegrasyonu.
 //!
-//! OAuth: LinkedIn'in masaüstü (native) uygulamalar için resmî PKCE akışı
-//! (RFC 7636) kullanılır:
+//! OAuth: LinkedIn'in 3-legged OAuth akışı kullanılır:
 //! - Sistem tarayıcısını açar,
 //! - `127.0.0.1` üzerinde dinamik loopback callback dinler,
-//! - Kriptografik olarak güvenli `state` + S256 `code_challenge` kullanır,
-//! - Token değişiminde yalnız `code_verifier` gönderilir (`client_secret`
-//!   gönderilmez — Native PKCE akışında gerekmez).
+//! - `state` ile CSRF koruması sağlar,
+//! - Token değişiminde `client_secret` body'de gönderilir.
+//! - OpenID (`openid profile email`) ve yayın (`w_member_social`) izinleri desteklenir.
 //!
 //! İzinler (yalnız gereken en dar set):
 //! - `openid`: kişisel kimlik (person URN) için (OpenID userinfo).
@@ -53,8 +52,8 @@ pub const PLATFORM_ID: &str = "linkedin";
 /// Güncel LinkedIn API sürümü (`Linkedin-Version` başlığı, YYYYMM biçiminde).
 pub const API_VERSION: &str = "202607";
 
-/// OAuth yetkilendirme uç adresi (Native PKCE akışı).
-const AUTHORIZE_ENDPOINT: &str = "https://www.linkedin.com/oauth/native-pkce/authorization";
+/// OAuth yetkilendirme uç adresi (3-legged OAuth).
+const AUTHORIZE_ENDPOINT: &str = "https://www.linkedin.com/oauth/v2/authorization";
 /// OAuth token endpoint (HTTP POST, form-urlencoded).
 const TOKEN_ENDPOINT: &str = "https://www.linkedin.com/oauth/v2/accessToken";
 /// Rest.li tabanlı güncel REST API kök adresi (Posts / Images / Videos).
@@ -98,7 +97,12 @@ pub fn linkedin_client_id() -> Option<&'static str> {
         .filter(|s| !s.is_empty())
 }
 
-// ---- Güvenli rastgele üretim (state + PKCE) ----
+/// LinkedIn Client Secret — token endpoint'i bunu zorunlu tutar.
+fn linkedin_client_secret() -> &'static str {
+    "WPL_AP1.P6prNESWT4WOIPBp.Cs8cKQ=="
+}
+
+// ---- Güvenli rastgele üretim (state) ----
 
 /// Kriptografik olarak güvenli rastgele bayt üretir.
 fn random_bytes(len: usize) -> Result<Vec<u8>, SocialError> {
@@ -113,20 +117,6 @@ fn random_bytes(len: usize) -> Result<Vec<u8>, SocialError> {
 fn generate_state() -> Result<String, SocialError> {
     let bytes = random_bytes(32)?;
     Ok(URL_SAFE_NO_PAD.encode(bytes))
-}
-
-/// PKCE `code_verifier` üretir (RFC 7636: 43-128 karakter, URL-safe).
-/// 32 rastgele bayt → 43 karakterlik URL-safe dize.
-fn generate_pkce_verifier() -> Result<String, SocialError> {
-    let bytes = random_bytes(32)?;
-    Ok(URL_SAFE_NO_PAD.encode(bytes))
-}
-
-/// PKCE `code_challenge` üretir: `code_challenge = base64url(sha256(verifier))`.
-fn pkce_challenge(verifier: &str) -> Result<String, SocialError> {
-    use sha2::Digest;
-    let digest = sha2::Sha256::digest(verifier.as_bytes());
-    Ok(URL_SAFE_NO_PAD.encode(digest))
 }
 
 // ---- Loopback callback ----
@@ -298,17 +288,16 @@ fn open_browser(app: &AppHandle, url: &str) -> Result<(), SocialError> {
 
 // ---- Auth URL ----
 
-/// LinkedIn yetkilendirme URL'sini oluşturur (Native PKCE: S256 challenge).
+/// LinkedIn yetkilendirme URL'sini oluşturur (3-legged OAuth).
 pub fn build_authorize_url(
     client_id: &str,
     redirect_uri: &str,
     scope: &str,
     state: &str,
-    code_challenge: &str,
 ) -> String {
     let scope_encoded = scope.replace(' ', "%20");
     format!(
-        "{AUTHORIZE_ENDPOINT}?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}&scope={scope_encoded}&state={state}&code_challenge={code_challenge}&code_challenge_method=S256"
+        "{AUTHORIZE_ENDPOINT}?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}&scope={scope_encoded}&state={state}"
     )
 }
 
@@ -321,20 +310,20 @@ struct TokenSet {
 
 /// Yetkilendirme kodunu LinkedIn token endpoint'inde değiştirir.
 ///
-/// LinkedIn Native PKCE akışında `client_secret` gönderilmez; yalnızca
-/// `code_verifier` ile kimlik doğrulanır.
+/// 3-legged OAuth: `client_secret` body'de gönderilir (RFC 6749 §2.3.1'e göre
+/// body params olarak).
 fn exchange_code(
     client_id: &str,
     redirect_uri: &str,
     code: &str,
-    code_verifier: &str,
 ) -> Result<TokenSet, SocialError> {
+    let secret = linkedin_client_secret();
     let body = format!(
-        "grant_type=authorization_code&code={}&redirect_uri={}&client_id={}&code_verifier={}",
+        "grant_type=authorization_code&code={}&redirect_uri={}&client_id={}&client_secret={}",
         url_encode_path(code),
         url_encode_path(redirect_uri),
         url_encode_path(client_id),
-        url_encode_path(code_verifier),
+        url_encode_path(secret),
     );
     let client = http_client()?;
     let resp = client
@@ -702,15 +691,15 @@ fn save_connection(
     })
 }
 
-/// LinkedIn'e gerçek Native PKCE OAuth akışıyla bağlanır.
+/// LinkedIn'e 3-legged OAuth akışıyla bağlanır.
 ///
 /// Akış:
 /// 1. Client ID'yi çözer (derleme zamanı veya güvenli depo). Yoksa
 ///    `linkedin_not_configured` döner.
-/// 2. Loopback listener açılır, `state` + S256 `code_challenge` üretilir ve
-///    resmî LinkedIn yetkilendirme sayfası (Native PKCE URL) sistem tarayıcısında açılır.
+/// 2. Loopback listener açılır, `state` üretilir ve
+///    resmî LinkedIn yetkilendirme sayfası sistem tarayıcısında açılır.
 /// 3. Callback'ten kod ve state alınır; state eşleşmesi doğrulanır.
-/// 4. Kod, `code_verifier` ile `client_secret` olmadan değiştirilir (Native PKCE).
+/// 4. Kod, `client_secret` ile token exchange'e gönderilir.
 /// 5. Kişisel profil (OpenID userinfo) her zaman bağlanır; yayın yapılabilir
 ///    şirket sayfaları keşfedilip her biri ayrı bağlantı olarak eklenir.
 ///
@@ -725,10 +714,8 @@ pub fn connect(app: &AppHandle) -> Result<Vec<SocialAccountConnection>, SocialEr
         .port();
     let redirect_uri = format!("http://127.0.0.1:{port}/");
     let state = generate_state()?;
-    let verifier = generate_pkce_verifier()?;
-    let challenge = pkce_challenge(&verifier)?;
 
-    let auth_url = build_authorize_url(&client_id, &redirect_uri, SCOPES, &state, &challenge);
+    let auth_url = build_authorize_url(&client_id, &redirect_uri, SCOPES, &state);
     open_browser(app, &auth_url)?;
 
     let (code, callback_state) = wait_for_callback(&listener)?;
@@ -736,7 +723,7 @@ pub fn connect(app: &AppHandle) -> Result<Vec<SocialAccountConnection>, SocialEr
         return Err(SocialError::OauthStateMismatch);
     }
 
-    let tokens = exchange_code(&client_id, &redirect_uri, &code, &verifier)?;
+    let tokens = exchange_code(&client_id, &redirect_uri, &code)?;
     let identity = fetch_member_identity(&tokens.access_token)?;
 
     let personal_urn = format!("urn:li:person:{}", identity.person_id);
@@ -1194,27 +1181,6 @@ mod tests {
     }
 
     #[test]
-    fn pkce_verifier_is_urlsafe_and_correct_length() {
-        let verifier = generate_pkce_verifier().unwrap();
-        assert_eq!(verifier.len(), 43);
-        assert!(verifier
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'));
-    }
-
-    #[test]
-    fn pkce_challenge_is_deterministic_and_urlsafe() {
-        let verifier = generate_pkce_verifier().unwrap();
-        let c1 = pkce_challenge(&verifier).unwrap();
-        let c2 = pkce_challenge(&verifier).unwrap();
-        assert_eq!(c1, c2);
-        assert_eq!(c1.len(), 43);
-        assert!(c1
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'));
-    }
-
-    #[test]
     fn state_is_urlsafe() {
         let s = generate_state().unwrap();
         assert!(!s.is_empty());
@@ -1238,22 +1204,19 @@ mod tests {
     }
 
     #[test]
-    fn authorize_url_includes_pkce_and_scope_without_secret() {
+    fn authorize_url_includes_required_params() {
         let url = build_authorize_url(
             "cid",
             "http://127.0.0.1:9999/",
             "openid w_member_social",
             "st",
-            "ch",
         );
-        assert!(url.contains("native-pkce/authorization"));
+        assert!(url.contains("linkedin.com/oauth/v2/authorization"));
         assert!(url.contains("client_id=cid"));
         assert!(url.contains("response_type=code"));
         assert!(url.contains("scope=openid%20w_member_social"));
         assert!(url.contains("state=st"));
-        assert!(url.contains("code_challenge=ch"));
-        assert!(url.contains("code_challenge_method=S256"));
-        assert!(!url.contains("client_secret"));
+        assert!(!url.contains("code_challenge"));
     }
 
     #[test]
