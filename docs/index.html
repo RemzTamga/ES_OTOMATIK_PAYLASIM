@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES OPS - Sosyal Medya Yönetim Aracı</title>
+    <meta name="description" content="ES OPS, sosyal medya hesaplarınızı tek bir yerden yönetmenizi sağlayan profesyonel bir masaüstü uygulamasıdır.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f8f9fa; }
+        .hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: white; padding: 100px 20px; text-align: center; }
+        .hero h1 { font-size: 3rem; margin-bottom: 10px; font-weight: 700; }
+        .hero .tagline { font-size: 1.3rem; opacity: 0.9; margin-bottom: 30px; }
+        .hero .badge { display: inline-block; background: #e94560; padding: 8px 24px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; letter-spacing: 1px; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        .features { padding: 80px 20px; background: white; }
+        .features h2 { text-align: center; font-size: 2rem; margin-bottom: 50px; color: #1a1a2e; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .card { background: #f8f9fa; border-radius: 12px; padding: 30px; border: 1px solid #e9ecef; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .card-icon { font-size: 2.5rem; margin-bottom: 15px; }
+        .card h3 { font-size: 1.2rem; margin-bottom: 10px; color: #1a1a2e; }
+        .card p { color: #555; font-size: 0.95rem; }
+        .platforms { padding: 80px 20px; background: #f8f9fa; text-align: center; }
+        .platforms h2 { font-size: 2rem; margin-bottom: 20px; color: #1a1a2e; }
+        .platforms p { color: #555; margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .platform-icons { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+        .platform-item { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .platform-item .icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; font-weight: bold; }
+        .platform-item span { font-size: 0.85rem; color: #555; font-weight: 500; }
+        .about { padding: 80px 20px; background: white; }
+        .about h2 { font-size: 2rem; margin-bottom: 20px; color: #1a1a2e; text-align: center; }
+        .about-content { max-width: 700px; margin: 0 auto; text-align: center; }
+        .about-content p { color: #555; margin-bottom: 15px; font-size: 1rem; }
+        .security { background: #e8f5e9; border-radius: 12px; padding: 30px; margin-top: 30px; }
+        .security h3 { color: #2e7d32; margin-bottom: 10px; }
+        .security p { color: #333; font-size: 0.95rem; }
+        footer { background: #1a1a2e; color: white; text-align: center; padding: 30px 20px; }
+        footer p { opacity: 0.7; font-size: 0.9rem; }
+        @media (max-width: 600px) { .hero h1 { font-size: 2rem; } }
+    </style>
+</head>
+<body>
+
+<section class="hero">
+    <div class="container">
+        <div class="badge">MASAUSTU UYGULAMASI</div>
+        <h1>ES OPS</h1>
+        <p class="tagline">Sosyal medya hesaplarinizi tek bir yerden profesyonelce yonetin.</p>
+    </div>
+</section>
+
+<section class="features">
+    <div class="container">
+        <h2>Ne Yapar?</h2>
+        <div class="grid">
+            <div class="card">
+                <div class="card-icon">&#128247;</div>
+                <h3>icerik Yayinlama</h3>
+                <p>Fotograf, video ve metin iceriklerinizi sosyal medya hesaplariniza tek tikla yayinlayin.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">&#128200;</div>
+                <h3>Planlama</h3>
+                <p>Yayinlarinizi ileri tarihli olarak planlayin, zamanlanmis iceriklerinizi takip edin.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">&#128274;</div>
+                <h3>Guvencli Baglanti</h3>
+                <p>OAuth 2.0 ve PKCE ile guvenli baglanti. Sifreleriniz hicbir yerde saklanmaz.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="platforms">
+    <div class="container">
+        <h2>Desteklenen Platformlar</h2>
+        <p>Tum sosyal medya hesaplarinizi tek bir uygulama uzerinden yonetin.</p>
+        <div class="platform-icons">
+            <div class="platform-item">
+                <div class="icon" style="background:#000;">T</div>
+                <span>TikTok</span>
+            </div>
+            <div class="platform-item">
+                <div class="icon" style="background:#0077B5;">in</div>
+                <span>LinkedIn</span>
+            </div>
+            <div class="platform-item">
+                <div class="icon" style="background:#000;">X</div>
+                <span>X (Twitter)</span>
+            </div>
+            <div class="platform-item">
+                <div class="icon" style="background:#FF0000;">&#9654;</div>
+                <span>YouTube</span>
+            </div>
+            <div class="platform-item">
+                <div class="icon" style="background:#1877F2;">f</div>
+                <span>Facebook</span>
+            </div>
+            <div class="platform-item">
+                <div class="icon" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);">&#9826;</div>
+                <span>Instagram</span>
+            </div>
+            <div class="platform-item">
+                <div class="icon" style="background:#E60023;">P</div>
+                <span>Pinterest</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about">
+    <div class="container">
+        <h2>Hakkinda</h2>
+        <div class="about-content">
+            <p>ES OPS, Turkiye merkezli bir yazilim projesidir. Sosyal medya yonetimini kolaylastirmak icin gelistirilmis profesyonel bir masaüstü uygulamasidir.</p>
+            <p>Modern OAuth 2.0 ve PKCE guvenlik standartlariyla, hesaplarinizi guvenli bir sekilde baglayabilir ve iceriklerinizi yonetebilirsiniz.</p>
+            <div class="security">
+                <h3>Gizlilik ve Guvenlik</h3>
+                <p>ES OPS, kullanici sifrelerini saklamaz. Tum baglantilar OAuth 2.0 ve PKCE ile guvenli sekilde yapilir. Verileriniz yalnizca cihazinizda kalir.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2026 ES OPS. Tum haklari saklidir.</p>
+    </div>
+</footer>
+
+</body>
+</html>
