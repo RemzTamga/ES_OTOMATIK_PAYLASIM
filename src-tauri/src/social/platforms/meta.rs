@@ -273,6 +273,7 @@ pub fn login_via_webview(
     auth_url: &str,
     expected_state: &str,
 ) -> Result<String, SocialError> {
+    let _ = std::fs::write(std::env::temp_dir().join("esops_meta_debug.log"), format!("url={}\nstate={}\n", auth_url, expected_state));
     let url = tauri::Url::parse(auth_url).map_err(|_| SocialError::OperationFailed)?;
     let (tx, rx) = std::sync::mpsc::channel::<Result<String, SocialError>>();
     let expected_state = expected_state.to_string();
