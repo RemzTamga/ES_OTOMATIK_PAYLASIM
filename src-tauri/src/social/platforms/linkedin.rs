@@ -318,21 +318,33 @@ fn exchange_code(
         url_encode_path(redirect_uri),
         url_encode_path(code_verifier),
     );
-    let output = std::process::Command::new("curl.exe")
-        .args([
-            "-s", "-X", "POST", TOKEN_ENDPOINT,
-            "-H", "Content-Type: application/x-www-form-urlencoded",
-            "-d", &body,
-        ])
-        .output()
-        .map_err(|_| SocialError::OauthExchangeFailed)?;
-    let resp_body = String::from_utf8_lossy(&output.stdout).to_string();
     let debug_path = std::env::temp_dir().join("esops_linkedin_debug.log");
     let _ = std::fs::write(&debug_path, format!(
-        "=== LinkedIn Token Exchange (curl) ===\nBody: {}\nStderr: {}\n",
-        resp_body,
-        String::from_utf8_lossy(&output.stderr)
+        "=== LinkedIn Token Exchange ===\nclient_id: {}\nsecret_len: {}\nbody: {}\n",
+        client_id, secret.len(), body,
     ));
+    let client = http_client()?;
+    let resp = client
+        .post(TOKEN_ENDPOINT)
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .body(body.clone())
+        .send()
+        .map_err(|e| {
+            let _ = std::fs::write(&debug_path, format!(
+                "=== LinkedIn Token Exchange FAILED ===\nbody: {}\nerr: {}\n",
+                body, e,
+            ));
+            SocialError::OauthExchangeFailed
+        })?;
+    let status = resp.status();
+    let resp_body = resp.text().unwrap_or_default();
+    let _ = std::fs::write(&debug_path, format!(
+        "=== LinkedIn Token Exchange ===\nclient_id: {}\nsecret_len: {}\nbody: {}\nstatus: {}\nresp: {}\n",
+        client_id, secret.len(), body, status, resp_body,
+    ));
+    if resp_body.contains("error") {
+        return Err(SocialError::OauthExchangeFailed);
+    }
     #[derive(serde::Deserialize)]
     struct TokenResp {
         access_token: Option<String>,
