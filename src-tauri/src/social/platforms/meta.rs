@@ -79,6 +79,7 @@ pub fn meta_config_id() -> Option<&'static str> {
     option_env!("ES_OPS_META_CONFIG_ID")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
+        .filter(|_| false)
 }
 
 // ---- Güvenli rastgele üretim (OAuth state) ----
