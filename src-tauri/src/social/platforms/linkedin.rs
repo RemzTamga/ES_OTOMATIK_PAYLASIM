@@ -13,12 +13,10 @@
 //!
 //! İzinler (yalnız gereken en dar set):
 //! - `openid`: kişisel kimlik (person URN) için (OpenID userinfo).
+//! - `profile`, `email`: OpenID zorunlu kapsamları.
 //! - `w_member_social`: kişisel profile yayın.
-//! - `w_organization_social`: şirket sayfasına yayın.
-//! - `rw_organization_admin`: kullanıcının yayın yapabileceği şirket
-//!   sayfalarını keşfetmek için. Yalnız okuma yapılırsa gerekli olan
-//!   `r_organization_social` bu entegrasyonda istenmez (yayın için zorunlu
-//!   değildir).
+//!   Kurumsal izinler (`w_organization_social`, `rw_organization_admin`) yalnızca
+//!   LinkedIn portalda onaylandığında SCOPES sabitine eklenmeli.
 //!
 //! Şirket sayfası yayını için kabul edilen üye rolleri (resmî LinkedIn rol
 //! değerleri): `ADMINISTRATOR`, `CONTENT_ADMIN`, `DIRECT_SPONSORED_CONTENT_POSTER`.
@@ -83,9 +81,10 @@ const VIDEO_POLL_INTERVAL: Duration = Duration::from_secs(5);
 /// LinkedIn OAuth izinleri (yalnız gereken en dar set).
 /// LinkedIn OpenID akışı `openid` ile birlikte `profile email` kapsamlarını
 /// zorunlu tutar (openid_insufficient_scope_error).
-/// `r_organization_social` kasıtlı olarak istenmez: yalnız okuma yapılacaksa
-/// gerekir; bu entegrasyon yalnız yayın yapar.
-pub const SCOPES: &str = "openid profile email w_member_social w_organization_social rw_organization_admin";
+/// `w_organization_social` ve `rw_organization_admin` yalnızca uygulama
+/// LinkedIn portalda onaylandığında eklenmeli; onaysızken `unauthorized_scope_error`
+/// hatası verir. Bu nedenle yalnız kişisel yayın izni (`w_member_social`) istenir.
+pub const SCOPES: &str = "openid profile email w_member_social";
 
 /// Şirket sayfasına yayın için kabul edilen üye rolleri (resmî değerler).
 pub const PAGE_POST_ROLES: [&str; 3] = [
@@ -1142,13 +1141,14 @@ mod tests {
 
     #[test]
     fn scopes_are_minimal_and_no_extra_read() {
-        // En dar izin seti: kimlik + kişisel yayın + şirket yayını + sayfa keşfi.
+        // En dar izin seti: kimlik (OpenID) + kişisel yayın.
         assert!(SCOPES.contains("openid"));
         assert!(SCOPES.contains("profile"));
         assert!(SCOPES.contains("email"));
         assert!(SCOPES.contains("w_member_social"));
-        assert!(SCOPES.contains("w_organization_social"));
-        assert!(SCOPES.contains("rw_organization_admin"));
+        // Kurumsal izinler yalnızca uygulama onaylandığında eklenmeli.
+        assert!(!SCOPES.contains("w_organization_social"));
+        assert!(!SCOPES.contains("rw_organization_admin"));
         // Yalnız okuma yapılırsa gerekli olan izin istenmez (yayın için zorunlu değil).
         assert!(!SCOPES.contains("r_organization_social"));
     }
