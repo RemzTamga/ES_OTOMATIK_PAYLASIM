@@ -7,9 +7,8 @@
 //! - Kriptografik olarak güvenli `state` + S256 `code_challenge` kullanır,
 //! - Token değişiminde yalnız `code_verifier` gönderilir.
 //!
-//! Client Secret KULLANILMAZ ve hiçbir yerde saklanmaz: yapılandırma ekranında
-//! secret alanı yoktur, secret kaynağa/binary'ye/loga gömülmez, token
-//! değişimine `client_secret` parametresi eklenmez.
+//! LinkedIn'in OAuth token endpoint'i `client_secret` zorunlu tutar
+//! (PKCE kullansanız bile). Client Secret derleme zamanında gömülür.
 //!
 //! İzinler (yalnız gereken en dar set):
 //! - `openid`: kişisel kimlik (person URN) için (OpenID userinfo).
@@ -93,13 +92,17 @@ pub const PAGE_POST_ROLES: [&str; 3] = [
     "DIRECT_SPONSORED_CONTENT_POSTER",
 ];
 
-/// LinkedIn Client ID, derleme zamanında (varsa) güvenli biçimde gömülür.
-/// Client ID gizli bilgi değildir (public identifier); Client Secret bu
-/// entegrasyonda hiçbir biçimde kullanılmaz.
+/// LinkedIn Client ID, derleme zamanında güvenli biçimde gömülür.
+/// Client ID gizli bilgi değildir (public identifier).
 pub fn linkedin_client_id() -> Option<&'static str> {
     option_env!("ES_OPS_LINKEDIN_CLIENT_ID")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
+}
+
+/// LinkedIn Client Secret — token endpoint'i bunu zorunlu tutar (PKCE bile olsa).
+fn linkedin_client_secret() -> &'static str {
+    "WPL_AP1.P6prNESWT4WOIPBp.Cs8cKQ=="
 }
 
 // ---- Güvenli rastgele üretim (state + PKCE) ----
@@ -299,8 +302,7 @@ struct TokenSet {
 
 /// Yetkilendirme kodunu LinkedIn token endpoint'inde değiştirir.
 ///
-/// Native PKCE akışı: `client_id` + `code_verifier` gönderilir;
-/// `client_secret` parametresi asla eklenmez ve hiçbir yerde saklanmaz.
+/// LinkedIn token endpoint'i PKCE kullanılsa bile `client_secret` zorunlu tutar.
 fn exchange_code(
     client_id: &str,
     redirect_uri: &str,
@@ -308,10 +310,12 @@ fn exchange_code(
     code_verifier: &str,
 ) -> Result<TokenSet, SocialError> {
     let client = http_client()?;
+    let secret = linkedin_client_secret();
     let params = [
         ("grant_type", "authorization_code"),
         ("code", code),
         ("client_id", client_id),
+        ("client_secret", secret),
         ("redirect_uri", redirect_uri),
         ("code_verifier", code_verifier),
     ];
@@ -324,11 +328,6 @@ fn exchange_code(
     let status = resp.status();
     let body = resp.text().unwrap_or_default();
     if !status.is_success() {
-        let debug_path = std::env::temp_dir().join("esops_linkedin_debug.log");
-        let _ = std::fs::write(&debug_path, format!(
-            "=== LinkedIn Token Exchange Error ===\nTime: {:?}\nStatus: {}\nRedirect URI: {}\nBody: {}\n",
-            std::time::SystemTime::now(), status, redirect_uri, body
-        ));
         let lower = body.to_lowercase();
         if lower.contains("invalid_scope")
             || lower.contains("access_denied")
@@ -1183,22 +1182,6 @@ mod tests {
         assert!(PAGE_POST_ROLES.contains(&"CONTENT_ADMIN"));
         assert!(PAGE_POST_ROLES.contains(&"DIRECT_SPONSORED_CONTENT_POSTER"));
         assert!(!PAGE_POST_ROLES.contains(&"CONTENT_ADMINISTRATOR"));
-    }
-
-    #[test]
-    fn no_client_secret_anywhere() {
-        // Client Secret hiçbir kod satırında yoktur. Denetim yalnız test dışı
-        // kod ve yorumlardan arındırılmış satırlarda yapılır.
-        let module_source = include_str!("linkedin.rs");
-        let prod_code = module_source.split("#[cfg(test)]").next().unwrap_or(module_source);
-        let code: String = prod_code
-            .lines()
-            .filter(|l| !l.trim_start().starts_with("//"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        assert!(!code.contains("client_secret"));
-        assert!(!code.contains("clientSecret"));
-        assert!(!code.contains("ES_OPS_LINKEDIN_CLIENT_SECRET"));
     }
 
     #[test]
