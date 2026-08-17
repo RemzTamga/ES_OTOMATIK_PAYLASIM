@@ -309,18 +309,21 @@ fn exchange_code(
     code: &str,
     code_verifier: &str,
 ) -> Result<TokenSet, SocialError> {
+    use base64::engine::general_purpose::STANDARD;
     let client = http_client()?;
     let secret = linkedin_client_secret();
+    let basic_auth = format!("{}:{}", client_id, secret);
+    let basic_header = format!("Basic {}", STANDARD.encode(basic_auth));
     let params = [
         ("grant_type", "authorization_code"),
         ("code", code),
         ("client_id", client_id),
-        ("client_secret", secret),
         ("redirect_uri", redirect_uri),
         ("code_verifier", code_verifier),
     ];
     let resp = client
         .post(TOKEN_ENDPOINT)
+        .header("Authorization", &basic_header)
         .form(&params)
         .send()
         .map_err(|_| SocialError::OauthExchangeFailed)?;
