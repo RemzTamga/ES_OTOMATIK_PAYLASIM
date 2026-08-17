@@ -5,10 +5,8 @@
 //! - Sistem tarayıcısını açar,
 //! - `127.0.0.1` üzerinde dinamik loopback callback dinler,
 //! - Kriptografik olarak güvenli `state` + S256 `code_challenge` kullanır,
-//! - Token değişiminde yalnız `code_verifier` gönderilir.
-//!
-//! LinkedIn'in OAuth token endpoint'i `client_secret` zorunlu tutar
-//! (PKCE kullansanız bile). Client Secret derleme zamanında gömülür.
+//! - Token değişiminde yalnız `code_verifier` gönderilir (`client_secret`
+//!   gönderilmez — Native PKCE akışında gerekmez).
 //!
 //! İzinler (yalnız gereken en dar set):
 //! - `openid`: kişisel kimlik (person URN) için (OpenID userinfo).
@@ -55,8 +53,8 @@ pub const PLATFORM_ID: &str = "linkedin";
 /// Güncel LinkedIn API sürümü (`Linkedin-Version` başlığı, YYYYMM biçiminde).
 pub const API_VERSION: &str = "202607";
 
-/// OAuth yetkilendirme uç adresi.
-const AUTHORIZE_ENDPOINT: &str = "https://www.linkedin.com/oauth/v2/authorization";
+/// OAuth yetkilendirme uç adresi (Native PKCE akışı).
+const AUTHORIZE_ENDPOINT: &str = "https://www.linkedin.com/oauth/native-pkce/authorization";
 /// OAuth token endpoint (HTTP POST, form-urlencoded).
 const TOKEN_ENDPOINT: &str = "https://www.linkedin.com/oauth/v2/accessToken";
 /// Rest.li tabanlı güncel REST API kök adresi (Posts / Images / Videos).
@@ -100,11 +98,6 @@ pub fn linkedin_client_id() -> Option<&'static str> {
         .filter(|s| !s.is_empty())
 }
 
-/// LinkedIn Client Secret — token endpoint'i bunu zorunlu tutar (PKCE bile olsa).
-fn linkedin_client_secret() -> &'static str {
-    "WPL_AP1.P6prNESWT4WOIPBp.Cs8cKQ=="
-}
-
 // ---- Güvenli rastgele üretim (state + PKCE) ----
 
 /// Kriptografik olarak güvenli rastgele bayt üretir.
@@ -145,6 +138,32 @@ fn bind_loopback() -> Result<TcpListener, SocialError> {
     TcpListener::bind(("127.0.0.1", 18080)).map_err(|_| SocialError::OperationFailed)
 }
 
+/// `%XX` kodlamasını geri çözer.
+fn url_decode(s: &str) -> String {
+    let mut out = Vec::new();
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let Ok(byte) = u8::from_str_radix(
+                std::str::from_utf8(&bytes[i + 1..i + 3]).unwrap_or(""),
+                16,
+            ) {
+                out.push(byte);
+                i += 3;
+                continue;
+            }
+        }
+        if bytes[i] == b'+' {
+            out.push(b' ');
+        } else {
+            out.push(bytes[i]);
+        }
+        i += 1;
+    }
+    String::from_utf8(out).unwrap_or_default()
+}
+
 /// Loopback gelen isteğindeki `code` ve `state` değerlerini ayrıştırır.
 fn parse_callback_query(query: &str) -> (Option<String>, Option<String>) {
     let mut code = None;
@@ -152,10 +171,10 @@ fn parse_callback_query(query: &str) -> (Option<String>, Option<String>) {
     for pair in query.split('&') {
         if let Some(eq) = pair.find('=') {
             let k = &pair[..eq];
-            let v = &pair[eq + 1..];
+            let v = url_decode(&pair[eq + 1..]);
             match k {
-                "code" => code = Some(v.to_string()),
-                "state" => state = Some(v.to_string()),
+                "code" => code = Some(v),
+                "state" => state = Some(v),
                 _ => {}
             }
         }
@@ -293,7 +312,7 @@ pub fn build_authorize_url(
     )
 }
 
-// ---- Token exchange (secret'sız) ----
+// ---- Token exchange ----
 
 struct TokenSet {
     access_token: String,
@@ -302,47 +321,31 @@ struct TokenSet {
 
 /// Yetkilendirme kodunu LinkedIn token endpoint'inde değiştirir.
 ///
-/// LinkedIn token endpoint'i PKCE kullanılsa bile `client_secret` zorunlu tutar.
+/// LinkedIn Native PKCE akışında `client_secret` gönderilmez; yalnızca
+/// `code_verifier` ile kimlik doğrulanır.
 fn exchange_code(
     client_id: &str,
     redirect_uri: &str,
     code: &str,
     code_verifier: &str,
 ) -> Result<TokenSet, SocialError> {
-    let secret = linkedin_client_secret();
     let body = format!(
-        "grant_type=authorization_code&code={}&client_id={}&client_secret={}&redirect_uri={}&code_verifier={}",
+        "grant_type=authorization_code&code={}&redirect_uri={}&client_id={}&code_verifier={}",
         url_encode_path(code),
-        url_encode_path(client_id),
-        secret,
         url_encode_path(redirect_uri),
+        url_encode_path(client_id),
         url_encode_path(code_verifier),
     );
-    let debug_path = std::env::temp_dir().join("esops_linkedin_debug.log");
-    let _ = std::fs::write(&debug_path, format!(
-        "=== LinkedIn Token Exchange ===\nclient_id: {}\nsecret_len: {}\nbody: {}\n",
-        client_id, secret.len(), body,
-    ));
     let client = http_client()?;
     let resp = client
         .post(TOKEN_ENDPOINT)
         .header("Content-Type", "application/x-www-form-urlencoded")
-        .body(body.clone())
+        .body(body)
         .send()
-        .map_err(|e| {
-            let _ = std::fs::write(&debug_path, format!(
-                "=== LinkedIn Token Exchange FAILED ===\nbody: {}\nerr: {}\n",
-                body, e,
-            ));
-            SocialError::OauthExchangeFailed
-        })?;
+        .map_err(|_| SocialError::OauthExchangeFailed)?;
     let status = resp.status();
     let resp_body = resp.text().unwrap_or_default();
-    let _ = std::fs::write(&debug_path, format!(
-        "=== LinkedIn Token Exchange ===\nclient_id: {}\nsecret_len: {}\nbody: {}\nstatus: {}\nresp: {}\n",
-        client_id, secret.len(), body, status, resp_body,
-    ));
-    if resp_body.contains("error") {
+    if !status.is_success() || resp_body.contains("error") {
         return Err(SocialError::OauthExchangeFailed);
     }
     #[derive(serde::Deserialize)]
@@ -570,11 +573,10 @@ fn url_encode_path(s: &str) -> String {
     out
 }
 
-// ---- Yapılandırma (yalnız Client ID; secret yok) ----
+// ---- Yapılandırma (yalnız Client ID) ----
 
 /// LinkedIn uygulama yapılandırması için kullanılan ortak (bağlantıya özgü
-/// olmayan) anahtardır. Yalnız Client ID saklanır; Client Secret bu
-/// entegrasyonda asla saklanmaz veya kullanılmaz.
+/// olmayan) anahtardır. Yalnız Client ID saklanır.
 const LINKEDIN_CONFIG_CONN: &str = "_linkedin_app_config";
 
 /// LinkedIn Client ID'yi güvenli depoya yazar (Client ID gizli bilgi değildir).
@@ -704,11 +706,11 @@ fn save_connection(
 ///
 /// Akış:
 /// 1. Client ID'yi çözer (derleme zamanı veya güvenli depo). Yoksa
-///    `linkedin_not_configured` döner; Client Secret asla istenmez.
+///    `linkedin_not_configured` döner.
 /// 2. Loopback listener açılır, `state` + S256 `code_challenge` üretilir ve
-///    resmî LinkedIn yetkilendirme sayfası sistem tarayıcısında açılır.
+///    resmî LinkedIn yetkilendirme sayfası (Native PKCE URL) sistem tarayıcısında açılır.
 /// 3. Callback'ten kod ve state alınır; state eşleşmesi doğrulanır.
-/// 4. Kod, `code_verifier` ile secret'sız değiştirilir.
+/// 4. Kod, `code_verifier` ile `client_secret` olmadan değiştirilir (Native PKCE).
 /// 5. Kişisel profil (OpenID userinfo) her zaman bağlanır; yayın yapılabilir
 ///    şirket sayfaları keşfedilip her biri ayrı bağlantı olarak eklenir.
 ///
@@ -1244,6 +1246,7 @@ mod tests {
             "st",
             "ch",
         );
+        assert!(url.contains("native-pkce/authorization"));
         assert!(url.contains("client_id=cid"));
         assert!(url.contains("response_type=code"));
         assert!(url.contains("scope=openid%20w_member_social"));
@@ -1251,6 +1254,21 @@ mod tests {
         assert!(url.contains("code_challenge=ch"));
         assert!(url.contains("code_challenge_method=S256"));
         assert!(!url.contains("client_secret"));
+    }
+
+    #[test]
+    fn parse_callback_query_url_decodes_values() {
+        let (code, state) =
+            parse_callback_query("code=abc%3D123&state=x%26y%3Dz");
+        assert_eq!(code.as_deref(), Some("abc=123"));
+        assert_eq!(state.as_deref(), Some("x&y=z"));
+    }
+
+    #[test]
+    fn url_decode_handles_plus_as_space() {
+        assert_eq!(url_decode("hello+world"), "hello world");
+        assert_eq!(url_decode("abc%40def"), "abc@def");
+        assert_eq!(url_decode("plain"), "plain");
     }
 
     #[test]
