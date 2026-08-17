@@ -324,7 +324,11 @@ fn exchange_code(
     let status = resp.status();
     let body = resp.text().unwrap_or_default();
     if !status.is_success() {
-        // Hata detayı callback sayfasında zaten gösteriliyor.
+        let debug_path = std::env::temp_dir().join("esops_linkedin_debug.log");
+        let _ = std::fs::write(&debug_path, format!(
+            "=== LinkedIn Token Exchange Error ===\nTime: {:?}\nStatus: {}\nRedirect URI: {}\nBody: {}\n",
+            std::time::SystemTime::now(), status, redirect_uri, body
+        ));
         let lower = body.to_lowercase();
         if lower.contains("invalid_scope")
             || lower.contains("access_denied")
