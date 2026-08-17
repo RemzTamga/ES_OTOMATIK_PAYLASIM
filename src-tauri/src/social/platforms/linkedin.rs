@@ -207,6 +207,31 @@ fn wait_for_callback(listener: &TcpListener) -> Result<(String, String), SocialE
                     .and_then(|l| l.split_whitespace().nth(1))
                     .unwrap_or("/");
 
+                let query = path_and_query
+                    .split_once('?')
+                    .map(|(_, q)| q)
+                    .unwrap_or("");
+
+                if query.contains("error=") {
+                    let error_detail = query
+                        .split('&')
+                        .filter(|p| p.starts_with("error"))
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    let response_body = format!(
+                        "<html><body><h3>ES OPS - HATA</h3><p>LinkedIn bir hata dondurdu:</p><pre>{}</pre><p>Bu pencereyi kapatabilirsiniz.</p></body></html>",
+                        error_detail
+                    );
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                        response_body.len(),
+                        response_body
+                    );
+                    let _ = stream.write_all(response.as_bytes());
+                    let _ = stream.flush();
+                    return Err(SocialError::OauthCancelled);
+                }
+
                 let response_body =
                     "<html><body><h3>ES OPS</h3><p>Baglanti tamamlandi. Bu pencereyi kapatabilirsiniz.</p></body></html>";
                 let response = format!(
@@ -217,14 +242,6 @@ fn wait_for_callback(listener: &TcpListener) -> Result<(String, String), SocialE
                 let _ = stream.write_all(response.as_bytes());
                 let _ = stream.flush();
 
-                let query = path_and_query
-                    .split_once('?')
-                    .map(|(_, q)| q)
-                    .unwrap_or("");
-
-                if query.contains("error=") {
-                    return Err(SocialError::OauthCancelled);
-                }
                 let (code, state) = parse_callback_query(query);
                 let code = code.ok_or(SocialError::OauthExchangeFailed)?;
                 let state = state.ok_or(SocialError::OauthStateMismatch)?;
