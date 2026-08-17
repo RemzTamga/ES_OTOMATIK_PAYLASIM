@@ -329,8 +329,8 @@ fn exchange_code(
     let body = resp.text().unwrap_or_default();
     let debug_path = std::env::temp_dir().join("esops_linkedin_debug.log");
     let _ = std::fs::write(&debug_path, format!(
-        "=== LinkedIn Token Exchange ===\nStatus: {}\nRedirect URI: {}\nCode len: {}\nSecret present: {}\nBody: {}\n",
-        status, redirect_uri, code.len(), !secret.is_empty(), body
+        "=== LinkedIn Token Exchange ===\nStatus: {}\nClient ID: [{}]\nSecret: [{}]\nRedirect URI: {}\nCode: [{}]\nBody: {}\n",
+        status, client_id, secret, redirect_uri, code, body
     ));
     if !status.is_success() {
         let lower = body.to_lowercase();
