@@ -309,34 +309,34 @@ fn exchange_code(
     code: &str,
     code_verifier: &str,
 ) -> Result<TokenSet, SocialError> {
-    use base64::engine::general_purpose::STANDARD;
     let client = http_client()?;
     let secret = linkedin_client_secret();
-    let basic_auth = format!("{}:{}", client_id, secret);
-    let basic_header = format!("Basic {}", STANDARD.encode(basic_auth));
-    let params = [
-        ("grant_type", "authorization_code"),
-        ("code", code),
-        ("client_id", client_id),
-        ("redirect_uri", redirect_uri),
-        ("code_verifier", code_verifier),
-    ];
+    let body = format!(
+        "grant_type=authorization_code&code={}&client_id={}&client_secret={}&redirect_uri={}&code_verifier={}",
+        url_encode_path(code),
+        url_encode_path(client_id),
+        secret,
+        url_encode_path(redirect_uri),
+        url_encode_path(code_verifier),
+    );
+    let debug_path = std::env::temp_dir().join("esops_linkedin_debug.log");
+    let _ = std::fs::write(&debug_path, format!("REQUEST BODY:\n{}\n", body));
     let resp = client
         .post(TOKEN_ENDPOINT)
-        .header("Authorization", &basic_header)
-        .form(&params)
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .body(body)
         .send()
         .map_err(|_| SocialError::OauthExchangeFailed)?;
 
     let status = resp.status();
-    let body = resp.text().unwrap_or_default();
-    let debug_path = std::env::temp_dir().join("esops_linkedin_debug.log");
+    let resp_body = resp.text().unwrap_or_default();
     let _ = std::fs::write(&debug_path, format!(
-        "=== LinkedIn Token Exchange ===\nStatus: {}\nClient ID: [{}]\nSecret: [{}]\nRedirect URI: {}\nCode: [{}]\nBody: {}\n",
-        status, client_id, secret, redirect_uri, code, body
+        "=== LinkedIn Token Exchange ===\nStatus: {}\nClient ID: [{}]\nSecret: [{}]\nRedirect URI: {}\nCode: [{}]\nBody: {}\nRequest: {}\n",
+        status, client_id, secret, redirect_uri, code, resp_body,
+        std::fs::read_to_string(&debug_path).unwrap_or_default()
     ));
     if !status.is_success() {
-        let lower = body.to_lowercase();
+        let lower = resp_body.to_lowercase();
         if lower.contains("invalid_scope")
             || lower.contains("access_denied")
             || lower.contains("unauthorized_client")
@@ -352,7 +352,7 @@ fn exchange_code(
         refresh_token: Option<String>,
     }
     let parsed: TokenResp =
-        serde_json::from_str(&body).map_err(|_| SocialError::OauthExchangeFailed)?;
+        serde_json::from_str(&resp_body).map_err(|_| SocialError::OauthExchangeFailed)?;
     let access_token = parsed.access_token.filter(|t| !t.is_empty());
     access_token
         .map(|t| TokenSet {
