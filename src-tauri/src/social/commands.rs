@@ -317,18 +317,11 @@ fn run_meta_connect_flow(
     app: &AppHandle,
     pin_instagram: bool,
 ) -> Result<SocialAccountConnection, SocialError> {
-    // Ortak yapılandırma kapısı: App ID / App Secret eksikse akış, tarayıcı
-    // açılmadan önce tek bir kontrollü hata koduyla durur (sahte bağlantı
-    // üretilmez). Facebook ve Instagram bu kapıyı paylaşır.
     let (app_id, app_secret) =
         meta::assert_connect_ready(meta::resolved_app_id(), meta::resolved_app_secret())?;
 
-    // Meta'nın resmî masaüstü webview akışı kullanılır: redirect URI sabit
-    // `https://www.facebook.com/connect/login_success.html` adresidir ve login,
-    // uygulama içi webview penceresinde yürütülür. Sistem tarayıcısına
-    // `http://localhost:43123/...` gibi Meta'nın alan adı denetiminden geçmeyen
-    // bir redirect gönderilmez; dinlenecek port/sunucu kullanılmaz.
-    let redirect_uri = meta::META_LOGIN_SUCCESS_URI.to_string();
+    let listener = meta::bind_loopback()?;
+    let redirect_uri = "http://localhost:43123/meta-callback".to_string();
     let state = meta::generate_state()?;
 
     let scope = if pin_instagram {
@@ -344,9 +337,11 @@ fn run_meta_connect_flow(
         meta::meta_config_id(),
     );
 
-    // Webview, `login_success.html` navigasyonunu yakalayıp code + state'i
-    // doğrular ve sonucu döndürür; sistem tarayıcısı / loopback kullanılmaz.
-    let code = meta::login_via_webview(app, &auth_url, &state)?;
+    meta::open_browser(app, &auth_url)?;
+    let (code, callback_state) = meta::wait_for_callback(&listener)?;
+    if callback_state != state {
+        return Err(SocialError::OauthStateMismatch);
+    }
 
     let user_token = meta::exchange_code_real(&app_id, &redirect_uri, &code, &app_secret)?;
 
