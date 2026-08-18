@@ -354,7 +354,7 @@ fn request_token(listener: &TcpListener) -> Result<(String, String), SocialError
     header.insert("oauth_signature".to_string(), signature);
     let mut parts: Vec<String> = header
         .iter()
-        .map(|(k, v)| format!("{}={}", k, format!("\"{}\"", v)))
+        .map(|(k, v)| format!("{}=\"{}\"", k, pct(v)))
         .collect();
     parts.sort();
     let auth_header = format!("OAuth {}", parts.join(", "));
@@ -410,7 +410,7 @@ fn exchange_access_token(
     header.insert("oauth_signature".to_string(), signature);
     let mut parts: Vec<String> = header
         .iter()
-        .map(|(k, v)| format!("{}={}", k, format!("\"{}\"", v)))
+        .map(|(k, v)| format!("{}=\"{}\"", k, pct(v)))
         .collect();
     parts.sort();
     let auth_header = format!("OAuth {}", parts.join(", "));
@@ -606,7 +606,7 @@ fn build_auth_header(
 
     let mut parts: Vec<String> = params
         .iter()
-        .map(|(k, v)| format!("{}={}", k, format!("\"{}\"", pct(v))))
+        .map(|(k, v)| format!("{}=\"{}\"", k, pct(v)))
         .collect();
     parts.sort();
     format!("OAuth {}", parts.join(", "))
