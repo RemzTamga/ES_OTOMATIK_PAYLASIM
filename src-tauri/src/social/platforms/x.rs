@@ -227,7 +227,7 @@ fn generate_connection_id() -> Result<String, SocialError> {
 }
 
 fn bind_loopback() -> Result<TcpListener, SocialError> {
-    TcpListener::bind(("127.0.0.1", 0)).map_err(|_| SocialError::OperationFailed)
+    TcpListener::bind(("127.0.0.1", 8080)).map_err(|_| SocialError::OperationFailed)
 }
 
 fn extract_param(query: &str, key: &str) -> String {
@@ -336,11 +336,11 @@ fn request_token(listener: &TcpListener) -> Result<(String, String), SocialError
 
     let consumer_key = load_consumer_key()?;
     let consumer_secret = load_consumer_secret()?;
-    let port = listener.local_addr().map_err(|_| SocialError::OperationFailed)?.port();
-    let callback = format!("http://127.0.0.1:{}/", port);
+    let _port = listener.local_addr().map_err(|_| SocialError::OperationFailed)?.port();
+    let callback = "http://127.0.0.1:8080/callback".to_string();
 
     let mut params = BTreeMap::new();
-    params.insert("oauth_callback".to_string(), callback);
+    params.insert("oauth_callback".to_string(), callback.clone());
     params.insert("oauth_consumer_key".to_string(), consumer_key.clone());
     params.insert("oauth_nonce".to_string(), generate_nonce());
     params.insert("oauth_signature_method".to_string(), "HMAC-SHA1".to_string());
@@ -361,7 +361,7 @@ fn request_token(listener: &TcpListener) -> Result<(String, String), SocialError
 
     xlog(&format!("POST {}", REQUEST_TOKEN_ENDPOINT));
     xlog(&format!("consumer_key baslangici: {}", &consumer_key[..consumer_key.len().min(8)]));
-    xlog(&format!("callback: http://127.0.0.1:{}/", port));
+    xlog(&format!("callback: {}", callback));
 
     let client = http_client()?;
     let resp = client
