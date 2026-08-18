@@ -14,6 +14,7 @@
 //! deposuna veya loglara gönderilmez. Client secret kullanılmaz; gerçek client
 //! id yalnız derleme zamanında `ES_OPS_YOUTUBE_CLIENT_ID` üzerinden gömülür.
 
+use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::time::Duration;
@@ -31,6 +32,18 @@ use super::super::metadata_store;
 use super::super::models::{
     ConnectionRecord, ConnectionStatus, SocialAccountConnection, SocialError, TokenType,
 };
+
+fn ytlog(msg: &str) {
+    let _ = (|| -> Result<(), Box<dyn std::error::Error>> {
+        let path = std::env::temp_dir().join("esops_yt_debug.log");
+        let mut f = OpenOptions::new().create(true).append(true).open(path)?;
+        writeln!(f, "[{}] {}", std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis())
+            .unwrap_or(0), msg)?;
+        Ok(())
+    })();
+}
 
 /// YouTube platform kimliği (mevcut katalogdaki değer).
 pub const PLATFORM_ID: &str = "youtube";
@@ -270,6 +283,9 @@ fn exchange_code(
     code: &str,
     code_verifier: &str,
 ) -> Result<TokenSet, SocialError> {
+    ytlog(&format!("exchange_code: TOKEN_ENDPOINT={}", TOKEN_ENDPOINT));
+    ytlog(&format!("exchange_code: redirect_uri={}", redirect_uri));
+    ytlog(&format!("exchange_code: client_id ilk_8={}", &client_id[..client_id.len().min(8)]));
     let client = http_client()?;
     let params = [
         ("code", code),
@@ -282,16 +298,24 @@ fn exchange_code(
         .post(TOKEN_ENDPOINT)
         .form(&params)
         .send()
-        .map_err(|_| SocialError::OauthExchangeFailed)?;
+        .map_err(|e| {
+            ytlog(&format!("exchange_code: send hatasi: {}", e));
+            SocialError::OauthExchangeFailed
+        })?;
 
     let status = resp.status();
     let body = resp.text().unwrap_or_default();
+    ytlog(&format!("exchange_code: status={}", status));
+    ytlog(&format!("exchange_code: body={}", &body[..body.len().min(300)]));
     if !status.is_success() {
         return Err(SocialError::OauthExchangeFailed);
     }
 
     let parsed: TokenResponse =
-        serde_json::from_str(&body).map_err(|_| SocialError::OauthExchangeFailed)?;
+        serde_json::from_str(&body).map_err(|e| {
+            ytlog(&format!("exchange_code: parse hatasi: {}", e));
+            SocialError::OauthExchangeFailed
+        })?;
     let access_token = parsed.access_token.ok_or(SocialError::OauthExchangeFailed)?;
     Ok(TokenSet {
         access_token,
@@ -337,16 +361,22 @@ struct ChannelInfo {
 
 /// Şu anki erişim tokenına ait kanalın kimliğini ve adını alır.
 fn fetch_channel(access_token: &str) -> Result<ChannelInfo, SocialError> {
+    ytlog(&format!("fetch_channel: CHANNELS_ENDPOINT={}", CHANNELS_ENDPOINT));
     let client = http_client()?;
     let resp = client
         .get(CHANNELS_ENDPOINT)
         .query(&[("part", "snippet"), ("mine", "true")])
         .bearer_auth(access_token)
         .send()
-        .map_err(|_| SocialError::ChannelLookupFailed)?;
+        .map_err(|e| {
+            ytlog(&format!("fetch_channel: send hatasi: {}", e));
+            SocialError::ChannelLookupFailed
+        })?;
 
     let status = resp.status();
     let body = resp.text().unwrap_or_default();
+    ytlog(&format!("fetch_channel: status={}", status));
+    ytlog(&format!("fetch_channel: body={}", &body[..body.len().min(300)]));
     if !status.is_success() {
         return Err(SocialError::ChannelLookupFailed);
     }
@@ -450,12 +480,16 @@ fn connect_for_channel(
 pub fn connect(app: &AppHandle) -> Result<SocialAccountConnection, SocialError> {
     let client_id = youtube_client_id().ok_or(SocialError::YoutubeNotConfigured)?;
 
+    ytlog("=== YouTube connect basladi ===");
+    ytlog(&format!("client_id yuklendi, ilk_8={}", &client_id[..client_id.len().min(8)]));
+
     let listener = bind_loopback()?;
     let port = listener
         .local_addr()
         .map_err(|_| SocialError::OauthTimeout)?
         .port();
     let redirect_uri = format!("http://127.0.0.1:{port}/");
+    ytlog(&format!("loopback baglandi, port={}, redirect_uri={}", port, redirect_uri));
 
     let state = generate_state()?;
     let code_verifier = generate_code_verifier()?;
@@ -463,18 +497,27 @@ pub fn connect(app: &AppHandle) -> Result<SocialAccountConnection, SocialError> 
 
     let scope = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
     let auth_url = build_auth_url(&client_id, &redirect_uri, scope, &state, &code_challenge);
+    ytlog(&format!("auth_url baslangici: {}", &auth_url[..auth_url.len().min(120)]));
 
     open_browser(app, &auth_url)?;
 
+    ytlog("callback bekleniyor...");
     let (code, callback_state) = wait_for_callback(&listener)?;
     if callback_state != state {
+        ytlog("HATA: state mismatch");
         return Err(SocialError::OauthStateMismatch);
     }
+    ytlog("callback alindi, code uzunlugu yok sayiliyor (guvenlik)");
 
     let tokens = exchange_code(&client_id, &redirect_uri, &code, &code_verifier)?;
+    ytlog("token basarili, refresh_token var mi");
+    ytlog(&format!("refresh_token var mi: {}", tokens.refresh_token.is_some()));
     let channel = fetch_channel(&tokens.access_token)?;
+    ytlog(&format!("kanal bulundu: id={}, title={}", channel.id, channel.title));
 
-    connect_for_channel(app, &tokens, &channel)
+    let result = connect_for_channel(app, &tokens, &channel);
+    ytlog(&format!("connect sonuc: {}", if result.is_ok() { "OK" } else { "HATA" }));
+    result
 }
 
 // ---- Token edinme ve yenileme ----
