@@ -76,10 +76,8 @@ pub fn meta_app_secret() -> Option<&'static str> {
 /// App Dashboard'da "Facebook Login for Business" konfigürasyonundan alınır.
 /// Değer tanımlı değilse `None` döner; akış yine de klasik scope yolunu kullanır.
 pub fn meta_config_id() -> Option<&'static str> {
-    option_env!("ES_OPS_META_CONFIG_ID")
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .filter(|_| false)
+    // config_id akışı Facebook'ta boş sayfa açıyor; klasik scope akışı kullanılır.
+    None
 }
 
 // ---- Güvenli rastgele üretim (OAuth state) ----
@@ -274,7 +272,6 @@ pub fn login_via_webview(
     auth_url: &str,
     expected_state: &str,
 ) -> Result<String, SocialError> {
-    let _ = std::fs::write(std::env::temp_dir().join("esops_meta_debug.log"), format!("url={}\nstate={}\n", auth_url, expected_state));
     let url = tauri::Url::parse(auth_url).map_err(|_| SocialError::OperationFailed)?;
     let (tx, rx) = std::sync::mpsc::channel::<Result<String, SocialError>>();
     let expected_state = expected_state.to_string();
