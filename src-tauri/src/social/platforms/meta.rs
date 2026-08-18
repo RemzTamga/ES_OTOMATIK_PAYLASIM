@@ -76,8 +76,9 @@ pub fn meta_app_secret() -> Option<&'static str> {
 /// App Dashboard'da "Facebook Login for Business" konfigürasyonundan alınır.
 /// Değer tanımlı değilse `None` döner; akış yine de klasik scope yolunu kullanır.
 pub fn meta_config_id() -> Option<&'static str> {
-    // config_id akışı Facebook'ta boş sayfa açıyor; klasik scope akışı kullanılır.
-    None
+    option_env!("ES_OPS_META_CONFIG_ID")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
 }
 
 // ---- Güvenli rastgele üretim (OAuth state) ----
