@@ -325,6 +325,15 @@ fn parse_form(body: &str, key: &str) -> Option<String> {
 // ---------------------------------------------------------------------------
 
 fn request_token(listener: &TcpListener) -> Result<(String, String), SocialError> {
+    let xlog = |msg: &str| {
+        use std::io::Write;
+        if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(
+            std::env::temp_dir().join("esops_x_debug.log"),
+        ) {
+            let _ = writeln!(f, "[REQ] {}", msg);
+        }
+    };
+
     let consumer_key = load_consumer_key()?;
     let consumer_secret = load_consumer_secret()?;
     let port = listener.local_addr().map_err(|_| SocialError::OperationFailed)?.port();
@@ -350,27 +359,30 @@ fn request_token(listener: &TcpListener) -> Result<(String, String), SocialError
     parts.sort();
     let auth_header = format!("OAuth {}", parts.join(", "));
 
+    xlog(&format!("POST {}", REQUEST_TOKEN_ENDPOINT));
+    xlog(&format!("consumer_key baslangici: {}", &consumer_key[..consumer_key.len().min(8)]));
+    xlog(&format!("callback: http://127.0.0.1:{}/", port));
+
     let client = http_client()?;
-    eprintln!("[X] request_token POST gonderiliyor: {}", REQUEST_TOKEN_ENDPOINT);
-    eprintln!("[X] auth_header: {}", auth_header);
     let resp = client
         .post(REQUEST_TOKEN_ENDPOINT)
         .header(reqwest::header::AUTHORIZATION, auth_header)
         .send()
         .map_err(|e| {
-            eprintln!("[X] request_token HTTP hatasi: {:?}", e);
+            xlog(&format!("HTTP HATASI: {:?}", e));
             SocialError::OperationFailed
         })?;
     let status = resp.status();
     let body = resp.text().unwrap_or_default();
-    eprintln!("[X] request_token response status: {}", status);
-    eprintln!("[X] request_token response body: {}", body);
+    xlog(&format!("status: {}", status));
+    xlog(&format!("body: {}", &body[..body.len().min(500)]));
     if !status.is_success() {
-        eprintln!("[X] request_token basarisiz status={}", status);
+        xlog(&format!("BASARISIZ: status={}", status));
         return Err(SocialError::OperationFailed);
     }
     let token = parse_form(&body, "oauth_token").ok_or(SocialError::OperationFailed)?;
     let secret = parse_form(&body, "oauth_token_secret").ok_or(SocialError::OperationFailed)?;
+    xlog("request_token basarili");
     Ok((token, secret))
 }
 
@@ -420,37 +432,47 @@ fn exchange_access_token(
 
 /// X hesabına gerçek OAuth 1.0a akışıyla bağlanır.
 pub fn connect(app: &tauri::AppHandle) -> Result<SocialAccountConnection, SocialError> {
-    eprintln!("[X] connect basladi");
+    let log = |msg: &str| {
+        use std::io::Write;
+        if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(
+            std::env::temp_dir().join("esops_x_debug.log"),
+        ) {
+            let _ = writeln!(f, "[{}] {}", chrono_like_now(), msg);
+        }
+    };
+
+    log("=== X connect basladi ===");
     let consumer_key = load_consumer_key().map_err(|e| {
-        eprintln!("[X] load_consumer_key hatasi: {:?}", e);
+        log(&format!("HATA load_consumer_key: {:?}", e));
         e
     })?;
-    eprintln!("[X] consumer_key yuklendi (uzunluk={})", consumer_key.len());
+    log(&format!("consumer_key yuklendi, uzunluk={}, ilk_8={}", consumer_key.len(), &consumer_key[..consumer_key.len().min(8)]));
     let consumer_secret = load_consumer_secret().map_err(|e| {
-        eprintln!("[X] load_consumer_secret hatasi: {:?}", e);
+        log(&format!("HATA load_consumer_secret: {:?}", e));
         e
     })?;
-    eprintln!("[X] consumer_secret yuklendi (uzunluk={})", consumer_secret.len());
+    log(&format!("consumer_secret yuklendi, uzunluk={}", consumer_secret.len()));
 
     let listener = bind_loopback().map_err(|e| {
-        eprintln!("[X] bind_loopback hatasi: {:?}", e);
+        log(&format!("HATA bind_loopback: {:?}", e));
         e
     })?;
-    eprintln!("[X] loopback baglandi, port={}", listener.local_addr().map(|a| a.port()).unwrap_or(0));
+    let port = listener.local_addr().map(|a| a.port()).unwrap_or(0);
+    log(&format!("loopback baglandi, port={}", port));
 
     let (req_token, _req_secret) = request_token(&listener).map_err(|e| {
-        eprintln!("[X] request_token hatasi: {:?}", e);
+        log(&format!("HATA request_token: {:?}", e));
         e
     })?;
-    eprintln!("[X] request_token basarili (token_uzunluk={})", req_token.len());
+    log(&format!("request_token basarili, token_uzunluk={}", req_token.len()));
 
     let auth_url = format!("{}?oauth_token={}", AUTHORIZE_ENDPOINT, pct(&req_token));
-    eprintln!("[X] auth_url: {}", auth_url);
+    log(&format!("auth_url: {}", auth_url));
     open_browser(app, &auth_url).map_err(|e| {
-        eprintln!("[X] open_browser hatasi: {:?}", e);
+        log(&format!("HATA open_browser: {:?}", e));
         e
     })?;
-    eprintln!("[X] tarayici acildi, callback bekleniyor...");
+    log("tarayici acildi, callback bekleniyor...");
 
     let verifier = wait_for_callback(&listener)?;
     let (access_token, access_token_secret, user_id) =
@@ -510,6 +532,10 @@ fn now_rfc3339() -> String {
         dur.as_secs(),
         dur.subsec_nanos() / 1_000_000
     )
+}
+
+fn chrono_like_now() -> String {
+    now_rfc3339()
 }
 
 // ---------------------------------------------------------------------------
