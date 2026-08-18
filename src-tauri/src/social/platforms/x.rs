@@ -31,9 +31,9 @@ use super::super::models::{
 /// X platform kimliği (katalogdaki değer).
 pub const PLATFORM_ID: &str = "x";
 
-const REQUEST_TOKEN_ENDPOINT: &str = "https://api.x.com/oauth/request_token";
-const AUTHORIZE_ENDPOINT: &str = "https://api.x.com/oauth/authenticate";
-const ACCESS_TOKEN_ENDPOINT: &str = "https://api.x.com/oauth/access_token";
+const REQUEST_TOKEN_ENDPOINT: &str = "https://api.twitter.com/oauth/request_token";
+const AUTHORIZE_ENDPOINT: &str = "https://api.twitter.com/oauth/authorize";
+const ACCESS_TOKEN_ENDPOINT: &str = "https://api.twitter.com/oauth/access_token";
 const TWEETS_ENDPOINT: &str = "https://api.x.com/2/tweets";
 const MEDIA_UPLOAD_ENDPOINT: &str = "https://upload.twitter.com/1.1/media/upload.json";
 
