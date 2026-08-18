@@ -364,9 +364,11 @@ fn request_token(listener: &TcpListener) -> Result<(String, String), SocialError
     xlog(&format!("callback: {}", callback));
 
     let client = http_client()?;
+    xlog(&format!("full_auth_header: {}", auth_header));
+    xlog(&format!("signing_key_baslangici: {}&", &consumer_secret[..consumer_secret.len().min(8)]));
     let resp = client
         .post(REQUEST_TOKEN_ENDPOINT)
-        .header(reqwest::header::AUTHORIZATION, auth_header)
+        .header(reqwest::header::AUTHORIZATION, auth_header.clone())
         .send()
         .map_err(|e| {
             xlog(&format!("HTTP HATASI: {:?}", e));
