@@ -351,14 +351,22 @@ fn request_token(listener: &TcpListener) -> Result<(String, String), SocialError
     let auth_header = format!("OAuth {}", parts.join(", "));
 
     let client = http_client()?;
+    eprintln!("[X] request_token POST gonderiliyor: {}", REQUEST_TOKEN_ENDPOINT);
+    eprintln!("[X] auth_header: {}", auth_header);
     let resp = client
         .post(REQUEST_TOKEN_ENDPOINT)
         .header(reqwest::header::AUTHORIZATION, auth_header)
         .send()
-        .map_err(|_| SocialError::OperationFailed)?;
+        .map_err(|e| {
+            eprintln!("[X] request_token HTTP hatasi: {:?}", e);
+            SocialError::OperationFailed
+        })?;
     let status = resp.status();
     let body = resp.text().unwrap_or_default();
+    eprintln!("[X] request_token response status: {}", status);
+    eprintln!("[X] request_token response body: {}", body);
     if !status.is_success() {
+        eprintln!("[X] request_token basarisiz status={}", status);
         return Err(SocialError::OperationFailed);
     }
     let token = parse_form(&body, "oauth_token").ok_or(SocialError::OperationFailed)?;
@@ -412,14 +420,37 @@ fn exchange_access_token(
 
 /// X hesabına gerçek OAuth 1.0a akışıyla bağlanır.
 pub fn connect(app: &tauri::AppHandle) -> Result<SocialAccountConnection, SocialError> {
-    let consumer_key = load_consumer_key()?;
-    let consumer_secret = load_consumer_secret()?;
+    eprintln!("[X] connect basladi");
+    let consumer_key = load_consumer_key().map_err(|e| {
+        eprintln!("[X] load_consumer_key hatasi: {:?}", e);
+        e
+    })?;
+    eprintln!("[X] consumer_key yuklendi (uzunluk={})", consumer_key.len());
+    let consumer_secret = load_consumer_secret().map_err(|e| {
+        eprintln!("[X] load_consumer_secret hatasi: {:?}", e);
+        e
+    })?;
+    eprintln!("[X] consumer_secret yuklendi (uzunluk={})", consumer_secret.len());
 
-    let listener = bind_loopback()?;
-    let (req_token, _req_secret) = request_token(&listener)?;
+    let listener = bind_loopback().map_err(|e| {
+        eprintln!("[X] bind_loopback hatasi: {:?}", e);
+        e
+    })?;
+    eprintln!("[X] loopback baglandi, port={}", listener.local_addr().map(|a| a.port()).unwrap_or(0));
+
+    let (req_token, _req_secret) = request_token(&listener).map_err(|e| {
+        eprintln!("[X] request_token hatasi: {:?}", e);
+        e
+    })?;
+    eprintln!("[X] request_token basarili (token_uzunluk={})", req_token.len());
 
     let auth_url = format!("{}?oauth_token={}", AUTHORIZE_ENDPOINT, pct(&req_token));
-    open_browser(app, &auth_url)?;
+    eprintln!("[X] auth_url: {}", auth_url);
+    open_browser(app, &auth_url).map_err(|e| {
+        eprintln!("[X] open_browser hatasi: {:?}", e);
+        e
+    })?;
+    eprintln!("[X] tarayici acildi, callback bekleniyor...");
 
     let verifier = wait_for_callback(&listener)?;
     let (access_token, access_token_secret, user_id) =
