@@ -58,6 +58,17 @@ jobs:
           ES_OPS_X_CONSUMER_SECRET: ${{ secrets.ES_OPS_X_CONSUMER_SECRET }}
         run: npx tauri build --bundles msi,nsis
 
+      - name: Sign MSI + NSIS (self-signed)
+        shell: pwsh
+        env:
+          # Self-signed kod imzalama: ozel anahtar (pfx) yalniz CI ortamina
+          # base64 olarak aktarilir; kaynak koduna/repoya asla yazilmaz.
+          # Imza, SmartScreen/MotW engelini azaltir; Smart App Control'u asmaz
+          # (test makineleri icin prepare-esops-test-machine.ps1 kullanilir).
+          ES_OPS_CODE_SIGNING_PFX: ${{ secrets.ES_OPS_CODE_SIGNING_PFX }}
+          ES_OPS_CODE_SIGNING_PASSWORD: ${{ secrets.ES_OPS_CODE_SIGNING_PASSWORD }}
+        run: .\scripts\sign-bundle.ps1
+
       - name: List bundle outputs
         shell: pwsh
         run: |
@@ -76,4 +87,11 @@ jobs:
         with:
           name: ES-OPS-Windows-Setup-EXE
           path: src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+      - name: Upload signing cert (public)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ES-OPS-Signing-Cert
+          path: certs/esops-cert.cer
           if-no-files-found: error

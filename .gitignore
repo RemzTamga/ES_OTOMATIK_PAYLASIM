@@ -31,6 +31,10 @@ src-tauri/icons/icon.ico
 # Tauri frontend build copy
 frontend/
 
+# Code signing private key (ASLA repoya girmez)
+certs/*.pfx
+!certs/esops-cert.cer
+
 # Geçici / geliştirme araç dosyaları (Git'e yanlışlıkla eklenmesin)
 .continue/
 app.js.bak
