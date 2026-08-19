@@ -4,7 +4,7 @@
 // Ayarlar ekranında HİÇBİR teknik kimlik formu görünmez ve JavaScript
 // tarafında config ön-kontrolü YAPILMAZ. Her platformun "Bağlan" düğmesi
 // doğrudan `x_connect` / `tiktok_connect` / `linkedin_connect` /
-// `pinterest_connect` / `youtube_connect` komutunu çağırır; kimlik eksikse
+// `linkedin_connect` / `youtube_connect` komutunu çağırır; kimlik eksikse
 // Rust kontrollü hata koduyla döner ve tek, kullanıcı dostu bildirim
 // üretilir (sahte bağlantı / sahte başarı üretilmez).
 //
@@ -182,9 +182,6 @@ test('Ayarlar listesinde HICBIR teknik kimlik formu uretilmiyor (TikTok dahil)',
         'ayarlarMetaAppSecret',
         'ayarlarLinkedinConfigGrubu',
         'ayarlarLinkedinClientId',
-        'ayarlarPinterestConfigGrubu',
-        'ayarlarPinterestClientId',
-        'ayarlarPinterestClientSecret',
     ];
     for (const alan of yasakli) {
         if (html.indexOf(alan) !== -1) {
@@ -361,38 +358,6 @@ test('LinkedIn: config_status cagrilmaz, kimlik eksikken linkedin_connect yine d
         throw new Error('Hata bildirimi beklenir');
     }
     if (b.aciklama.indexOf('yapilandirilmamis') === -1 && b.aciklama.indexOf('kimligi') === -1) {
-        throw new Error('Kullanici dostu mesaj bekleniyor: ' + b.aciklama);
-    }
-});
-
-test('Pinterest: config_status cagrilmaz, kimlik eksikken pinterest_connect yine de cagrilir ve tek hata bildirimi olur', async () => {
-    const cagrilar = [];
-    const sandbox = loadApp((cmd) => {
-        cagrilar.push(cmd);
-        if (cmd === 'pinterest_connect') {
-            return Promise.reject({ code: 'pinterest_not_configured' });
-        }
-        return null;
-    });
-
-    const baslangic = sandbox.bildirimler.length;
-    sandbox.ayarlarPlatformBaglan('pinterest');
-    await new Promise((r) => setTimeout(r, 0));
-
-    if (cagrilar.indexOf('pinterest_config_status') !== -1) {
-        throw new Error('Config on-kontrolu kaldirildi: pinterest_config_status cagrilmamali');
-    }
-    if (cagrilar.indexOf('pinterest_connect') === -1) {
-        throw new Error('Kimlik eksik olsa bile pinterest_connect cagrilmali');
-    }
-    if (sandbox.bildirimler.length !== baslangic + 1) {
-        throw new Error('Beklenen 1 bildirim, olusan: ' + (sandbox.bildirimler.length - baslangic));
-    }
-    const b = sandbox.bildirimler[sandbox.bildirimler.length - 1];
-    if (b.tur !== 'hata') {
-        throw new Error('Hata bildirimi beklenir');
-    }
-    if (b.aciklama.indexOf('yapilandirilmamis') === -1 && b.aciklama.indexOf('kimlikleri') === -1) {
         throw new Error('Kullanici dostu mesaj bekleniyor: ' + b.aciklama);
     }
 });

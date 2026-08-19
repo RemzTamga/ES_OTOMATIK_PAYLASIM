@@ -455,7 +455,7 @@ function simulateSave(type) {
         siraNumarasi: siraKayit,
         baslik: baslik,
         gorselAdi: gorselAdi,
-        platform: 'Instagram, Facebook, LinkedIn, X, TikTok, Pinterest, YouTube',
+        platform: 'Instagram, Facebook, LinkedIn, X, TikTok, YouTube',
         sablon: 'Standart',
         platformCikti: 'Platforma ozel duzenleme (simule)',
         durum: 'bekliyor',
@@ -482,11 +482,11 @@ function simulateSave(type) {
     }
 }
 
-// ===== GERCEK YAYIN MOTORU (Facebook / Instagram / TikTok / X / LinkedIn / Pinterest) =====
+// ===== GERCEK YAYIN MOTORU (Facebook / Instagram / TikTok / X / LinkedIn) =====
 // Manuel "Simdi Paylas" yayin motoruna baglanan gercek yayin sevkiyatcisi.
-// Bagli Facebook/Instagram/TikTok/X/LinkedIn/Pinterest hesaplarina gercek Tauri
+// Bagli Facebook/Instagram/TikTok/X/LinkedIn hesaplarina gercek Tauri
 // komutlarini (facebook_publish, instagram_publish, tiktok_publish, x_publish,
-// linkedin_publish, pinterest_publish) cagirir. Sonuclar gercek post id ile
+// linkedin_publish) cagirir. Sonuclar gercek post id ile
 // basarili, aksi halde kontrollu hata koduyla basarisiz olarak islenir; sahte
 // basari uretilmez.
 // Bagli yayin destekli hesap yoksa hicbir platform icin basari iddia edilmez.
@@ -511,9 +511,9 @@ function sosyalGercekYayinGonder(icerik) {
             return c.connectionStatus === 'connected';
         });
         // Yalniz yayin destekli platformlar hedeflenir: Facebook, Instagram,
-        // TikTok, X, LinkedIn, Pinterest.
+        // TikTok, X, LinkedIn.
         var yayinBagli = bagli.filter(function(c) {
-            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin' || c.platformId === 'pinterest';
+            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin';
         });
 
         if (yayinBagli.length === 0) {
@@ -557,19 +557,6 @@ function sosyalGercekYayinGonder(icerik) {
                 // LinkedIn yayini: gercek Posts API (metin) / Images API
                 // (gorsel) / Videos API (video). Eski UGC/Share API kullanilmaz.
                 command = 'linkedin_publish';
-                args = {
-                    connectionId: conn.connectionId,
-                    message: icerik.mesaj || '',
-                    title: icerik.baslik || '',
-                    mediaKind: icerik.mediaKind || '',
-                    mediaFiles: icerik.mediaFiles || []
-                };
-            } else if (platformId === 'pinterest') {
-                // Pinterest yayini: gercek v5 API. Gorsel image_base64 ile,
-                // coklu gorsel multiple_image_base64 ile, video ise resmi media
-                // upload akisiyla dogrudan yuklenir (herkese acik URL gerekmez).
-                // Her baglantili pano ayri bir yayin hedefidir.
-                command = 'pinterest_publish';
                 args = {
                     connectionId: conn.connectionId,
                     message: icerik.mesaj || '',
@@ -2373,7 +2360,6 @@ var ayarlarPlatformlar = [
     { id: 'linkedin', ad: 'LinkedIn', bagli: false, hesapAdi: '', sonKontrol: '' },
     { id: 'x', ad: 'X', bagli: false, hesapAdi: '', sonKontrol: '' },
     { id: 'tiktok', ad: 'TikTok', bagli: false, hesapAdi: '', sonKontrol: '' },
-    { id: 'pinterest', ad: 'Pinterest', bagli: false, hesapAdi: '', sonKontrol: '' },
     { id: 'youtube', ad: 'YouTube', bagli: false, hesapAdi: '', sonKontrol: '' }
 ];
 
@@ -2515,15 +2501,6 @@ function metaHataMesaji(code) {
     }
     if (c.indexOf('linkedin_org_not_found') !== -1) {
         return 'Yayin yapilabilir (ADMINISTRATOR / CONTENT_ADMIN / DIRECT_SPONSORED_CONTENT_POSTER rolune sahip) yonetilen sirket sayfasi bulunamadi.';
-    }
-    if (c.indexOf('pinterest_not_configured') !== -1) {
-        return 'Bu surumde Pinterest uygulama kimlikleri yapilandirilmamis. Bağlantı için güncel sürüm gereklidir; destek ekibiyle iletişime geçin.';
-    }
-    if (c.indexOf('pinterest_identity_lookup_failed') !== -1) {
-        return 'Pinterest kullanici kimligi alinamadi. Yetkilendirme yari kalabilir; hesabi yeniden baglamayi deneyin.';
-    }
-    if (c.indexOf('pinterest_board_not_found') !== -1) {
-        return 'Yayin yapilacak Pinterest panosu bulunamadi. Hesapta en az bir pano olmali veya mevcut pano id gecersiz.';
     }
     if (c.indexOf('reauthorization_required') !== -1) {
         return 'Token yenileme app secret gerektirdigi icin yapilamadi. Do\u011fru yetkilendirme icin hesabin yeniden baglanmasi gerekir (bu surumde engellenmistir).';
@@ -2870,62 +2847,7 @@ function ayarlarPlatformBaglan(id) {
         return;
     }
 
-    // Pinterest: gercek v5 OAuth Authorization Code akisi (klient secret Basic
-    // auth ile token degisiminde kullanilir). Kimlikler EXE'ye gomuldugunden
-    // on-kontrol yapilmaz; eksikse Rust `pinterest_not_configured` kontrollu
-    // hatasiyla doner; OAuth baslatilmaz.
-    if (id === 'pinterest') {
-        var pConn = esTauriInvoke('pinterest_connect', {});
-        if (!pConn) {
-            bildirimEkle('sosyal-medya-baglanti', 'bilgi',
-                'Pinterest baglantisi yalniz masaustunde kullanilabilir',
-                'Pinterest hesap baglantisi icin ES OPS masaustu uygulamasi gerekir.');
-            return;
-        }
-        // Kimlikler hazir: gercek Authorization Code akisini baslat. Tarayici
-        // resmi Pinterest yetkilendirme sayfasina acilir; callback sonrasi
-        // hesabin panolari kesfedilir ve her pano ayri bir yayin hedefi olur.
-        pConn.then(function(res) {
-            var panolar = (res && res.connections) || [];
-            if (panolar.length === 0) {
-                bildirimEkle('sosyal-medya-baglanti', 'uyari',
-                    'Pinterest baglantisi kurulamadi',
-                    'Hesap baglandi ancak yayin yapilabilecek pano bulunamadi.');
-                return;
-            }
-            p.bagli = true;
-            p.hesapAdi = (panolar[0].accountDisplayName) || '';
-            p.sonKontrol = new Date().toLocaleString('tr-TR');
-            ayarlarPlatformListele();
-            dashboardBaglantiGuncelle();
-            bildirimEkle('sosyal-medya-baglanti', 'basarili',
-                'Pinterest baglantisi kuruldu',
-                'Pinterest hesap baglantisi basariyla kuruldu (' + panolar.length + ' pano yayin hedefi).');
-        }).catch(function(err) {
-            var raw = String((err && (err.message || err.code || err)) || '');
-            var code = String(raw);
-            var msg;
-            if (code.indexOf('pinterest_not_configured') !== -1) {
-                msg = 'Pinterest icin gerekli uygulama kimlikleri bu surumde yapilandirilmamis. Lutfen destek ekibiyle iletisime gecin.';
-            } else if (code.indexOf('oauth_cancelled') !== -1) {
-                msg = 'Pinterest giris ekraninda yetkilendirme iptal edildi.';
-            } else if (code.indexOf('oauth_timeout') !== -1) {
-                msg = 'Pinterest yetkilendirme beklenirken zaman asimi oldu. Tekrar deneyin.';
-            } else if (code.indexOf('oauth_state_mismatch') !== -1) {
-                msg = 'Guvenlik dogrulamasi (state) uyusmazligi. Tekrar deneyin.';
-            } else if (code.indexOf('permission_denied') !== -1) {
-                msg = 'Pinterest izin istegini reddetti. Gerekli izinler (boards:read, boards:write, pins:read, pins:write) onaylanmamis olabilir.';
-            } else if (code.indexOf('pinterest_identity_lookup_failed') !== -1) {
-                msg = 'Pinterest kullanici kimligi alinamadi. Yetkilendirme yarı kalabilir; tekrar deneyin.';
-            } else {
-                msg = 'Pinterest baglantisi basarisiz oldu: ' + raw;
-            }
-            bildirimEkle('sosyal-medya-baglanti', 'hata',
-                'Pinterest baglantisi kurulamadi', msg);
-        });
-        return;
-    }
-
+    // TikTok: gercek OAuth akisi.
     // planned / restricted / verification_pending / tanimsiz:
     // Baglanti henuz etkin degil. Sahte baglanti veya token olusturulmaz,
     // OAuth baslatilmaz, baglanti "kuruldu" gibi gosterilmez.
@@ -3310,7 +3232,7 @@ function dashboardBaglantiGuncelle() {
     ayarlarPlatformlar.forEach(function(p) {
         // Statik HTML'deki sirali yapiyi kullan
         var items = document.querySelectorAll('#dash-sosyal-medya .dashboard-card .status-item');
-        var platformSirasi = { 'instagram': 0, 'facebook': 1, 'linkedin': 2, 'x': 3, 'tiktok': 4, 'pinterest': 5, 'youtube': 6 };
+        var platformSirasi = { 'instagram': 0, 'facebook': 1, 'linkedin': 2, 'x': 3, 'tiktok': 4, 'youtube': 5 };
         var idx = platformSirasi[p.id];
         if (idx !== undefined && items[idx]) {
             var valueEl = items[idx].querySelector('.value');

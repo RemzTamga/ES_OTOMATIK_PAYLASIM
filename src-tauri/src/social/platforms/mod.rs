@@ -18,6 +18,5 @@ pub mod youtube;
 pub mod facebook;
 pub mod instagram;
 pub mod linkedin;
-pub mod pinterest;
 pub mod tiktok;
 pub mod x;

@@ -108,8 +108,6 @@ Instagram Kare
 
 Instagram Dikey
 
-Pinterest
-
 Her biri ayrı şablon olabilir.
 
 Yapay zekâ da paylaşım türüne göre uygun şablonu otomatik seçebilir veya kullanıcı isterse manuel seçebilir.
@@ -206,7 +204,6 @@ Facebook
 LinkedIn
 X
 TikTok
-Pinterest
 
 gibi farklı platform formatları üretilebilir.
 

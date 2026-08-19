@@ -56,9 +56,6 @@ jobs:
           # X (Twitter) OAuth 1.0a Consumer Key / Secret.
           ES_OPS_X_CONSUMER_KEY: ${{ secrets.ES_OPS_X_CONSUMER_KEY }}
           ES_OPS_X_CONSUMER_SECRET: ${{ secrets.ES_OPS_X_CONSUMER_SECRET }}
-          # Pinterest v5 Basic auth Client ID / Secret.
-          ES_OPS_PINTEREST_CLIENT_ID: ${{ secrets.ES_OPS_PINTEREST_CLIENT_ID }}
-          ES_OPS_PINTEREST_CLIENT_SECRET: ${{ secrets.ES_OPS_PINTEREST_CLIENT_SECRET }}
         run: npx tauri build --bundles msi,nsis
 
       - name: List bundle outputs

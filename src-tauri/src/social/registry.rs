@@ -36,11 +36,6 @@ pub fn platform_catalog() -> Vec<PlatformDefinition> {
             support_status: SupportStatus::Supported,
         },
         PlatformDefinition {
-            platform_id: "pinterest",
-            display_name: "Pinterest",
-            support_status: SupportStatus::Supported,
-        },
-        PlatformDefinition {
             platform_id: "threads",
             display_name: "Threads",
             support_status: SupportStatus::Unsupported,
@@ -104,7 +99,6 @@ mod tests {
         let platforms = [
             ("youtube.rs", include_str!("platforms/youtube.rs")),
             ("linkedin.rs", include_str!("platforms/linkedin.rs")),
-            ("pinterest.rs", include_str!("platforms/pinterest.rs")),
             ("tiktok.rs", include_str!("platforms/tiktok.rs")),
             ("x.rs", include_str!("platforms/x.rs")),
             ("meta.rs", include_str!("platforms/meta.rs")),

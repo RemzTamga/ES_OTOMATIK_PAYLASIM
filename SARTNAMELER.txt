@@ -616,7 +616,7 @@ Sıra numarası (Duyuru ve İlanlar için boş)
 
 İçerik başlığı / açıklaması
 
-Platform (Instagram, Facebook, LinkedIn, X, TikTok, Pinterest, YouTube vb.)
+Platform (Instagram, Facebook, LinkedIn, X, TikTok, YouTube vb.)
 
 Yayın durumu (Başarılı / Başarısız)
 
@@ -885,8 +885,6 @@ LinkedIn
 X
 
 TikTok
-
-Pinterest
 
 YouTube
 

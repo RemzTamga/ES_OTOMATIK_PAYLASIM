@@ -153,10 +153,6 @@ pub enum SocialError {
     LinkedinNotConfigured,
     LinkedinIdentityLookupFailed,
     LinkedinOrgNotFound,
-    // Pinterest kontrollü hatalar.
-    PinterestNotConfigured,
-    PinterestIdentityLookupFailed,
-    PinterestBoardNotFound,
 }
 
 impl std::fmt::Display for SocialError {
@@ -205,9 +201,6 @@ impl std::fmt::Display for SocialError {
             SocialError::LinkedinNotConfigured => "linkedin_not_configured",
             SocialError::LinkedinIdentityLookupFailed => "linkedin_identity_lookup_failed",
             SocialError::LinkedinOrgNotFound => "linkedin_org_not_found",
-            SocialError::PinterestNotConfigured => "pinterest_not_configured",
-            SocialError::PinterestIdentityLookupFailed => "pinterest_identity_lookup_failed",
-            SocialError::PinterestBoardNotFound => "pinterest_board_not_found",
         };
         f.write_str(msg)
     }

@@ -52,7 +52,6 @@ SOSYAL_MEDYA_OTOMASYON
 │   │   ├── LinkedIn
 │   │   ├── X
 │   │   ├── TikTok
-│   │   ├── Pinterest
 │   │   ├── YouTube
 │   │   └── Diger_Desteklenen_Platformlar
 │   │
