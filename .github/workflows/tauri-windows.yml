@@ -40,7 +40,9 @@ jobs:
           # ve Rust tarafÄ±nda `option_env!` ile derleme anÄ±nda EXE'ye gÃ¶mÃ¼lÃ¼r.
           # HiÃ§biri kaynak koduna, loglara ya da arayÃ¼ze yazÄ±lmaz.
           # YouTube / LinkedIn: Native PKCE, yalnÄ±z public Client ID gerekir.
+          # YouTube web-app tipinde kullanÄ±lÄ±yorsa Client Secret de verilir.
           ES_OPS_YOUTUBE_CLIENT_ID: ${{ secrets.ES_OPS_YOUTUBE_CLIENT_ID }}
+          ES_OPS_YOUTUBE_CLIENT_SECRET: ${{ secrets.ES_OPS_YOUTUBE_CLIENT_SECRET }}
           ES_OPS_LINKEDIN_CLIENT_ID: ${{ secrets.ES_OPS_LINKEDIN_CLIENT_ID }}
           # Meta (Facebook / Instagram ortak motoru) App ID + App Secret.
           ES_OPS_META_APP_ID: ${{ secrets.ES_OPS_META_APP_ID }}

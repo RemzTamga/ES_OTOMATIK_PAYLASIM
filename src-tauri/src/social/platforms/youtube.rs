@@ -65,6 +65,14 @@ fn youtube_client_id() -> Option<&'static str> {
         .filter(|s| !s.is_empty())
 }
 
+/// Client secret, derleme zamanında güvenli biçimde gömülür.
+/// Web uygulaması tipi için gerekir; yoksa `None` döner (PKCE yeterliyse).
+fn youtube_client_secret() -> Option<&'static str> {
+    option_env!("ES_OPS_YOUTUBE_CLIENT_SECRET")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+}
+
 /// Video gizlilik durumu (kontrollü değerler).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -279,6 +287,7 @@ struct TokenSet {
 /// Yetkilendirme kodunu gerçek token endpoint'inde değiştirir (PKCE ile).
 fn exchange_code(
     client_id: &str,
+    client_secret: Option<&str>,
     redirect_uri: &str,
     code: &str,
     code_verifier: &str,
@@ -287,13 +296,16 @@ fn exchange_code(
     ytlog(&format!("exchange_code: redirect_uri={}", redirect_uri));
     ytlog(&format!("exchange_code: client_id ilk_8={}", &client_id[..client_id.len().min(8)]));
     let client = http_client()?;
-    let params = [
-        ("code", code),
-        ("client_id", client_id),
-        ("redirect_uri", redirect_uri),
-        ("grant_type", "authorization_code"),
-        ("code_verifier", code_verifier),
+    let mut params = vec![
+        ("code", code.to_string()),
+        ("client_id", client_id.to_string()),
+        ("redirect_uri", redirect_uri.to_string()),
+        ("grant_type", "authorization_code".to_string()),
+        ("code_verifier", code_verifier.to_string()),
     ];
+    if let Some(secret) = client_secret {
+        params.push(("client_secret", secret.to_string()));
+    }
     let resp = client
         .post(TOKEN_ENDPOINT)
         .form(&params)
@@ -324,13 +336,20 @@ fn exchange_code(
 }
 
 /// Refresh token ile yeni access token alır.
-fn refresh_access_token(client_id: &str, refresh_token: &str) -> Result<TokenSet, SocialError> {
+fn refresh_access_token(
+    client_id: &str,
+    client_secret: Option<&str>,
+    refresh_token: &str,
+) -> Result<TokenSet, SocialError> {
     let client = http_client()?;
-    let params = [
-        ("client_id", client_id),
-        ("refresh_token", refresh_token),
-        ("grant_type", "refresh_token"),
+    let mut params = vec![
+        ("client_id", client_id.to_string()),
+        ("refresh_token", refresh_token.to_string()),
+        ("grant_type", "refresh_token".to_string()),
     ];
+    if let Some(secret) = client_secret {
+        params.push(("client_secret", secret.to_string()));
+    }
     let resp = client
         .post(TOKEN_ENDPOINT)
         .form(&params)
@@ -509,7 +528,7 @@ pub fn connect(app: &AppHandle) -> Result<SocialAccountConnection, SocialError> 
     }
     ytlog("callback alindi, code uzunlugu yok sayiliyor (guvenlik)");
 
-    let tokens = exchange_code(&client_id, &redirect_uri, &code, &code_verifier)?;
+    let tokens = exchange_code(&client_id, youtube_client_secret(), &redirect_uri, &code, &code_verifier)?;
     ytlog("token basarili, refresh_token var mi");
     ytlog(&format!("refresh_token var mi: {}", tokens.refresh_token.is_some()));
     let channel = fetch_channel(&tokens.access_token)?;
@@ -555,7 +574,7 @@ fn obtain_access_token(
     };
 
     let client_id = youtube_client_id().ok_or(SocialError::YoutubeNotConfigured)?;
-    let tokens = refresh_access_token(client_id, &refresh).map_err(|_| {
+    let tokens = refresh_access_token(client_id, youtube_client_secret(), &refresh).map_err(|_| {
         update_status(app, &record.connection_id, ConnectionStatus::Error);
         SocialError::TokenRefreshFailed
     })?;
@@ -811,7 +830,7 @@ pub fn upload_video(
         .map_err(|_| SocialError::CredentialStoreError)?
         .ok_or(SocialError::TokenRefreshFailed)?;
 
-        let tokens = refresh_access_token(client_id, &refresh_token).map_err(|_| {
+        let tokens = refresh_access_token(client_id, youtube_client_secret(), &refresh_token).map_err(|_| {
             update_status(app, &record.connection_id, ConnectionStatus::TokenExpired);
             SocialError::TokenRefreshFailed
         })?;
