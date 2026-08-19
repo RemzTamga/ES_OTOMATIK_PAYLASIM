@@ -482,6 +482,160 @@ function simulateSave(type) {
     }
 }
 
+// ===== SIRA NUMARASI URETIMI (SARTNAME UYUMLU) =====
+// Her paylasim turu kendi sira numarasini 001'den baslatarak ardısık uretir.
+// Mevcut kayitlardaki en yuksek siraya +1 eklenir; hic kayit yoksa 001 doner.
+// Duyuru sıra numarası almaz (sartname) — bu fonksiyon yalnız
+// standart/kampanya/detayli icin cagrilir.
+function siraNumarasiUret(tur) {
+    var kayitlar = [];
+    if (tur === 'standart') {
+        kayitlar = otomatikSistem.standartKayitlar || [];
+    } else if (tur === 'kampanya') {
+        kayitlar = otomatikSistem.kampanyaKayitlar || [];
+    } else if (tur === 'detayli') {
+        kayitlar = otomatikSistem.detayliKayitlar || [];
+    }
+    var enYuksek = 0;
+    kayitlar.forEach(function (k) {
+        var n = parseInt(k.siraNo, 10);
+        if (!isNaN(n) && n > enYuksek) enYuksek = n;
+    });
+    var yeni = String(enYuksek + 1);
+    while (yeni.length < 3) yeni = '0' + yeni;
+    return yeni;
+}
+
+// ===== KAYDET (SARTNAME UYUMLU) =====
+// simulateSave'in sartnameye uygun hali. Mevcut simulateSave oldugu gibi
+// korunur; yalniz paylasim formlarindaki "Kaydet" butonlari bu fonksiyona
+// yonlendirilir. Sira numaralari 001'den ardısık uretilir; Standart'ta her
+// gorsel ayri sıra numarasi alir (sartname: "Her gorsel ayri bir sıra
+// numarası alır. Sıra numarası 001'den başlar ve ardışık devam eder.").
+function paylasimKaydet(type) {
+    var names = {
+        'standart': 'Standart Paylasim',
+        'kampanya': 'Kampanya Paylasimi',
+        'detayli': 'Detayli Paylasim'
+    };
+
+    var baslik = formBaslikAl(type);
+    var mesaj = formIcerikAl(type);
+    var secim = secilenMedyaGetir(type);
+    var videoYolu = secim.videoPath || '';
+
+    if (type === 'standart') {
+        // Her gorsel ayri sıra numarasi ve ayri kayit olarak siraya girer.
+        var gorseller = secim.media;
+        if (gorseller.length === 0) gorseller = [''];
+
+        gorseller.forEach(function (gorsel) {
+            var siraNo = siraNumarasiUret('standart');
+            var gorselAdi = gorsel ? medyaYolAdi(gorsel) : 'Medya (simule)';
+            var tekMedya = gorsel ? [gorsel] : [];
+            otomatikStandartEkle(baslik, siraNo, gorselAdi, videoYolu, mesaj, tekMedya);
+            gecmisSMKayitEkle({
+                tarihSaat: new Date().toLocaleString('tr-TR'),
+                tur: names[type],
+                siraNumarasi: siraNo,
+                baslik: baslik,
+                gorselAdi: gorselAdi,
+                platform: 'Instagram, Facebook, LinkedIn, X, TikTok, YouTube',
+                sablon: 'Standart',
+                platformCikti: 'Platforma ozel duzenleme (simule)',
+                durum: 'bekliyor',
+                icerik: mesaj,
+                baglanti: '',
+                hataNedeni: ''
+            });
+        });
+        alert('Standart Paylasim kaydedildi. Gorsellerin her biri 001 den itibaren kendi sıra numarasini aldi ve otomatik yayin sirasina eklendi.');
+    } else if (type === 'kampanya') {
+        var basTarih = document.getElementById('kampanyaBaslangic') ? document.getElementById('kampanyaBaslangic').value : '';
+        var bitTarih = document.getElementById('kampanyaBitis') ? document.getElementById('kampanyaBitis').value : '';
+        if (!basTarih) { basTarih = new Date().toISOString().split('T')[0]; }
+        if (!bitTarih) { var b = new Date(); b.setDate(b.getDate() + 30); bitTarih = b.toISOString().split('T')[0]; }
+        var siraNo = siraNumarasiUret('kampanya');
+        var gorselAdi = secim.media.length > 0 ? medyaYolAdi(secim.media[0]) : 'Medya (simule)';
+        otomatikKampanyaEkle(baslik, basTarih, bitTarih, gorselAdi, videoYolu, mesaj, secim.media);
+        // Kayda sıra numarasini yaz (mevcut ekleme fonksiyonu gövdesine dokunulmaz).
+        var kampListe = otomatikSistem.kampanyaKayitlar;
+        if (kampListe.length > 0) kampListe[kampListe.length - 1].siraNo = siraNo;
+        gecmisSMKayitEkle({
+            tarihSaat: new Date().toLocaleString('tr-TR'),
+            tur: names[type],
+            siraNumarasi: siraNo,
+            baslik: baslik,
+            gorselAdi: gorselAdi,
+            platform: 'Instagram, Facebook, LinkedIn, X, TikTok, YouTube',
+            sablon: 'Standart',
+            platformCikti: 'Platforma ozel duzenleme (simule)',
+            durum: 'bekliyor',
+            icerik: mesaj,
+            baglanti: '',
+            hataNedeni: ''
+        });
+        alert('Kampanya Paylasimi kaydedildi. Sira numarasi: ' + siraNo + '. Kampanya baslangic ve bitis tarihleri arasinda otomatik yayinlanacak. Standart Paylasim dongusune dahil edilmez.');
+    } else if (type === 'detayli') {
+        var tarih = document.getElementById('detayliTarih') ? document.getElementById('detayliTarih').value : '';
+        var saat = document.getElementById('detayliSaat') ? document.getElementById('detayliSaat').value : '';
+        var siraNo = siraNumarasiUret('detayli');
+        var gorselAdi = secim.media.length > 0 ? medyaYolAdi(secim.media[0]) : 'Medya (simule)';
+        otomatikDetayliEkle(baslik, mesaj, gorselAdi, videoYolu, secim.media, tarih, saat);
+        var detListe = otomatikSistem.detayliKayitlar;
+        if (detListe.length > 0) detListe[detListe.length - 1].siraNo = siraNo;
+        gecmisSMKayitEkle({
+            tarihSaat: new Date().toLocaleString('tr-TR'),
+            tur: names[type],
+            siraNumarasi: siraNo,
+            baslik: baslik,
+            gorselAdi: gorselAdi,
+            platform: 'Instagram, Facebook, LinkedIn, X, TikTok, YouTube',
+            sablon: 'Standart',
+            platformCikti: 'Platforma ozel duzenleme (simule)',
+            durum: 'bekliyor',
+            icerik: mesaj,
+            baglanti: '',
+            hataNedeni: ''
+        });
+        alert('Detayli Paylasim planlandi. Sira numarasi: ' + siraNo + '. Zamanlayici belirtilen tarih/saatte yayinlar.');
+    }
+    bildirimEkle('sistem-uyari', 'bilgi',
+        names[type] + ' paylasim kaydedildi',
+        names[type] + ' paylasim basariyla kaydedildi ve otomatik yayin sirasina eklendi.');
+}
+
+// ===== LOGO SARMAYICISI =====
+// Kurumsal logo bindirme: yayin oncesi gorsellere aktif logoyu uygular, sonra
+// orijinal yayin motorunu (sosyalGercekYayinGonder) cagirir. Orijinal motorun
+// gövdesine HIC dokunulmaz. Logo tanimli degilse ya da Tauri ortami yoksa
+// davranis birebir aynidir (orijinal motor dogrudan cagirilir, ek is yapilmaz).
+function sosyalGercekYayinGonderLogo(icerik, hedefPlatformlar) {
+    var medyaVar = icerik && icerik.mediaFiles && icerik.mediaFiles.length > 0;
+    if (!medyaVar) {
+        return sosyalGercekYayinGonder(icerik, hedefPlatformlar);
+    }
+    var p = esTauriInvoke('logo_status');
+    if (!p) {
+        return sosyalGercekYayinGonder(icerik, hedefPlatformlar);
+    }
+    return p.then(function(status) {
+        if (!status || !status.configured) {
+            return sosyalGercekYayinGonder(icerik, hedefPlatformlar);
+        }
+        return esTauriInvoke('apply_logo_to_images', { paths: icerik.mediaFiles }).then(function(yeniYollar) {
+            var islenmis = (yeniYollar && yeniYollar.length === icerik.mediaFiles.length) ? yeniYollar : icerik.mediaFiles;
+            var kopya = Object.assign({}, icerik);
+            kopya.mediaFiles = islenmis;
+            return sosyalGercekYayinGonder(kopya, hedefPlatformlar);
+        }).catch(function() {
+            return sosyalGercekYayinGonder(icerik, hedefPlatformlar);
+        });
+    }).catch(function() {
+        return sosyalGercekYayinGonder(icerik, hedefPlatformlar);
+    });
+}
+
 // ===== GERCEK YAYIN MOTORU (Facebook / Instagram / TikTok / X / LinkedIn) =====
 // Manuel "Simdi Paylas" yayin motoruna baglanan gercek yayin sevkiyatcisi.
 // Bagli Facebook/Instagram/TikTok/X/LinkedIn hesaplarina gercek Tauri
@@ -618,6 +772,111 @@ function sosyalGercekYayinGonder(icerik, hedefPlatformlar) {
     });
 }
 
+// ===== CAROUSEL DESTEKLI YAYIN SARMALAYICISI =====
+// Detayli Paylasim gibi coklu gorselli iceriklerde (mediaFiles > 1) Facebook'a
+// tek gonderide (carousel) yayin yapar; diger platformlar mevcut motorda kalir.
+// Tek gorsel veya medya yoksa dogrudan mevcut logo sarmalayicisina devredilir
+// (davranis birebir korunur). Yeni komut yalniz Facebook icin eklenmistir;
+// baglanti/ayar komutlarina ve mevcut yayin motoruna dokunulmaz.
+function sosyalGercekYayinGonderCarousel(icerik, hedefPlatformlar) {
+    var cokluGorsel = icerik && Array.isArray(icerik.mediaFiles) && icerik.mediaFiles.length > 1;
+    if (!cokluGorsel) {
+        return sosyalGercekYayinGonderLogo(icerik, hedefPlatformlar);
+    }
+    var logoP = esTauriInvoke('logo_status');
+    var hazir = (logoP ? logoP.then(function(status) {
+        if (!status || !status.configured) return Promise.resolve(icerik.mediaFiles);
+        return esTauriInvoke('apply_logo_to_images', { paths: icerik.mediaFiles }).then(function(yeniYollar) {
+            return (yeniYollar && yeniYollar.length === icerik.mediaFiles.length) ? yeniYollar : icerik.mediaFiles;
+        }).catch(function() { return icerik.mediaFiles; });
+    }).catch(function() { return icerik.mediaFiles; }) : Promise.resolve(icerik.mediaFiles));
+    return hazir.then(function(islenmis) {
+        var kopya = Object.assign({}, icerik);
+        kopya.mediaFiles = islenmis;
+        return sosyalGercekYayinGonderCarouselCekirdek(kopya, hedefPlatformlar);
+    });
+}
+
+// Carousel cekirdek: bagli hesaplari okuyup Facebook'u yeni komutla, diger
+// platformlari mevcut motoria cagirir ve sonuclari ayni yapida birlestirir.
+function sosyalGercekYayinGonderCarouselCekirdek(icerik, hedefPlatformlar) {
+    var sonuc = {
+        platformlar: [],
+        toplamBasarili: 0,
+        toplamBasarisiz: 0,
+        bagliHesapYok: false
+    };
+    var p = esTauriInvoke('social_account_connections');
+    if (!p) {
+        sonuc.bagliHesapYok = true;
+        return Promise.resolve(sonuc);
+    }
+    return p.then(function(list) {
+        var bagli = (list || []).filter(function(c) { return c.connectionStatus === 'connected'; });
+        var hedefVar = Array.isArray(hedefPlatformlar) && hedefPlatformlar.length > 0;
+        var hedefSet = {};
+        if (hedefVar) hedefPlatformlar.forEach(function(h) { hedefSet[h] = true; });
+
+        var hedeflenen = bagli.filter(function(c) {
+            var desteklenen = c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin' || c.platformId === 'youtube';
+            if (!desteklenen) return false;
+            if (hedefVar) return hedefSet[c.platformId] === true;
+            return true;
+        });
+        if (hedeflenen.length === 0) {
+            sonuc.bagliHesapYok = true;
+            return sonuc;
+        }
+        var fbBagli = hedeflenen.some(function(c) { return c.platformId === 'facebook'; });
+        if (!fbBagli) {
+            return sosyalGercekYayinGonder(icerik, hedefPlatformlar);
+        }
+
+        var fbConn = hedeflenen.filter(function(c) { return c.platformId === 'facebook'; })[0];
+        var fbIstek = esTauriInvoke('facebook_publish_carousel', {
+            connectionId: fbConn.connectionId,
+            message: icerik.mesaj || '',
+            title: icerik.baslik || '',
+            mediaFiles: icerik.mediaFiles || []
+        }).then(function(id) {
+            var asilId = (typeof id === 'string' && id) ? id : '';
+            return { platformId: 'facebook', basarili: true, postId: asilId };
+        }).catch(function(err) {
+            var raw = (err && (err.message || err.code || err)) || '';
+            return { platformId: 'facebook', basarili: false, hataMesaji: metaHataMesaji(String(raw)) };
+        });
+
+        var digerHedefler;
+        if (hedefVar) {
+            digerHedefler = hedefPlatformlar.filter(function(h) { return h !== 'facebook'; });
+        } else {
+            digerHedefler = hedeflenen.map(function(c) { return c.platformId; }).filter(function(pid) { return pid !== 'facebook'; });
+        }
+        if (digerHedefler.length === 0) {
+            return fbIstek.then(function(fb) {
+                sonuc.platformlar = [fb];
+                sonuc.toplamBasarili = fb.basarili ? 1 : 0;
+                sonuc.toplamBasarisiz = fb.basarili ? 0 : 1;
+                sonuc.hedefPlatformlar = ['facebook'];
+                return sonuc;
+            });
+        }
+        var digerIstek = sosyalGercekYayinGonder(icerik, digerHedefler);
+        return Promise.all([digerIstek, fbIstek]).then(function(parcalar) {
+            var diger = parcalar[0] || { platformlar: [], toplamBasarili: 0, toplamBasarisiz: 0 };
+            var fb = parcalar[1] || { platformId: 'facebook', basarili: false };
+            sonuc.platformlar = (diger.platformlar || []).concat([fb]);
+            sonuc.toplamBasarili = (diger.toplamBasarili || 0) + (fb.basarili ? 1 : 0);
+            sonuc.toplamBasarisiz = (diger.toplamBasarisiz || 0) + (fb.basarili ? 0 : 1);
+            sonuc.hedefPlatformlar = (digerHedefler || []).concat(['facebook']);
+            return sonuc;
+        });
+    }).catch(function() {
+        sonuc.bagliHesapYok = true;
+        return sonuc;
+    });
+}
+
 // Seçili video dosyasının gerçek mutlak yolunu native dosya seçici (dialog)
 // üzerinden Rust'dan alır. Tarayıcı güvenliği gereği ön yüz gerçek yola
 // erişemediği için bu komut kullanılır. Video seçilmediyse veya kullanıcı
@@ -673,7 +932,8 @@ function simulateNow(type) {
 
         // Gercek Facebook/Instagram/TikTok yayinlarini baslat; bagli hesap yoksa
         // ya da yayin basarisizsa sahte basari uretilmez (Yayin Gecmisi'ne yansitilir).
-        return sosyalGercekYayinGonder(postKapsami).then(function(bilgi) {
+        // Coklu gorsel (Detayli Paylasim) Facebook'ta tek carousel gonderi olur.
+        return sosyalGercekYayinGonderCarousel(postKapsami).then(function(bilgi) {
         if (bilgi.platformlar.length === 0) {
             gecmisSMKayitEkle({
                 tarihSaat: new Date().toLocaleString('tr-TR'),
@@ -1148,6 +1408,14 @@ function medyaKlasorSec(klasorId) {
         sablonBilgi.style.display = (klasorId === '05') ? 'block' : 'none';
     }
 
+    var logoBilgi = document.getElementById('medyaLogoBilgi');
+    if (logoBilgi) {
+        logoBilgi.style.display = (klasorId === '04') ? 'block' : 'none';
+        if (klasorId === '04') {
+            medyaLogoDurumGoster();
+        }
+    }
+
     var yuklemeAlani = document.getElementById('medyaYuklemeAlani');
     if (yuklemeAlani) {
         yuklemeAlani.style.display = 'block';
@@ -1268,6 +1536,63 @@ function medyaDosyaSil(index) {
         medyaDosyalari[anahtar].splice(index, 1);
         medyaDosyalariListele();
     }
+}
+
+// ===== KURUMSAL LOGO (04_LOGO_VE_KURUMSAL_KIMLIK) =====
+// Aktif kurumsal logo durumunu gosterir. Tauri ortami yoksa bilgi islenmez.
+function medyaLogoDurumGoster() {
+    var durumEl = document.getElementById('medyaLogoDurum');
+    var p = esTauriInvoke('logo_status');
+    if (!p) {
+        if (durumEl) durumEl.textContent = 'Logo durumu: Onizleme modunda gosterilemez.';
+        return;
+    }
+    p.then(function(status) {
+        if (durumEl) {
+            durumEl.textContent = status && status.configured
+                ? 'Aktif kurumsal logo: ' + status.filename
+                : 'Su an aktif kurumsal logo tanimli degil.';
+        }
+    }).catch(function() {
+        if (durumEl) durumEl.textContent = 'Logo durumu okunamadi.';
+    });
+}
+
+// Kullaniciya native dosya seci ci actirir; secilen gorseli kurumsal logo olarak
+// kaydeder. Gorsel olmayan secim ve iptal kontrollu islenir; sahte basari uretilmez.
+function medyaLogoSec() {
+    var p = esTauriInvoke('pick_media_files');
+    if (!p) {
+        alert('Logo secimi yalniz uygulama ici calistiginda yapilabilir.');
+        return;
+    }
+    p.then(function(yollar) {
+        if (!yollar || yollar.length === 0) return;
+        return esTauriInvoke('logo_set', { path: yollar[0] }).then(function(status) {
+            var durumEl = document.getElementById('medyaLogoDurum');
+            if (durumEl) durumEl.textContent = 'Aktif kurumsal logo: ' + status.filename;
+            alert('Kurumsal logo kaydedildi: ' + status.filename);
+        });
+    }).catch(function(e) {
+        var msg = (e && e.message) ? e.message : 'Bilinmeyen hata';
+        alert('Logo kaydedilemedi.\n' + msg);
+    });
+}
+
+// Aktif kurumsal logoyu kaldirir. Hata olursa bilgilendirilir.
+function medyaLogoTemizle() {
+    var p = esTauriInvoke('logo_clear');
+    if (!p) {
+        alert('Logo kaldirma yalniz uygulama ici calistiginda yapilabilir.');
+        return;
+    }
+    p.then(function() {
+        var durumEl = document.getElementById('medyaLogoDurum');
+        if (durumEl) durumEl.textContent = 'Su an aktif kurumsal logo tanimli degil.';
+        alert('Kurumsal logo kaldirildi.');
+    }).catch(function() {
+        alert('Logo kaldirilamadi.');
+    });
 }
 
 // MEDYA file upload DOM
@@ -1546,6 +1871,7 @@ var otomatikSistem = {
     aktif: true,
     gunlukKota: 5,
     bugunKullanilan: 0,
+    bugunKampanyaKullanilan: 0,
     standartKayitlar: [],   // { siraNo, baslik, tur, tarih, gorselAdi, videoPath, mesaj, mediaList }
     kampanyaKayitlar: [],   // { baslik, baslangic, bitis, tur, tarih, gorselAdi, videoPath, mesaj, mediaList }
     detayliKayitlar: [],    // { baslik, mesaj, gorselAdi, videoPath, mediaList, planTarihSaat, durum, tur }
@@ -1583,6 +1909,7 @@ function otomatikSistemiKaydet() {
     kaliciKaydet('es_ops_otomatik_sistem', {
         aktif: otomatikSistem.aktif,
         bugunKullanilan: otomatikSistem.bugunKullanilan,
+        bugunKampanyaKullanilan: otomatikSistem.bugunKampanyaKullanilan,
         standartKayitlar: otomatikSistem.standartKayitlar,
         kampanyaKayitlar: otomatikSistem.kampanyaKayitlar,
         detayliKayitlar: otomatikSistem.detayliKayitlar,
@@ -1596,6 +1923,7 @@ function otomatikSistemiYukle() {
     if (!d) return;
     if (typeof d.aktif === 'boolean') otomatikSistem.aktif = d.aktif;
     if (typeof d.bugunKullanilan === 'number') otomatikSistem.bugunKullanilan = d.bugunKullanilan;
+    if (typeof d.bugunKampanyaKullanilan === 'number') otomatikSistem.bugunKampanyaKullanilan = d.bugunKampanyaKullanilan;
     if (Array.isArray(d.standartKayitlar)) otomatikSistem.standartKayitlar = d.standartKayitlar;
     if (Array.isArray(d.kampanyaKayitlar)) otomatikSistem.kampanyaKayitlar = d.kampanyaKayitlar;
     if (Array.isArray(d.detayliKayitlar)) otomatikSistem.detayliKayitlar = d.detayliKayitlar;
@@ -1645,7 +1973,7 @@ function planliYayinTetikle() {
         k.durum = 'yayinlaniyor';
         otomatikSistemiKaydet();
         var icerik = planliKayitIcerik(k);
-        sosyalGercekYayinGonder(icerik).then(
+        sosyalGercekYayinGonderCarousel(icerik).then(
             function (bilgi) {
                 planliOnayKaydet(k, bilgi);
             },
@@ -1705,7 +2033,7 @@ function otomatikDonguTetikle() {
         if (!isNaN(fark) && fark < OTOMATIK_YAYIN_ARALIK_MS) return;
     }
     if (otomatikSistem.standartKayitlar.length === 0 && !otomatikAktifKampanyaVar() && !planliBekleyenVar()) return;
-    otomatikSimuleEt(true);
+    otomatikSimuleEtOncelikli(true);
 }
 
 // Gunluk sifirlama kontrolu - sayfa acildiginda gun degisti mi kontrol et
@@ -1714,11 +2042,14 @@ function otomatikGunlukKontrol() {
     var kayitli = localStorage.getItem('otomatik_gun');
     if (kayitli !== bugun) {
         otomatikSistem.bugunKullanilan = 0;
+        otomatikSistem.bugunKampanyaKullanilan = 0;
         localStorage.setItem('otomatik_gun', bugun);
         localStorage.setItem('otomatik_kota', '0');
     } else {
         var kotali = localStorage.getItem('otomatik_kota');
         otomatikSistem.bugunKullanilan = kotali ? parseInt(kotali, 10) : 0;
+        var kampanyali = localStorage.getItem('otomatik_kampanya_kota');
+        if (kampanyali !== null) otomatikSistem.bugunKampanyaKullanilan = parseInt(kampanyali, 10) || 0;
     }
 }
 
@@ -1777,7 +2108,7 @@ function otomatikDurumuGuncelle() {
         } else {
             yHtml += '<button class="yonetim-btn aktif" onclick="otomatikDevamEttir()">Sistemi Devam Ettir</button>';
         }
-        yHtml += '<button class="yonetim-btn bilgi" onclick="otomatikSimuleEt()">Otomatik Yayini Simule Et</button>';
+        yHtml += '<button class="yonetim-btn bilgi" onclick="otomatikSimuleEtOncelikli()">Otomatik Yayini Simule Et</button>';
         yHtml += '<div style="font-size:0.78rem;color:#9ca3af;margin-top:8px;">Otomatik yayin; bagli hesap varsa gercek yayin motoruyla paylasilir. Her platform kendi aktif saat penceresinde yayinlanir; aktif saat gelmemisse kayit sirada bekletilir, kotadan dusulmez.</div>';
         yHtml += '</div>';
         yonetimKart.innerHTML = yHtml;
@@ -1822,6 +2153,96 @@ function otomatikDuraklat() {
     otomatikSistem.aktif = false;
     alert('Otomatik yayin sistemi duraklatildi. Mevcut kayitlar, sira numaralari ve kampanyalar korunuyor.');
     otomatikDurumuGuncelle();
+}
+
+// ---- KAMPANYA ONCELIGI (SARTNAME UYUMLU) ----
+// Mevcut otomatikSimuleEt gövdesine dokunulmaz; bu sarmalayicilar
+// kampanya onceligini saglar. Kural: günlük kampanya kontenjani = aktif
+// kampanya sayısı. Kampanya varken önce kampanya (sıra numarasina göre)
+// yayinlanir; kontenjan dolunca standart devreye girer.
+
+// Günlük kampanya sayaci localStorage'a yazilir (mevcut otomatik_kota
+// anahtari bozulmadan yeni anahtar eklenir).
+function otomatikKampanyaSayacKaydet() {
+    localStorage.setItem('otomatik_kampanya_kota', otomatikSistem.bugunKampanyaKullanilan.toString());
+}
+
+// Aktif kampanyalari sıra numarasina göre kucukten buyuge siralar.
+function otomatikAktifKampanyaListesi() {
+    var now = new Date();
+    var liste = (otomatikSistem.kampanyaKayitlar || []).filter(function (k) {
+        var bas = new Date(k.baslangic);
+        var bit = new Date(k.bitis);
+        return now >= bas && now <= bit;
+    });
+    liste.sort(function (a, b) {
+        return (parseInt(a.siraNo, 10) || 9999) - (parseInt(b.siraNo, 10) || 9999);
+    });
+    return liste;
+}
+
+// Kampanya kaydi icin bagli hesap / aktif saat penceresi kontrolu yapar ve
+// mevcut otomatikSimuleEtYayinla motoruna gonderir (siraKuyruktur=false:
+// kampanya listede kalir, günlük kontenjan dahilinde tekrar yayinlanabilir).
+function otomatikKampanyaGonder(sessiz, simdi, kayit) {
+    var bagliSorgu = esTauriInvoke('social_account_connections');
+    if (!bagliSorgu) {
+        otomatikBilgilendir(sessiz, 'Gercek yayin motoru yalniz masaustu uygulamada calisir. Kampanya sirada korundu.');
+        otomatikDurumuGuncelle();
+        return;
+    }
+    bagliSorgu.then(function (list) {
+        var bagli = (list || []).filter(function (c) {
+            return c.connectionStatus === 'connected';
+        });
+        var yayinPlatformlari = bagli.filter(function (c) {
+            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin' || c.platformId === 'youtube';
+        }).map(function (c) { return c.platformId; });
+        var aktifHedefler = yayinPlatformlari.filter(function (pid) {
+            return platformAktifSaatIcindeMi(pid);
+        });
+
+        if (aktifHedefler.length === 0) {
+            otomatikSistem.sonYayinZamani = new Date().toISOString();
+            otomatikSistemiKaydet();
+            otomatikBilgilendir(sessiz, 'Su an hicbir bagli platformun aktif saat penceresi yok. Kampanya sirada bekletiliyor.');
+            otomatikDurumuGuncelle();
+            return;
+        }
+
+        otomatikSistem.bugunKampanyaKullanilan++;
+        otomatikKampanyaSayacKaydet();
+        otomatikSistemiKaydet();
+        otomatikSimuleEtYayinla(sessiz, simdi, kayit, 'Kampanya (Otomatik)', kayit.siraNo || '', false, aktifHedefler);
+    }).catch(function () {
+        otomatikSistemiKaydet();
+        otomatikBilgilendir(sessiz, 'Bagli hesaplar okunamadi. Kampanya sirada korundu.');
+        otomatikDurumuGuncelle();
+    });
+}
+
+// Kampanya-oncelikli otomatik döngü tetikleyicisi. Mevcut otomatikSimuleEt
+// standart-oncelikli akisi korunur; yalniz kampanya kontenjani dolmadikca
+// önce kampanya secilir.
+function otomatikSimuleEtOncelikli(sessiz) {
+    if (!otomatikSistem.aktif) {
+        otomatikBilgilendir(sessiz, 'Otomatik yayin sistemi duraklatilmistir. Once sistemi devam ettirin.');
+        return;
+    }
+    if (otomatikSistem.bugunKullanilan >= otomatikSistem.gunlukKota) {
+        otomatikBilgilendir(sessiz, 'Gunluk otomatik paylasim kotasi (' + otomatikSistem.gunlukKota + ') dolmustur.');
+        return;
+    }
+    if (otomatikSistem.yayinCalisiyor) return;
+
+    var aktifKampanyalar = otomatikAktifKampanyaListesi();
+    var kampanyaKontenjan = aktifKampanyalar.length;
+    if (kampanyaKontenjan > 0 && otomatikSistem.bugunKampanyaKullanilan < kampanyaKontenjan) {
+        var kayit = aktifKampanyalar[0];
+        otomatikKampanyaGonder(sessiz, new Date().toLocaleString('tr-TR'), kayit);
+        return;
+    }
+    otomatikSimuleEt(sessiz);
 }
 
 function otomatikDevamEttir() {
@@ -1940,7 +2361,7 @@ function otomatikSimuleEtYayinla(sessiz, simdi, yapilanKayit, kayitTuru, siraNo,
     otomatikSistem.yayinCalisiyor = true;
     otomatikSistemiKaydet();
 
-    sosyalGercekYayinGonder(icerik, aktifHedefler).then(function (bilgi) {
+    sosyalGercekYayinGonderLogo(icerik, aktifHedefler).then(function (bilgi) {
         otomatikSistem.yayinCalisiyor = false;
         bilgi = bilgi || { platformlar: [], toplamBasarili: 0, toplamBasarisiz: 0, bagliHesapYok: true };
         var platformlar = bilgi.platformlar || [];

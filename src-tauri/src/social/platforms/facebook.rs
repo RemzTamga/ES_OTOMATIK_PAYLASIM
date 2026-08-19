@@ -109,6 +109,82 @@ pub fn publish(
     }
 }
 
+/// Facebook'a çoklu görseli tek gönderi (carousel) olarak yayınlar ve gerçek
+/// post kimliğini döndürür.
+///
+/// Her görsel önce `POST /{page-id}/photos` ile `published=false` ve
+/// `temporary=true` olarak diskten multipart yüklenir ve geçici `image_id`
+/// toplanır; ardından tüm görseller `attached_media` dizisiyle
+/// `POST /{page-id}/feed` uç noktasında tek gönderiye bağlanır. Mevcut
+/// `publish` (tek görsel) akışına dokunulmaz; bu fonksiyon yalnız çoklu görsel
+/// grupları için ayrı bir uç noktadır.
+pub fn publish_carousel(
+    app: &AppHandle,
+    input: &FacebookPostInput,
+) -> Result<String, SocialError> {
+    if input.connection_id.trim().is_empty() {
+        return Err(SocialError::InvalidConnection);
+    }
+    // Carousel en az 2, en fazla 10 görseldir (Detaylı Paylaşım şartnamesi).
+    if input.media_files.len() < 2 {
+        return Err(SocialError::UnsupportedPostType);
+    }
+    if input.media_files.len() > 10 {
+        return Err(SocialError::UnsupportedPostType);
+    }
+
+    let dir = data_dir(app)?;
+    let record = metadata_store::get_connection(&dir, &input.connection_id)?
+        .ok_or(SocialError::InvalidConnection)?;
+    if record.platform_id != PLATFORM_ID {
+        return Err(SocialError::InvalidConnection);
+    }
+
+    let page_token = obtain_page_token(app, &record)?;
+    let client = meta::http_client()?;
+
+    // 1) Her görseli geçici fotoğraf olarak yükle ve image_id topla.
+    let mut image_ids: Vec<String> = Vec::new();
+    for path in &input.media_files {
+        super::super::media_validation::verify_image_or_photo_file(path)?;
+        let url = format!("{}/photos", graph_node_url(&record.external_account_id));
+        let file_part = reqwest::blocking::multipart::Part::file(path)
+            .map_err(|_| SocialError::FileNotFound)?;
+        let form = reqwest::blocking::multipart::Form::new()
+            .text("access_token", page_token.to_string())
+            .text("published", "false")
+            .text("temporary", "true")
+            .part("source", file_part);
+        let resp = client
+            .post(&url)
+            .multipart(form)
+            .send()
+            .map_err(|_| SocialError::PublishFailed)?;
+        let ok = resp.status().is_success();
+        let body = resp.text().unwrap_or_default();
+        if !ok {
+            return Err(map_publish_error(&body));
+        }
+        let image_id = read_id_from_body(&body).ok_or(SocialError::PublishFailed)?;
+        image_ids.push(image_id);
+    }
+
+    // 2) Toplanan görselleri tek gönderide (carousel) birleştir.
+    let attached: Vec<serde_json::Value> = image_ids
+        .iter()
+        .map(|id| serde_json::json!({ "image_id": id }))
+        .collect();
+    let attached_json = serde_json::to_string(&attached).unwrap_or_default();
+    let url = format!(
+        "{}?message={}&attached_media={}&access_token={}",
+        graph_node_url(&record.external_account_id),
+        urlencode(&input.message),
+        urlencode(&attached_json),
+        page_token
+    );
+    send_post_and_read_id(&client, &url)
+}
+
 fn graph_node_url(node_id: &str) -> String {
     format!("https://graph.facebook.com/{}/{}", meta::META_GRAPH_VERSION, node_id)
 }

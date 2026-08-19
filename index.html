@@ -159,7 +159,7 @@
                             <textarea class="form-textarea" placeholder="Açıklama girin veya otomatik oluşturulmasını bekleyin..."></textarea>
                         </div>
                         <div class="form-actions">
-                            <button class="btn btn-primary" onclick="simulateSave('standart')">Kaydet</button>
+                            <button class="btn btn-primary" onclick="paylasimKaydet('standart')">Kaydet</button>
                             <button class="btn btn-success" onclick="simulateNow('standart')">Şimdi Paylaş</button>
                         </div>
                     </div>
@@ -199,7 +199,7 @@
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button class="btn btn-primary" onclick="simulateSave('kampanya')">Kaydet</button>
+                            <button class="btn btn-primary" onclick="paylasimKaydet('kampanya')">Kaydet</button>
                             <button class="btn btn-success" onclick="simulateNow('kampanya')">Şimdi Paylaş</button>
                         </div>
                     </div>
@@ -229,7 +229,7 @@
                             <p class="form-hint">Detaylı Paylaşım için tarih ve saat seçilmesi zorunludur. Otomatik döngü yoktur.</p>
                         </div>
                         <div class="form-actions">
-                            <button class="btn btn-primary" onclick="simulateSave('detayli')">Kaydet (Planlı)</button>
+                            <button class="btn btn-primary" onclick="paylasimKaydet('detayli')">Kaydet (Planlı)</button>
                             <button class="btn btn-success" onclick="simulateNow('detayli')">Şimdi Paylaş</button>
                         </div>
                     </div>
@@ -349,6 +349,20 @@
                 • Sosyal Medya olculeri: Dikey, Kare<br>
                 • Web olculeri: Yatay<br>
                 • Yapay zeka yeni tasarim olusturmaz, mevcut sablonlar kullanilir.
+            </p>
+        </div>
+    </div>
+    <div class="medya-sablon-bilgi" id="medyaLogoBilgi" style="display:none;">
+        <div class="dashboard-card">
+            <div class="card-title">Kurumsal Logo</div>
+            <p style="font-size:0.88rem;color:#4b5563;line-height:1.6;" id="medyaLogoDurum">Logo durumu yukleniyor...</p>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="medyaLogoSec()">Logo Sec ve Kaydet</button>
+                <button class="btn btn-danger" onclick="medyaLogoTemizle()">Logoyu Kaldir</button>
+            </div>
+            <p style="font-size:0.78rem;color:#9ca3af;margin-top:10px;line-height:1.5;">
+                Yayinlanan gorsellere otomatik olarak alt-orta bolgeye, kucuk ve yari saydam
+                sekilde islenir. Gorseli bozmaz, icerigi ortmez. Gorsel disi medyaya uygulanmaz.
             </p>
         </div>
     </div>

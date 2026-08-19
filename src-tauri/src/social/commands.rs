@@ -39,25 +39,29 @@ fn data_dir(app: &AppHandle) -> Result<PathBuf, SocialError> {
 ///   (yanlış/görsel dosyası kabul edilmez).
 /// - Seçim sonrası dosya gerçekten diskte yoksa kontrollü hata döner.
 #[tauri::command]
-pub fn pick_video_file(app: AppHandle) -> Result<String, SocialError> {
-    let picked = app
-        .dialog()
-        .file()
-        .add_filter("Video dosyalari", &["mp4", "mov", "avi", "mkv", "webm", "m4v", "flv", "3gp", "mpeg", "mpg", "ogv", "ts", "wmv"])
-        .blocking_pick_file();
+pub async fn pick_video_file(app: AppHandle) -> Result<String, SocialError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let picked = app
+            .dialog()
+            .file()
+            .add_filter("Video dosyalari", &["mp4", "mov", "avi", "mkv", "webm", "m4v", "flv", "3gp", "mpeg", "mpg", "ogv", "ts", "wmv"])
+            .blocking_pick_file();
 
-    let path = match picked {
-        Some(p) => p,
-        None => return Ok(String::new()), // kullanıcı iptal etti; sahte isim üretilmez
-    };
+        let path = match picked {
+            Some(p) => p,
+            None => return Ok(String::new()), // kullanıcı iptal etti; sahte isim üretilmez
+        };
 
-    // Asynchronously resolved path: mutlak yolu al.
-    let abs = path.into_path().map_err(|_| SocialError::InvalidMediaFile)?;
+        // Asynchronously resolved path: mutlak yolu al.
+        let abs = path.into_path().map_err(|_| SocialError::InvalidMediaFile)?;
 
-    // Uzantı kontrolü: bilinen bir video uzantısı olması gerekir
-    media_validation::verify_video_file(abs.to_str().unwrap_or(""))?;
+        // Uzantı kontrolü: bilinen bir video uzantısı olması gerekir
+        media_validation::verify_video_file(abs.to_str().unwrap_or(""))?;
 
-    Ok(abs.to_string_lossy().into_owned())
+        Ok(abs.to_string_lossy().into_owned())
+    })
+    .await
+    .map_err(|_| SocialError::OperationFailed)?
 }
 
 /// Kullanıcının native dosya seçici ile seçtiği görsel ve/veya video
@@ -75,42 +79,46 @@ pub fn pick_video_file(app: AppHandle) -> Result<String, SocialError> {
 /// - Her dosya, diskten okunarak uzantıya ek olarak içerik imzasıyla da
 ///   doğrulanır (yalnız uzantıya güvenilmez).
 #[tauri::command]
-pub fn pick_media_files(app: AppHandle) -> Result<Vec<String>, SocialError> {
-    let picked = app
-        .dialog()
-        .file()
-        .add_filter(
-            "Medya dosyalari (gorsel / video)",
-            &[
-                "jpg", "jpeg", "png", "webp", "gif", "bmp", "mp4", "mov", "avi", "mkv", "webm",
-                "m4v", "3gp", "mpg", "mpeg", "ogv", "ts", "wmv", "flv",
-            ],
-        )
-        .blocking_pick_files();
+pub async fn pick_media_files(app: AppHandle) -> Result<Vec<String>, SocialError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let picked = app
+            .dialog()
+            .file()
+            .add_filter(
+                "Medya dosyalari (gorsel / video)",
+                &[
+                    "jpg", "jpeg", "png", "webp", "gif", "bmp", "mp4", "mov", "avi", "mkv", "webm",
+                    "m4v", "3gp", "mpg", "mpeg", "ogv", "ts", "wmv", "flv",
+                ],
+            )
+            .blocking_pick_files();
 
-    let Some(files) = picked else {
-        return Ok(Vec::new()); // kullanıcı iptal etti; sahte isim üretilmez
-    };
+        let Some(files) = picked else {
+            return Ok(Vec::new()); // kullanıcı iptal etti; sahte isim üretilmez
+        };
 
-    let mut paths = Vec::with_capacity(files.len());
-    for file in files {
-        let abs = file.into_path().map_err(|_| SocialError::InvalidMediaFile)?;
-        let path = abs.to_string_lossy().into_owned();
-        let lower = path.to_ascii_lowercase();
-        let is_video = [
-            "mp4", "mov", "avi", "mkv", "webm", "m4v", "3gp", "mpg", "mpeg", "ogv", "ts", "wmv",
-            "flv",
-        ]
-        .iter()
-        .any(|ext| lower.ends_with(&format!(".{}", ext)));
-        if is_video {
-            media_validation::verify_video_file(&path)?;
-        } else {
-            media_validation::verify_image_or_photo_file(&path)?;
+        let mut paths = Vec::with_capacity(files.len());
+        for file in files {
+            let abs = file.into_path().map_err(|_| SocialError::InvalidMediaFile)?;
+            let path = abs.to_string_lossy().into_owned();
+            let lower = path.to_ascii_lowercase();
+            let is_video = [
+                "mp4", "mov", "avi", "mkv", "webm", "m4v", "3gp", "mpg", "mpeg", "ogv", "ts", "wmv",
+                "flv",
+            ]
+            .iter()
+            .any(|ext| lower.ends_with(&format!(".{}", ext)));
+            if is_video {
+                media_validation::verify_video_file(&path)?;
+            } else {
+                media_validation::verify_image_or_photo_file(&path)?;
+            }
+            paths.push(path);
         }
-        paths.push(path);
-    }
-    Ok(paths)
+        Ok(paths)
+    })
+    .await
+    .map_err(|_| SocialError::OperationFailed)?
 }
 
 /// Platform kataloğunu ve destek durumlarını döndürür.
@@ -261,11 +269,15 @@ pub struct YoutubeConnectResult {
 /// - Sonuç gerçek bir `SocialAccountConnection` döndürür; hiçbir durumda
 ///   sahte bağlantı, sahte kanal adı veya yer tutucu üretilmez.
 #[tauri::command]
-pub fn youtube_connect(
+pub async fn youtube_connect(
     app: AppHandle,
 ) -> Result<YoutubeConnectResult, SocialError> {
-    let connection = youtube::connect(&app)?;
-    Ok(YoutubeConnectResult { connection })
+    tauri::async_runtime::spawn_blocking(move || {
+        let connection = youtube::connect(&app)?;
+        Ok(YoutubeConnectResult { connection })
+    })
+    .await
+    .map_err(|_| SocialError::OperationFailed)?
 }
 
 /// Bir YouTube hesabına gerçek `videos.insert` (resumable) ile video yükler.
@@ -363,9 +375,13 @@ fn run_meta_connect_flow(
 /// döner; tarayıcı anlamsız bir oturum için açılmaz. Başarıda gerçek `connection`
 /// döner. Sahte bağlantı, sahte Sayfa adı veya yer tutucu token üretilmez.
 #[tauri::command]
-pub fn facebook_connect(app: AppHandle) -> Result<FacebookConnectResult, SocialError> {
-    let connection = run_meta_connect_flow(&app, false)?;
-    Ok(FacebookConnectResult { connection })
+pub async fn facebook_connect(app: AppHandle) -> Result<FacebookConnectResult, SocialError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let connection = run_meta_connect_flow(&app, false)?;
+        Ok(FacebookConnectResult { connection })
+    })
+    .await
+    .map_err(|_| SocialError::OperationFailed)?
 }
 
 /// Instagram OAuth bağlantı sonucu (başarı durumunda).
@@ -383,9 +399,13 @@ pub struct InstagramConnectResult {
 /// `app_secret_required` kontrollü hatası döner; başarıda gerçek `connection`
 /// döner. Sahte bağlantı veya yer tutucu token üretilmez.
 #[tauri::command]
-pub fn instagram_connect(app: AppHandle) -> Result<InstagramConnectResult, SocialError> {
-    let connection = run_meta_connect_flow(&app, true)?;
-    Ok(InstagramConnectResult { connection })
+pub async fn instagram_connect(app: AppHandle) -> Result<InstagramConnectResult, SocialError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let connection = run_meta_connect_flow(&app, true)?;
+        Ok(InstagramConnectResult { connection })
+    })
+    .await
+    .map_err(|_| SocialError::OperationFailed)?
 }
 
 /// Meta bağlantı yapılandırma durumu (gizli bilgi içermez).
@@ -464,6 +484,30 @@ pub fn facebook_publish(
     facebook::publish(&app, &input)
 }
 
+/// Facebook Sayfaya çoklu görseli tek gönderi (carousel) olarak yayınlar ve
+/// gerçek post kimliğini döndürür.
+///
+/// Mevcut `facebook_publish` tek-görsel davranışını değiştirmez; bu komut
+/// yalnız çoklu görsel gruplarını (Detaylı Paylaşım) tek gönderide toplar.
+/// Görseller diskten multipart yüklenir; herkese açık medya URL'si gerekmez.
+#[tauri::command]
+pub fn facebook_publish_carousel(
+    app: AppHandle,
+    connection_id: String,
+    message: String,
+    title: String,
+    media_files: Vec<String>,
+) -> Result<String, SocialError> {
+    let input = facebook::FacebookPostInput {
+        connection_id,
+        message,
+        media_kind: Some(meta::MediaKind::Carousel),
+        media_files,
+        title,
+    };
+    facebook::publish_carousel(&app, &input)
+}
+
 /// Instagram hesabına yayın yapar ve gerçek medya kimliğini döndürür.
 ///
 /// Instagram, medya container'ında herkese açık `image_url` / `video_url` ister.
@@ -518,9 +562,13 @@ pub struct TiktokConnectResult {
 /// - Sonuç gerçek bir `SocialAccountConnection` döndürür; hiçbir durumda
 ///   sahte bağlantı veya yer tutucu token üretilmez.
 #[tauri::command]
-pub fn tiktok_connect(app: AppHandle) -> Result<TiktokConnectResult, SocialError> {
-    let connection = tiktok::connect(&app)?;
-    Ok(TiktokConnectResult { connection })
+pub async fn tiktok_connect(app: AppHandle) -> Result<TiktokConnectResult, SocialError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let connection = tiktok::connect(&app)?;
+        Ok(TiktokConnectResult { connection })
+    })
+    .await
+    .map_err(|_| SocialError::OperationFailed)?
 }
 
 /// TikTok bağlantı yapılandırma durumu (gizli bilgi içermez).
@@ -606,9 +654,13 @@ pub struct XConfigStatus {
 
 /// X hesabına gerçek OAuth 1.0a akışıyla bağlanır.
 #[tauri::command]
-pub fn x_connect(app: AppHandle) -> Result<XConnectResult, SocialError> {
-    let connection = x::connect(&app)?;
-    Ok(XConnectResult { connection })
+pub async fn x_connect(app: AppHandle) -> Result<XConnectResult, SocialError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let connection = x::connect(&app)?;
+        Ok(XConnectResult { connection })
+    })
+    .await
+    .map_err(|_| SocialError::OperationFailed)?
 }
 
 /// X Consumer Key / Secret güvenli depoda yapılandırılmış mı?
@@ -671,9 +723,13 @@ pub struct LinkedinConnectResult {
 ///   veya `DIRECT_SPONSORED_CONTENT_POSTER` rolüne sahip olduğu şirket
 ///   sayfaları keşfedilir ve ayrı bağlantı olarak döndürülür.
 #[tauri::command]
-pub fn linkedin_connect(app: AppHandle) -> Result<LinkedinConnectResult, SocialError> {
-    let connections = linkedin::connect(&app)?;
-    Ok(LinkedinConnectResult { connections })
+pub async fn linkedin_connect(app: AppHandle) -> Result<LinkedinConnectResult, SocialError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let connections = linkedin::connect(&app)?;
+        Ok(LinkedinConnectResult { connections })
+    })
+    .await
+    .map_err(|_| SocialError::OperationFailed)?
 }
 
 /// LinkedIn bağlantı yapılandırma durumu (gizli bilgi içermez).

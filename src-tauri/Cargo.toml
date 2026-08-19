@@ -33,6 +33,8 @@ base64 = "0.22"
 # HMAC-SHA1: X (Twitter) OAuth 1.0a imzalama. 
 hmac = "0.12"
 sha1 = "0.10"
+# Kurumsal logo bindirme: gorsellere alt bolgeye logo isleme.
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "webp"] }
 # ES Merkez Lisanslama uyumlu RSA-PSS imza dogrulamasi (lisans modulu).
 rsa = "0.9"
 # Lisans bitis tarihi karsilastirmasi (yerel tarih).

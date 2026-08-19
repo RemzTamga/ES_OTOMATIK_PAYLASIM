@@ -890,27 +890,39 @@ pub fn website_config_clear(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn website_test(app: AppHandle) -> Result<SiteOutcome, String> {
-    let dir = data_dir(&app)?;
-    let cfg = load_config(&dir)?;
-    let secret = secret_or_error(&cfg).map_err(|o| o.turkce)?;
-    Ok(run_test(&cfg, &secret, Duration::ZERO))
+pub async fn website_test(app: AppHandle) -> Result<SiteOutcome, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let dir = data_dir(&app)?;
+        let cfg = load_config(&dir)?;
+        let secret = secret_or_error(&cfg).map_err(|o| o.turkce)?;
+        Ok(run_test(&cfg, &secret, Duration::ZERO))
+    })
+    .await
+    .map_err(|_| "website_test: background islem basarisiz".to_string())?
 }
 
 #[tauri::command]
-pub fn website_publish(app: AppHandle, input: SitePublishInput) -> Result<SiteOutcome, String> {
-    let dir = data_dir(&app)?;
-    let cfg = load_config(&dir)?;
-    let secret = secret_or_error(&cfg).map_err(|o| o.turkce)?;
-    Ok(run_publish(&cfg, &secret, &input, Duration::ZERO))
+pub async fn website_publish(app: AppHandle, input: SitePublishInput) -> Result<SiteOutcome, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let dir = data_dir(&app)?;
+        let cfg = load_config(&dir)?;
+        let secret = secret_or_error(&cfg).map_err(|o| o.turkce)?;
+        Ok(run_publish(&cfg, &secret, &input, Duration::ZERO))
+    })
+    .await
+    .map_err(|_| "website_publish: background islem basarisiz".to_string())?
 }
 
 #[tauri::command]
-pub fn website_sections(app: AppHandle) -> Result<SiteSectionsOutcome, String> {
-    let dir = data_dir(&app)?;
-    let cfg = load_config(&dir)?;
-    let secret = secret_or_error(&cfg).map_err(|o| o.turkce)?;
-    Ok(run_sections(&cfg, &secret, Duration::ZERO))
+pub async fn website_sections(app: AppHandle) -> Result<SiteSectionsOutcome, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let dir = data_dir(&app)?;
+        let cfg = load_config(&dir)?;
+        let secret = secret_or_error(&cfg).map_err(|o| o.turkce)?;
+        Ok(run_sections(&cfg, &secret, Duration::ZERO))
+    })
+    .await
+    .map_err(|_| "website_sections: background islem basarisiz".to_string())?
 }
 
 // ---------------------------------------------------------------------------

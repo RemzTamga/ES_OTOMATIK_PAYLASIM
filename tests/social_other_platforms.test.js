@@ -486,4 +486,89 @@ test('Aktif saat yardimcisi: tablodaki platformlar saat kisitina uyar', () => {
     }
 });
 
+test('Logo sarmalayici: logo tanimli degilse orijinal motor dogrudan cagrilir', async () => {
+    let logoStatusCagrildi = false;
+    let applyCagrildi = false;
+    const sandbox = loadApp((cmd, args) => {
+        if (cmd === 'logo_status') {
+            logoStatusCagrildi = true;
+            return Promise.resolve({ configured: false, filename: '' });
+        }
+        if (cmd === 'apply_logo_to_images') {
+            applyCagrildi = true;
+            return Promise.resolve(args.paths);
+        }
+        if (cmd === 'social_account_connections') {
+            return Promise.resolve([]);
+        }
+        return Promise.resolve(null);
+    });
+
+    const sonuc = await sandbox.sosyalGercekYayinGonderLogo(
+        { mesaj: 'test', baslik: 't', mediaKind: 'image', mediaFiles: ['C:\\a.png'] },
+        ['facebook']
+    );
+    if (!logoStatusCagrildi) throw new Error('logo_status cagrilmali');
+    if (applyCagrildi) throw new Error('Logo yokken apply_logo_to_images cagrilmamali');
+    if (!sonuc || !sonuc.bagliHesapYok) throw new Error('Orijinal motora delege edilmeli');
+});
+
+test('Logo sarmalayici: logo tanimliysa apply_logo_to_images cagrilip islenmis yollar gecer', async () => {
+    let applyCagrildi = false;
+    const sandbox = loadApp((cmd, args) => {
+        if (cmd === 'logo_status') {
+            return Promise.resolve({ configured: true, filename: 'logo.png' });
+        }
+        if (cmd === 'apply_logo_to_images') {
+            applyCagrildi = true;
+            return Promise.resolve(['C:\\temp\\islenmis-1.png']);
+        }
+        if (cmd === 'social_account_connections') {
+            return Promise.resolve([]);
+        }
+        return Promise.resolve(null);
+    });
+
+    const sonuc = await sandbox.sosyalGercekYayinGonderLogo(
+        { mesaj: 'test', baslik: 't', mediaKind: 'image', mediaFiles: ['C:\\a.png'] },
+        ['facebook']
+    );
+    if (!applyCagrildi) throw new Error('apply_logo_to_images cagrilmali');
+    if (!sonuc || !sonuc.bagliHesapYok) throw new Error('Orijinal motora delege edilmeli');
+});
+
+test('Logo sarmalayici: medya yoksa veya Tauri yoksa ek islem yapilmaz', async () => {
+    let logoStatusCagrildi = false;
+    const sandbox = loadApp((cmd) => {
+        if (cmd === 'logo_status') {
+            logoStatusCagrildi = true;
+            return Promise.resolve({ configured: false, filename: '' });
+        }
+        if (cmd === 'apply_logo_to_images') {
+            throw new Error('apply_logo_to_images cagrilmamali');
+        }
+        if (cmd === 'social_account_connections') {
+            return Promise.resolve([]);
+        }
+        return Promise.resolve(null);
+    });
+
+    // Medya yok: logo_status bile cagrilmamali, orijinal motor cagrilmali.
+    const sonuc = await sandbox.sosyalGercekYayinGonderLogo(
+        { mesaj: 'test', baslik: 't', mediaKind: '', mediaFiles: [] },
+        ['facebook']
+    );
+    if (logoStatusCagrildi) throw new Error('Medya yokken logo_status cagrilmamali');
+    if (!sonuc || !sonuc.bagliHesapYok) throw new Error('Orijinal motora delege edilmeli');
+
+    // Tauri ortami yok: sarmalayici orijinal motora dusmeli (sosyal motor da
+    // Tauri yoksa bagliHesapYok doner).
+    const sandbox2 = loadApp(() => null);
+    const sonuc2 = await sandbox2.sosyalGercekYayinGonderLogo(
+        { mesaj: 'test', baslik: 't', mediaKind: 'image', mediaFiles: ['C:\\a.png'] },
+        ['facebook']
+    );
+    if (!sonuc2 || !sonuc2.bagliHesapYok) throw new Error('Tauri yokken orijinal motor cagrilmali');
+});
+
 runAll();

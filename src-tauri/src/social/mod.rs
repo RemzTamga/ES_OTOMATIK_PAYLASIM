@@ -13,6 +13,7 @@
 
 pub mod commands;
 pub mod credential_store;
+pub mod logo;
 pub mod media_validation;
 pub mod metadata_store;
 pub mod models;
