@@ -390,4 +390,100 @@ test('YouTube: client id yokken tek hata bildirimi, sahte baglanti yok', async (
     }
 });
 
+test('Yayin motoru: YouTube bagliysa youtube_upload_video cagrilir ve video argumanlari gider', async () => {
+    const giden = [];
+    const sandbox = loadApp((cmd, args) => {
+        if (cmd === 'social_account_connections') {
+            return Promise.resolve([
+                { connectionId: 'yt-1', platformId: 'youtube', connectionStatus: 'connected' }
+            ]);
+        }
+        if (cmd === 'youtube_upload_video') {
+            giden.push({ cmd, args });
+            return Promise.resolve('VIDEO_ID_123');
+        }
+        return Promise.resolve(null);
+    });
+
+    const icerik = {
+        mesaj: 'test mesaji',
+        baslik: 'Test Baslik',
+        medyaVar: true,
+        mediaKind: 'video',
+        mediaFiles: ['video.mp4'],
+        mediaUrls: [],
+        videoPath: 'C:\\videos\\video.mp4',
+        privacyLevel: 'SELF_ONLY'
+    };
+    const sonuc = await sandbox.sosyalGercekYayinGonder(icerik);
+
+    if (giden.length !== 1 || giden[0].cmd !== 'youtube_upload_video') {
+        throw new Error('youtube_upload_video tam 1 kez cagrilmali');
+    }
+    const a = giden[0].args;
+    if (a.connectionId !== 'yt-1') throw new Error('connectionId hatali');
+    if (a.videoPath !== 'C:\\videos\\video.mp4') throw new Error('videoPath hatali');
+    if (a.privacy !== 'private') throw new Error('SELF_ONLY -> private beklenir, gelen: ' + a.privacy);
+    if (sonuc.toplamBasarili !== 1) throw new Error('1 basarili yayin beklenir');
+    if (sonuc.platformlar[0].postId !== 'VIDEO_ID_123') throw new Error('postId hatali');
+});
+
+test('Yayin motoru: aktif saat penceresi disindaki platform hedeflenmez', () => {
+    // YouTube aktif penceresi 14-22. Bu test yalniz hedef filtreleme
+    // mantigini dogrular: hedefPlatformlar listesi verildiginde motor yalniz
+    // o platformlara gider.
+    return new Promise((resolve, reject) => {
+        const giden = [];
+        const sandbox = loadApp((cmd, args) => {
+            if (cmd === 'social_account_connections') {
+                return Promise.resolve([
+                    { connectionId: 'yt-1', platformId: 'youtube', connectionStatus: 'connected' },
+                    { connectionId: 'x-1', platformId: 'x', connectionStatus: 'connected' }
+                ]);
+            }
+            if (cmd === 'youtube_upload_video' || cmd === 'x_publish') {
+                giden.push(cmd);
+                return Promise.resolve('ID');
+            }
+            return Promise.resolve(null);
+        });
+
+        sandbox.sosyalGercekYayinGonder({ mesaj: 'test', baslik: 't' }, ['x']).then(function(sonuc) {
+            try {
+                if (giden.indexOf('youtube_upload_video') !== -1) {
+                    throw new Error('Hedef listesinde yokken youtube cagrilmamali');
+                }
+                if (giden.indexOf('x_publish') === -1) {
+                    throw new Error('Hedef listesinde x olunca x_publish cagrilmali');
+                }
+                if (sonuc.hedefPlatformlar.join(',') !== 'x') {
+                    throw new Error('Hedef raporu hatali: ' + sonuc.hedefPlatformlar.join(','));
+                }
+                resolve();
+            } catch (e) {
+                reject(e);
+            }
+        });
+    });
+});
+
+test('Aktif saat yardimcisi: tablodaki platformlar saat kisitina uyar', () => {
+    // Saatten bagimsiz olarak fonksiyonun tanimli oldugunu ve beklenen
+    // araliklarin varligini dogrula (PLATFORM_AKTIF_SAATLER tablosu).
+    const sandbox = loadApp(() => null);
+    const tablo = sandbox.PLATFORM_AKTIF_SAATLER;
+    const beklenen = ['instagram', 'facebook', 'linkedin', 'x', 'tiktok', 'youtube'];
+    for (const pid of beklenen) {
+        if (!tablo[pid] || typeof tablo[pid].bas !== 'number' || typeof tablo[pid].bit !== 'number') {
+            throw new Error('Aktif saat tanimi eksik: ' + pid);
+        }
+        if (tablo[pid].bas >= tablo[pid].bit) {
+            throw new Error('Aktif saat araligi gecersiz: ' + pid);
+        }
+        if (typeof sandbox.platformAktifSaatIcindeMi(pid) !== 'boolean') {
+            throw new Error('Aktif saat kontrolu boolean donmeli: ' + pid);
+        }
+    }
+});
+
 runAll();

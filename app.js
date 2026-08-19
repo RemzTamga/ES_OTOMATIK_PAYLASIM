@@ -490,7 +490,7 @@ function simulateSave(type) {
 // basarili, aksi halde kontrollu hata koduyla basarisiz olarak islenir; sahte
 // basari uretilmez.
 // Bagli yayin destekli hesap yoksa hicbir platform icin basari iddia edilmez.
-function sosyalGercekYayinGonder(icerik) {
+function sosyalGercekYayinGonder(icerik, hedefPlatformlar) {
     var sonuc = {
         platformlar: [], // { platformId, basarili, postId, hataMesaji }
         toplamBasarili: 0,
@@ -511,9 +511,17 @@ function sosyalGercekYayinGonder(icerik) {
             return c.connectionStatus === 'connected';
         });
         // Yalniz yayin destekli platformlar hedeflenir: Facebook, Instagram,
-        // TikTok, X, LinkedIn.
+        // TikTok, X, LinkedIn, YouTube.
         var yayinBagli = bagli.filter(function(c) {
-            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin';
+            var desteklenen = c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin' || c.platformId === 'youtube';
+            if (!desteklenen) return false;
+            // Hedef platform listesi verildiyse yalniz o platformlara yayin yap
+            // (aktif saat penceresi filtresi gibi). Verilmediyse tumu hedeflenir
+            // (ornegin "Simdi Paylas" her platforma aninda yayinlar).
+            if (Array.isArray(hedefPlatformlar) && hedefPlatformlar.length > 0) {
+                return hedefPlatformlar.indexOf(c.platformId) !== -1;
+            }
+            return true;
         });
 
         if (yayinBagli.length === 0) {
@@ -564,6 +572,17 @@ function sosyalGercekYayinGonder(icerik) {
                     mediaKind: icerik.mediaKind || '',
                     mediaFiles: icerik.mediaFiles || []
                 };
+            } else if (platformId === 'youtube') {
+                // YouTube yayini: gercek videos.insert resumable upload.
+                // Yalniz video desteklenir; gizlilik kontrollu degerle gelir.
+                command = 'youtube_upload_video';
+                args = {
+                    connectionId: conn.connectionId,
+                    videoPath: icerik.videoPath || '',
+                    title: icerik.baslik || icerik.mesaj || '',
+                    description: icerik.mesaj || '',
+                    privacy: icerik.privacyLevel === 'PUBLIC' ? 'public' : (icerik.privacyLevel === 'UNLISTED' ? 'unlisted' : 'private')
+                };
             } else {
                 command = 'instagram_publish';
                 args = {
@@ -588,6 +607,9 @@ function sosyalGercekYayinGonder(icerik) {
                 if (r.basarili) { sonuc.toplamBasarili++; } else { sonuc.toplamBasarisiz++; }
                 sonuc.platformlar.push(r);
             });
+            sonuc.hedefPlatformlar = (Array.isArray(hedefPlatformlar) && hedefPlatformlar.length > 0)
+                ? hedefPlatformlar.slice()
+                : yayinBagli.map(function(c) { return c.platformId; });
             return sonuc;
         });
     }).catch(function() {
@@ -1495,6 +1517,31 @@ function gecmisModalKapat() {
 }
 
 // ===== FAZ 6 - OTOMATIK YAYIN DONGUSU =====
+
+// Platform bazli aktif (yayin) saat pencereleri. SARTNAMELER: "Program
+// ulkeye, platforma ve diger kriterlere gore en uygun saati belirleyecek"
+// kararina uygun olarak her platform icin varsayilan aktif aralik tanimlanir.
+// Kullanici saat secmez; program bu tablodaki araliklara gore yayini
+// zamansal olarak yayar. Degerler 24 saatlik saat diliminde [baslangic, bitis)
+// olarak tutulur. Simdi Paylas bu tablodan etkilenmez (aninda tum bagli
+// platformlara gider); yalniz otomatik dongu (Kaydet) bu saatlere uyar.
+var PLATFORM_AKTIF_SAATLER = {
+    'instagram': { bas: 9, bit: 22 },
+    'facebook': { bas: 9, bit: 21 },
+    'linkedin': { bas: 8, bit: 19 },
+    'x': { bas: 9, bit: 20 },
+    'tiktok': { bas: 12, bit: 23 },
+    'youtube': { bas: 14, bit: 22 }
+};
+
+// Bir platformun su an aktif saat penceresinde olup olmadigini dondurur.
+function platformAktifSaatIcindeMi(platformId) {
+    var aralik = PLATFORM_AKTIF_SAATLER[platformId];
+    if (!aralik) return true; // bilinmeyen platform icin kisitlama yok
+    var saat = new Date().getHours();
+    return saat >= aralik.bas && saat < aralik.bit;
+}
+
 var otomatikSistem = {
     aktif: true,
     gunlukKota: 5,
@@ -1731,7 +1778,7 @@ function otomatikDurumuGuncelle() {
             yHtml += '<button class="yonetim-btn aktif" onclick="otomatikDevamEttir()">Sistemi Devam Ettir</button>';
         }
         yHtml += '<button class="yonetim-btn bilgi" onclick="otomatikSimuleEt()">Otomatik Yayini Simule Et</button>';
-        yHtml += '<div style="font-size:0.78rem;color:#9ca3af;margin-top:8px;">Otomatik yayin; bagli hesap varsa gercek yayin motoruyla paylasilir, yoksa kayit sirada korunur ve kotadan dusulmez.</div>';
+        yHtml += '<div style="font-size:0.78rem;color:#9ca3af;margin-top:8px;">Otomatik yayin; bagli hesap varsa gercek yayin motoruyla paylasilir. Her platform kendi aktif saat penceresinde yayinlanir; aktif saat gelmemisse kayit sirada bekletilir, kotadan dusulmez.</div>';
         yHtml += '</div>';
         yonetimKart.innerHTML = yHtml;
     }
@@ -1830,6 +1877,49 @@ function otomatikSimuleEt(sessiz) {
         return;
     }
 
+    // Aktif saat penceresindeki bagli platformlari belirle: otomatik dongu
+    // yalniz su anda aktif saat araliginda olan platformlara yayin yapar.
+    // Bagli platform yoksa ya da hicbiri aktif pencerede degilse kayit
+    // sirasinda bekletilir, kotadan dusulmez.
+    var bagliSorgu = esTauriInvoke('social_account_connections');
+    if (!bagliSorgu) {
+        if (siraKuyruktur) otomatikSistem.standartKayitlar.unshift(yapilanKayit);
+        otomatikBilgilendir(sessiz, 'Gercek yayin motoru yalniz masaustu uygulamada calisir. Kayit sirasinda korundu.');
+        otomatikDurumuGuncelle();
+        return;
+    }
+    bagliSorgu.then(function(list) {
+        var bagli = (list || []).filter(function(c) {
+            return c.connectionStatus === 'connected';
+        });
+        var yayinPlatformlari = bagli.filter(function(c) {
+            return c.platformId === 'facebook' || c.platformId === 'instagram' || c.platformId === 'tiktok' || c.platformId === 'x' || c.platformId === 'linkedin' || c.platformId === 'youtube';
+        }).map(function(c) { return c.platformId; });
+        var aktifHedefler = yayinPlatformlari.filter(function(pid) {
+            return platformAktifSaatIcindeMi(pid);
+        });
+
+        if (aktifHedefler.length === 0) {
+            if (siraKuyruktur) otomatikSistem.standartKayitlar.unshift(yapilanKayit);
+            otomatikSistem.sonYayinZamani = new Date().toISOString();
+            otomatikSistemiKaydet();
+            otomatikBilgilendir(sessiz, 'Su an hicbir bagli platformun aktif saat penceresi yok. Kayit sirasinda bekletiliyor.');
+            otomatikDurumuGuncelle();
+            return;
+        }
+
+        otomatikSimuleEtYayinla(sessiz, simdi, yapilanKayit, kayitTuru, siraNo, siraKuyruktur, aktifHedefler);
+    }).catch(function() {
+        if (siraKuyruktur) otomatikSistem.standartKayitlar.unshift(yapilanKayit);
+        otomatikSistemiKaydet();
+        otomatikBilgilendir(sessiz, 'Bagli hesaplar okunamadi. Kayit sirasinda korundu.');
+        otomatikDurumuGuncelle();
+    });
+}
+
+// Otomatik dongude secilen kaydi yalniz aktif saat penceresindeki platformlara
+// gonderir. Icerik hazirligi ve sonuc isleme burada yapilir.
+function otomatikSimuleEtYayinla(sessiz, simdi, yapilanKayit, kayitTuru, siraNo, siraKuyruktur, aktifHedefler) {
     var mediaList = yapilanKayit.mediaList || [];
     if (!Array.isArray(mediaList)) mediaList = [];
     var videoYolu = yapilanKayit.videoPath || (mediaList.length ? mediaList[mediaList.length - 1] : '');
@@ -1850,7 +1940,7 @@ function otomatikSimuleEt(sessiz) {
     otomatikSistem.yayinCalisiyor = true;
     otomatikSistemiKaydet();
 
-    sosyalGercekYayinGonder(icerik).then(function (bilgi) {
+    sosyalGercekYayinGonder(icerik, aktifHedefler).then(function (bilgi) {
         otomatikSistem.yayinCalisiyor = false;
         bilgi = bilgi || { platformlar: [], toplamBasarili: 0, toplamBasarisiz: 0, bagliHesapYok: true };
         var platformlar = bilgi.platformlar || [];
