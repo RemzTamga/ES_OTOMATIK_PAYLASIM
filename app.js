@@ -744,6 +744,7 @@ function sosyalGercekYayinGonder(icerik, hedefPlatformlar) {
                     caption: icerik.mesaj || '',
                     mediaKind: icerik.mediaKind || '',
                     mediaUrls: icerik.mediaUrls || [],
+                    mediaFiles: icerik.mediaFiles || [],
                     postKind: 'feed'
                 };
             }
@@ -903,27 +904,24 @@ function simulateNow(type) {
     };
     var siraNo = (type === 'duyuru') ? '' : String(Math.floor(Math.random() * 899) + 100);
 
-    // Secilen medya dosyalarini topla (yalnizca ad; icerik bilgisi frontend'de
-    // tutulmaz, Rust tarafi gercek dosya yolunu diskten mulkiyetinde tutar).
-    var inputEl = document.getElementById(type + 'FileInput');
-    var seciliDosyalar = [];
-    var medyaVar = false;
-    if (inputEl && inputEl.files && inputEl.files.length > 0) {
-        medyaVar = true;
-        seciliDosyalar = Array.from(inputEl.files).map(function(f) { return f.name; });
-    }
+    // Secilen medyayi topla: öncelikle native dosya seçicinin döndürdüğü
+    // gerçek disk yollari (Diskten Sec), yoksa tarayici dosya adlari.
+    var secim = secilenMedyaGetir(type);
+    var seciliDosyalar = secim.media;
+    var medyaVar = seciliDosyalar.length > 0;
 
-    // TikTok video için gerçek disk yolunu native dosya seçici ile çöz.
-    // Video seçildiğinde (uzantıya göre) iptal edilirse boş dizeyle devam edilir.
-    var videoSecildi = seciliVideoMi(inputEl);
-    return (videoSecildi ? videoDosyaYoluAl() : Promise.resolve('')).then(function(gercekYol) {
+    // Görsel/video gerçek yolu native seçiciyle çözülmediyse ve webview
+    // input'unda bir video seçildiyse gerçek yolu native dialog ile çöz.
+    var inputEl = document.getElementById(type + 'FileInput');
+    var videoSecildi = !secim.videoPath && seciliVideoMi(inputEl);
+    return (videoSecildi ? videoDosyaYoluAl() : Promise.resolve(secim.videoPath || '')).then(function(gercekYol) {
         var videoPath = gercekYol || '';
 
         var postKapsami = {
             mesaj: names[type] + ' icerigi (manuel yayin)',
             baslik: names[type],
             medyaVar: medyaVar,
-            mediaKind: medyaVar ? 'image' : '',
+            mediaKind: secim.mediaKind || (medyaVar ? 'image' : ''),
             mediaFiles: seciliDosyalar,
             mediaUrls: [],
             videoPath: videoPath,
@@ -3725,6 +3723,19 @@ function ayarlarGenelGeriYukle() {
         if (document.getElementById('ayarlarBildirimler')) document.getElementById('ayarlarBildirimler').checked = true;
         if (document.getElementById('ayarlarSistemUyarilari')) document.getElementById('ayarlarSistemUyarilari').checked = true;
     }
+}
+
+// ---- Instagram medya barindirma temizligi ----
+
+function ayarlarR2Temizlik() {
+    var p = esTauriInvoke('media_host_cleanup');
+    if (!p) return;
+    p.then(function() {
+        alert('Bekleyen (1 saatten eski) gecici dosyalar temizlendi.');
+    }).catch(function(e) {
+        var msg = (e && e.message) ? e.message : 'Temizlik hatasi';
+        alert('Temizlik yapilamadi.\n' + msg);
+    });
 }
 
 // Sayfa yuklendiginde ayarlari geri yukle ve dashboard'u guncelle

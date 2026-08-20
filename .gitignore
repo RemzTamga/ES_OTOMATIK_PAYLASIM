@@ -44,3 +44,6 @@ cargocheck2.log
 rustup-init.exe
 tmp_search.js
 cd
+
+# X OAuth geliştirici anahtarları (ASLA repoya girmez)
+x developer  onsumer key.txt

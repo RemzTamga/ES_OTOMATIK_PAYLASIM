@@ -153,6 +153,9 @@ pub enum SocialError {
     LinkedinNotConfigured,
     LinkedinIdentityLookupFailed,
     LinkedinOrgNotFound,
+    // Geçici medya barındırma (0x0.st) kontrollü hataları.
+    MediaHostUploadFailed,
+    MediaHostDeleteFailed,
 }
 
 impl std::fmt::Display for SocialError {
@@ -201,6 +204,8 @@ impl std::fmt::Display for SocialError {
             SocialError::LinkedinNotConfigured => "linkedin_not_configured",
             SocialError::LinkedinIdentityLookupFailed => "linkedin_identity_lookup_failed",
             SocialError::LinkedinOrgNotFound => "linkedin_org_not_found",
+            SocialError::MediaHostUploadFailed => "media_host_upload_failed",
+            SocialError::MediaHostDeleteFailed => "media_host_delete_failed",
         };
         f.write_str(msg)
     }

@@ -17,7 +17,7 @@ use super::models::{
 };
 use super::platforms::youtube;
 use super::platforms::{facebook, instagram, linkedin, meta, tiktok, x};
-use super::{media_validation, metadata_store, registry};
+use super::{media_validation, media_host, metadata_store, registry};
 
 /// Metadata deposunun kök dizinini uygulama veri klasörü üzerinden hesaplar.
 fn data_dir(app: &AppHandle) -> Result<PathBuf, SocialError> {
@@ -511,9 +511,10 @@ pub fn facebook_publish_carousel(
 /// Instagram hesabına yayın yapar ve gerçek medya kimliğini döndürür.
 ///
 /// Instagram, medya container'ında herkese açık `image_url` / `video_url` ister.
-/// Bu sunucusuz masaüstü mimarisinde herkese açık medya URL'si üreten bir
-/// barındırma hizmeti olmadığı için `media_url_unavailable` döner (sahte URL
-/// üretilmez, yeni sunucu kurulmaz).
+/// Yerel medya dosyası (`media_files`) verilirse dosya geçici barındırmaya
+/// (0x0.st) yüklenip herkese açık URL üretilir; yayın sonrası hemen silinir.
+/// Kullanıcı tarafından verilen herkese açık URL (`media_urls`) varsa doğrudan
+/// kullanılır.
 #[tauri::command]
 pub fn instagram_publish(
     app: AppHandle,
@@ -521,6 +522,7 @@ pub fn instagram_publish(
     caption: String,
     media_kind: String,
     media_urls: Vec<String>,
+    media_files: Vec<String>,
     post_kind: String,
 ) -> Result<String, SocialError> {
     let media_kind = if media_kind.trim().is_empty() {
@@ -539,6 +541,7 @@ pub fn instagram_publish(
         caption,
         media_kind,
         media_urls,
+        media_files,
         post_kind,
     };
     instagram::publish(&app, &input)
@@ -800,4 +803,13 @@ pub fn linkedin_publish(
         media_files,
     };
     linkedin::publish(&app, &input)
+}
+
+// ---- Geçici medya barındırma (0x0.st, Instagram için) ----
+
+/// 0x0.st üzerinde TTL'i aşan geçici medya dosyalarını temizler (manuel tetik).
+#[tauri::command]
+pub fn media_host_cleanup(app: AppHandle) -> Result<(), SocialError> {
+    let dir = data_dir(&app)?;
+    media_host::cleanup_stale(&dir)
 }

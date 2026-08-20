@@ -4,18 +4,17 @@
 //! Kişisel Instagram profillerine ve medyasız (yalnız metin) içeriğe yayın
 //! yapılmaz. Instagram hedefi yalnız gerçek medya içeren içerik için geçerlidir.
 //!
-//! Kısıtlama (uygulanabilirlik kapısı): Instagram Graph API, `/media`
-//! container'ında `image_url` / `video_url` olarak *herkese açık* bir medya URL'si
-//! ister. Yerel diskten doğrudan dosya yüklemesini resmî olarak desteklemez.
-//! Bu uygulamanın mevcut "harici web bağlantısı" yalnız ayar saklanan bir URL
-//! alanıdır; medya barındırma / herkese açık URL üretme hizmeti sağlamaz. Rum
-//! kural gereği bu bağlantı sahte URL üretmek için kullanılmaz ve bu mimaride
-//! yeni bir sunucu oluşturulmaz. Bu nedenle gerçek medya yayını
-//! `MediaUrlUnavailable` ile raporlanır (sahte yayın başarısı üretilmez).
+//! Medya barındırma: Instagram Graph API, `/media` container'ında `image_url` /
+//! `video_url` olarak *herkese açık* bir medya URL'si ister; yerel diskten
+//! doğrudan dosya yüklemesini resmî olarak desteklemez. Bu uygulamanın kalıcı
+//! bir medya sunucusu yoktur; görsel/video, yayın anında ücretsiz anonim
+//! barındırmaya (0x0.st) yüklenir (`media_host` modülü), yayın sonrası token
+//! ile hemen silinir ve `expires=1` saati + TTL temizliği ikinci güvence olur.
 //!
 //! Teşhis, hat eşleştirme, container adımları ve sıra koruması gerçek API
-//! yapısına uygun olarak burada tanımlıdır; yalnızca herkese açık medya URL'si
-//! sağlayıcısı bu sunucusuz masaüstü mimarisinde bulunmadığı için engellenir.
+//! yapısına uygun olarak burada tanımlıdır. Kullanıcı herkese açık bir URL
+//! verirse doğrudan kullanılır; ne URL ne yerel dosya varsa `MediaUrlUnavailable`
+//! döner (sahte yayın başarısı üretilmez).
 
 use tauri::{AppHandle, Manager};
 
@@ -40,8 +39,11 @@ pub struct InstagramPostInput {
     pub caption: String,
     pub media_kind: Option<MediaKind>,
     /// MediaContainer'da kullanılacak herkese açık medya URL'leri.
-    /// Boşsa `media_url_unavailable` döner (sunucusuz mimaride üretilmez).
+    /// Boşsa ve yerel medya dosyası da yoksa `media_url_unavailable` döner.
     pub media_urls: Vec<String>,
+    /// Yerel diskteki gerçek medya dosya yolları. Doluysa dosya geçici
+    /// barındırmaya (0x0.st) yüklenip herkese açık URL üretilir (sunucusuz çözüm).
+    pub media_files: Vec<String>,
     /// Mevcut proje modelindeki kontrollü paylaşım türü (hedef seçiminde).
     pub post_kind: Option<PostKind>,
 }
@@ -111,23 +113,118 @@ pub fn publish(
 
     let ig_user_id = &record.external_account_id;
 
-    // Herkese açık medya URL'si gereklidir. Bu sunucusuz masaüstü mimarisinde
-    // herkese açık medya URL'si üreten bir barındırma hizmeti yoktur; bu yüzden
-    // `media_url_unavailable` döner. (Sahte URL üretilmez, yeni sunucu kurulmaz.)
-    let media_url = input
-        .media_urls
-        .first()
-        .map(|u| u.trim().to_string())
-        .filter(|u| !u.is_empty())
-        .ok_or(SocialError::MediaUrlUnavailable)?;
-
     let client = meta::http_client()?;
-    let _container_id =
-        create_container(&client, ig_user_id, &media_url, &input.caption, media, &access_token)?;
 
-    // Başarısız olursa bağlantıyı `error` yapmadan `media_url_unavailable`
-    // döner; access_token bağlantı bütünlüğü sağlanmışsa devam edilir.
-    Err(SocialError::MediaUrlUnavailable)
+    // Medya kaynağını belirle: önce yerel dosya → geçici barındırma (0x0.st),
+    // yoksa kullanıcı tarafından verilen herkese açık URL.
+    let data_dir = data_dir(app)?;
+    let (media_url, uploaded_token) = resolve_media_url(&data_dir, input, media)?;
+
+    let container_id = create_container(&client, ig_user_id, &media_url, &input.caption, media, &access_token)?;
+
+    // Container hazır olana kadar durum yoklanır; hata olursa kontrollü döner.
+    let _ = wait_container_ready(&client, &container_id, &access_token)?;
+
+    let publish_url = format!(
+        "https://graph.facebook.com/{}/{}/media_publish",
+        meta::META_GRAPH_VERSION,
+        ig_user_id
+    );
+    let form = reqwest::blocking::multipart::Form::new()
+        .text("creation_id", container_id.clone())
+        .text("access_token", access_token.clone());
+    let resp = client
+        .post(&publish_url)
+        .multipart(form)
+        .send()
+        .map_err(|_| SocialError::PublishFailed)?;
+    let ok = resp.status().is_success();
+    let body = resp.text().unwrap_or_default();
+    if !ok {
+        return Err(map_container_error(&body));
+    }
+
+    // Yayın başarılı: geçici dosya artık gerekmez; upload token'ı ile hemen
+    // silinir. (İkinci güvence: silme başarısız olsa bile `expires=1` saati ve
+    // TTL temizliği devreye girer.)
+    if let Some(token) = uploaded_token {
+        cleanup_uploaded(&data_dir, &token);
+    }
+    read_id_from_body(&body).ok_or(SocialError::PublishFailed)
+}
+
+/// Yerel dosyayı geçici barındırmaya (0x0.st) yükleyip herkese açık URL üretir;
+/// kullanıcı URL'si varsa onu kullanır. Dönen ikinci değer, temizlenecek
+/// upload token'ıdır (barındırma kullanılmadıysa `None`).
+fn resolve_media_url(
+    data_dir: &std::path::Path,
+    input: &InstagramPostInput,
+    media: MediaKind,
+) -> Result<(String, Option<String>), SocialError> {
+    // 1) Kullanıcı herkese açık URL verdiyse doğrudan kullan.
+    if let Some(u) = input.media_urls.first() {
+        let trimmed = u.trim().to_string();
+        if !trimmed.is_empty() {
+            return Ok((trimmed, None));
+        }
+    }
+
+    // 2) Yerel dosya varsa 0x0.st'ye yükle.
+    let path = match input.media_files.first() {
+        Some(p) if !p.trim().is_empty() => p.trim().to_string(),
+        _ => return Err(SocialError::MediaUrlUnavailable),
+    };
+
+    // Dosya gerçekten geçerli bir görsel/video mu (yalnız uzantıya güvenme).
+    match media {
+        MediaKind::Photo => super::super::media_validation::verify_image_or_photo_file(&path)?,
+        MediaKind::Video => super::super::media_validation::verify_video_file(&path)?,
+        _ => return Err(SocialError::UnsupportedPostType),
+    }
+
+    // Geçmiş denemelerden kalan eski geçici dosyaları önce temizle (ikinci güvence).
+    let _ = super::super::media_host::cleanup_stale(data_dir);
+
+    let (url, token) = super::super::media_host::upload_media(data_dir, &path, None)
+        .map_err(|_| SocialError::MediaHostUploadFailed)?;
+    Ok((url, Some(token)))
+}
+
+/// Yayın sonrası geçici dosyayı token ile siler; hatalar sessizce yok sayılır
+/// (TTL temizliği yedek güvence olduğu için yayın akışını bozmaz).
+fn cleanup_uploaded(data_dir: &std::path::Path, token: &str) {
+    let _ = super::super::media_host::delete_media(data_dir, token);
+}
+
+/// Container yayına hazır olana kadar durum yoklar (videolar için bekleme
+/// gerekebilir; görsellerde genellikle anında hazır olur).
+fn wait_container_ready(
+    client: &reqwest::blocking::Client,
+    container_id: &str,
+    access_token: &str,
+) -> Result<(), SocialError> {
+    use std::thread::sleep;
+    let url = format!(
+        "https://graph.facebook.com/{}/{}?fields=status_code",
+        meta::META_GRAPH_VERSION,
+        container_id
+    );
+    for _ in 0..30 {
+        let resp = client
+            .get(&url)
+            .query(&[("access_token", access_token)])
+            .send()
+            .map_err(|_| SocialError::MediaContainerFailed)?;
+        let body = resp.text().unwrap_or_default();
+        if body.contains("FINISHED") {
+            return Ok(());
+        }
+        if body.contains("ERROR") || body.contains("EXPIRED") {
+            return Err(SocialError::MediaContainerFailed);
+        }
+        sleep(std::time::Duration::from_secs(2));
+    }
+    Err(SocialError::MediaProcessingTimeout)
 }
 
 /// `POST /{ig-id}/media` ile bir container oluşturur.
@@ -273,12 +370,57 @@ mod tests {
     }
 
     #[test]
-    fn publish_requires_public_media_url() {
-        // Sunucusuz mimaride herkese açık medya URL'si üretilemediğinden
-        // yalnız medya içeriği de olsa yayın `media_url_unavailable` döner.
+    fn publish_requires_some_media_source() {
+        // Ne herkese açık URL ne yerel dosya varsa yayın `media_url_unavailable`
+        // döner (sahte URL üretilmez).
         let kind = MediaKind::Photo;
         assert!(kind.has_media());
-        // `media_urls` boş → `MediaUrlUnavailable` beklenir.
+        let input = InstagramPostInput {
+            connection_id: "c".into(),
+            caption: "cap".into(),
+            media_kind: Some(kind),
+            media_urls: vec![],
+            media_files: vec![],
+            post_kind: None,
+        };
+        let dir = std::path::Path::new(".");
+        // Dosya yok → barındırma yoluna girmeden önce `media_url_unavailable` beklenir.
+        assert_eq!(
+            resolve_media_url(dir, &input, kind).unwrap_err(),
+            SocialError::MediaUrlUnavailable
+        );
+    }
+
+    #[test]
+    fn publish_uses_public_url_directly() {
+        // Kullanıcı herkese açık URL verdiyse barındırmaya dokunulmaz.
+        let input = InstagramPostInput {
+            connection_id: "c".into(),
+            caption: "cap".into(),
+            media_kind: Some(MediaKind::Photo),
+            media_urls: vec!["https://ornek.com/foto.jpg".into()],
+            media_files: vec![],
+            post_kind: None,
+        };
+        let dir = std::path::Path::new(".");
+        let (url, token) = resolve_media_url(dir, &input, MediaKind::Photo).unwrap();
+        assert_eq!(url, "https://ornek.com/foto.jpg");
+        assert!(token.is_none());
+    }
+
+    #[test]
+    fn missing_local_file_fails_validation() {
+        // Yerel dosya verildi ama diskte yoksa kontrollü hata döner.
+        let input = InstagramPostInput {
+            connection_id: "c".into(),
+            caption: "cap".into(),
+            media_kind: Some(MediaKind::Photo),
+            media_urls: vec![],
+            media_files: vec!["C:\\yok\\foto.jpg".into()],
+            post_kind: None,
+        };
+        let dir = std::path::Path::new(".");
+        assert!(resolve_media_url(dir, &input, MediaKind::Photo).is_err());
     }
 
     #[test]

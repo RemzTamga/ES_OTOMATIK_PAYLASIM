@@ -64,6 +64,7 @@ pub fn run() {
             social::logo::logo_status,
             social::logo::logo_clear,
             social::logo::apply_logo_to_images,
+            social::commands::media_host_cleanup,
             site::website_config_get,
             site::website_config_save,
             site::website_config_clear,
